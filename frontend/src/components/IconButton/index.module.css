@@ -1,0 +1,16 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.triggerLight:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.triggerDark:hover {
+    background: rgba(255, 255, 255, 0.12);
+}

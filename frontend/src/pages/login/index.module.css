@@ -1,0 +1,22 @@
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.main {
+    width: 328px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    margin: 20px;
+}
+
+.logo img{
+    height: 80px;
+    margin-right: 15px;
+}

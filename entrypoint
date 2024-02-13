@@ -1,0 +1,11 @@
+#!/bin/bash
+
+groupmod -o -g ${PGID} tissue
+usermod -o -u ${PUID} tissue
+
+chown -R moviepilot:moviepilot /app
+
+umask ${UMASK}
+
+nginx
+gosu tissue:tissue alembic upgrade head && gosu tissue:tissue uvicorn app.main:app --log-level warning
