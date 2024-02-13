@@ -55,6 +55,8 @@ docker pull chris2s/tissue:latest
 
 ### Talk is cheap, show me the view
 
-<img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/0feafe97-4844-4337-afc6-c662495ae0a5">
-<img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/60efb68b-157c-4e06-89f9-e86790647485">
-<img width="1682" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/8c495b53-d8d9-4377-8b65-83b926c55b33">
+<img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/e5707b21-2737-4fb6-839e-a213318eddf3">
+<img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/4597df98-87bf-40a6-805f-37dc0b5e02ad">
+<img width="1682" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/ac11e3c0-7631-40cb-bef6-7074fe3bbc2f">
+
+
