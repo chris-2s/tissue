@@ -1,6 +1,6 @@
 import {
     CloudDownloadOutlined,
-    FolderOpenOutlined, HistoryOutlined,
+    FolderOpenOutlined, HistoryOutlined, ScheduleOutlined,
     SettingOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -13,6 +13,7 @@ import Video from "../pages/video";
 import File from "../pages/file";
 import Download from "../pages/download";
 import History from "../pages/history";
+import Schedule from "../pages/schedule";
 
 export default [
     {
@@ -55,6 +56,13 @@ export default [
                 path: '/setting',
                 icon: (<SettingOutlined/>),
                 element: (<Setting/>),
+                group: '系统'
+            },
+            {
+                title: '任务',
+                path: '/schedule',
+                icon: (<ScheduleOutlined />),
+                element: (<Schedule/>),
                 group: '系统'
             },
         ]

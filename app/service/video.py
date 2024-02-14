@@ -80,30 +80,17 @@ class VideoService(BaseService):
         video_notify = VideoNotify(**video.model_dump())
         video_notify.mode = mode
         video_notify.trans_mode = trans_mode
-        video_notify.file_path = source_path
         video_notify.size = utils.convert_size(os.stat(source_path).st_size)
 
-        try:
-            dest_path = self.trans(video, setting.app.video_path, trans_mode)
-            if dest_path != source_path:
-                history = History(status=1, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
-                                  source_path=source_path, dest_path=dest_path, trans_method=trans_mode)
-                history.add(self.db)
-                self.db.commit()
-
-                video_notify.is_success = True
-                notify.send(video_notify)
-
-        except Exception as e:
-            history = History(status=0, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
-                              source_path=source_path, trans_method=trans_mode)
+        dest_path = self.trans(video, setting.app.video_path, trans_mode)
+        if dest_path != source_path:
+            history = History(status=1, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
+                              source_path=source_path, dest_path=dest_path, trans_method=trans_mode)
             history.add(self.db)
             self.db.commit()
 
-            video_notify.is_success = False
-            notify.send(video_notify)
-
-            raise e
+            video_notify.is_success = True
+            notify.send_video(video_notify)
 
     def trans(self, video: VideoDetail, video_path: str, trans_mode: str):
         if not os.path.exists(video.path):

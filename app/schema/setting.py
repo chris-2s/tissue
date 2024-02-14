@@ -28,6 +28,7 @@ class SettingDownload(BaseModel):
     download_path: str = '/downloads'
     mapping_path: str = '/downloads'
     trans_auto: bool = False
+    delete_auto: bool = False
     category: Optional[str] = None
 
 

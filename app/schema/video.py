@@ -61,6 +61,5 @@ class VideoNotify(VideoDetail):
     mode: Optional[str] = None
     trans_mode: Optional[str] = None
     torrent_hash: Optional[str] = None
-    file_path: Optional[str] = None
     size: Optional[str] = None
     message: Optional[str] = None

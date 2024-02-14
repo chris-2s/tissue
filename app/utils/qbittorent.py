@@ -19,13 +19,19 @@ class QBittorent:
         except:
             raise BizException('下载器连接失败')
 
-    def get_torrents(self, category: Optional[str] = None):
+    def get_torrents(self, category: Optional[str] = None, include_failed=True, include_success=True):
         result = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
             'filter': ['seeding', 'completed'],
             'category': category
         }).json()
 
-        return filter(lambda item: '整理成功' not in item['tags'], result)
+        if not include_failed:
+            result = filter(lambda item: '整理失败' not in item['tags'], result)
+
+        if not include_success:
+            result = filter(lambda item: '整理成功' not in item['tags'], result)
+
+        return result
 
     def get_torrent_files(self, torrent_hash: str):
         return self.session.get(urljoin(self.host, '/api/v2/torrents/files'), params={
@@ -42,4 +48,10 @@ class QBittorent:
         self.session.post(urljoin(self.host, '/api/v2/torrents/removeTags'), data={
             'hashes': torrent_hash,
             'tags': ','.join(tags)
+        })
+
+    def delete_torrent(self, torrent_hash: str):
+        self.session.post(urljoin(self.host, '/api/v2/torrents/delete'), data={
+            'hashes': torrent_hash,
+            'deleteFiles': 'true'
         })
