@@ -57,7 +57,7 @@ function History() {
             title: '路径',
             dataIndex: 'path',
             render: (_, record: any) => (
-                <div style={{fontSize: '12px', maxWidth: 680}}>
+                <div style={{fontSize: 13, maxWidth: 680}}>
                     <div>{record.source_path}</div>
                     <div>{'==>'}</div>
                     <div>{record.dest_path}</div>
@@ -124,6 +124,7 @@ function History() {
             <Table rowKey={'id'} scroll={{x: 'max-content'}} columns={columns} loading={loading}
                    dataSource={realData}/>
             <VideoDetail title={'重新整理'}
+                         mode={'history'}
                          transMode={selected?.status ? 'move' : selected?.trans_mode}
                          width={1100}
                          path={selected?.status ? selected?.dest_path : selected?.source_path}

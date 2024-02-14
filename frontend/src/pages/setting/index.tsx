@@ -1,11 +1,12 @@
 import {Card, Tabs} from "antd";
 import SettingApp from "./app";
 import React from "react";
-import {AppstoreOutlined, CloudDownloadOutlined, FolderOpenOutlined} from "@ant-design/icons";
+import {AppstoreOutlined, CloudDownloadOutlined, FolderOpenOutlined, NotificationOutlined} from "@ant-design/icons";
 import {useRequest} from "ahooks";
 import * as api from "../../apis/setting";
 import SettingDownload from "./download";
 import SettingFile from "./file";
+import SettingNotify from "./notify";
 
 
 function Setting() {
@@ -31,6 +32,12 @@ function Setting() {
             label: '下载',
             children: <SettingDownload data={data.download}/>,
             icon: <CloudDownloadOutlined/>,
+        },
+        {
+            key: 'notify',
+            label: '通知',
+            children: <SettingNotify data={data.notify}/>,
+            icon: <NotificationOutlined />,
         },
     ]
 
