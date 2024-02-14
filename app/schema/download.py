@@ -14,4 +14,5 @@ class Torrent(BaseModel):
     name: str
     size: str
     path: str
+    tags: List[str]
     files: List[TorrentFile] = []

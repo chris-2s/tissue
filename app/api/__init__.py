@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.api import auth, user, setting, video, common, file, download, history
+from app.api import auth, user, setting, video, common, file, download, history, schedule
 from app.dependencies.security import verify_token
 
 api_router = APIRouter()
@@ -14,3 +14,4 @@ api_router.include_router(video.router, prefix='/video', dependencies=[Depends(v
 api_router.include_router(file.router, prefix='/file', dependencies=[Depends(verify_token)])
 api_router.include_router(download.router, prefix='/download', dependencies=[Depends(verify_token)])
 api_router.include_router(history.router, prefix='/history', dependencies=[Depends(verify_token)])
+api_router.include_router(schedule.router, prefix='/schedule', dependencies=[Depends(verify_token)])

@@ -48,8 +48,12 @@ function SettingDownload(props: { data?: any }) {
                 <Form.Item label={'对应路径'} name={'mapping_path'}>
                     <Input/>
                 </Form.Item>
-                <Form.Item label={'自动转移'} name={'trans_auto'} valuePropName={'checked'}
+                <Form.Item label={'自动转移(Beta)'} name={'trans_auto'} valuePropName={'checked'}
                            tooltip={'下载完成后是否自动转移到影片任务'}>
+                    <Switch/>
+                </Form.Item>
+                <Form.Item label={'自动删种(Beta)'} name={'delete_auto'} valuePropName={'checked'}
+                           tooltip={'整理完成后自动删除种子及数据'}>
                     <Switch/>
                 </Form.Item>
                 <Form.Item label={'任务分类'} name={'category'} tooltip="只有指定类别的任务会被识别，留空则为所有任务"
