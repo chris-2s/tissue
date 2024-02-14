@@ -29,7 +29,7 @@ class SettingDownload(BaseModel):
     mapping_path: str = '/downloads'
     trans_auto: bool = False
     delete_auto: bool = False
-    category: Optional[str] = None
+    category: Optional[str] = ''
 
 
 class SettingNotify(BaseModel):
