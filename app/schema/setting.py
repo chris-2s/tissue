@@ -25,8 +25,19 @@ class SettingDownload(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     trans_mode: str = 'copy'
+    download_path: str = '/downloads'
+    mapping_path: str = '/downloads'
     trans_auto: bool = False
     category: Optional[str] = None
+
+
+class SettingNotify(BaseModel):
+    type: str = 'telegram'
+
+    webhook_url: Optional[str] = None
+
+    telegram_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
 
 
 config_path = Path(f'{Path(__file__).cwd()}/config/app.conf')
@@ -36,6 +47,7 @@ class Setting(BaseModel):
     app: SettingApp = SettingApp()
     file: SettingFile = SettingFile()
     download: SettingDownload = SettingDownload()
+    notify: SettingNotify = SettingNotify()
 
     def __init__(self):
         settings = Setting.read()

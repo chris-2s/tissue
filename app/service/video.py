@@ -9,9 +9,9 @@ from app import utils
 from app.db import get_db
 from app.db.models import History
 from app.exception import BizException
-from app.schema import VideoList, VideoDetail, Setting
+from app.schema import VideoList, VideoDetail, Setting, VideoNotify
 from app.service.base import BaseService
-from app.utils import nfo, spider, num_parser, cache
+from app.utils import nfo, spider, num_parser, cache, notify
 from app.utils.image import save_images
 
 
@@ -77,6 +77,12 @@ class VideoService(BaseService):
                 trans_mode = 'move'
         source_path = video.path
 
+        video_notify = VideoNotify(**video.model_dump())
+        video_notify.mode = mode
+        video_notify.trans_mode = trans_mode
+        video_notify.file_path = source_path
+        video_notify.size = utils.convert_size(os.stat(source_path).st_size)
+
         try:
             dest_path = self.trans(video, setting.app.video_path, trans_mode)
             if dest_path != source_path:
@@ -84,11 +90,19 @@ class VideoService(BaseService):
                                   source_path=source_path, dest_path=dest_path, trans_method=trans_mode)
                 history.add(self.db)
                 self.db.commit()
+
+                video_notify.is_success = True
+                notify.send(video_notify)
+
         except Exception as e:
             history = History(status=0, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
                               source_path=source_path, trans_method=trans_mode)
             history.add(self.db)
             self.db.commit()
+
+            video_notify.is_success = False
+            notify.send(video_notify)
+
             raise e
 
     def trans(self, video: VideoDetail, video_path: str, trans_mode: str):

@@ -54,3 +54,13 @@ class VideoDetail(BaseModel):
     is_zh: bool = False
     # 是否无码
     is_uncensored: bool = False
+
+
+class VideoNotify(VideoDetail):
+    is_success: bool = True
+    mode: Optional[str] = None
+    trans_mode: Optional[str] = None
+    torrent_hash: Optional[str] = None
+    file_path: Optional[str] = None
+    size: Optional[str] = None
+    message: Optional[str] = None

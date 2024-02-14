@@ -35,6 +35,10 @@ class DownloadService(BaseService):
                 size = file['size']
                 path = info['content_path'] if len(files) == 1 else os.path.join(info['save_path'],
                                                                                  file['name'])
+
+                if path.startswith(setting.download.download_path):
+                    path = path.replace(setting.download.download_path, setting.download.mapping_path, 1)
+
                 if ext_name in setting.app.video_format.split(',') and size > (
                         setting.app.video_size_minimum * 1024 * 1024):
                     torrent.files.append(TorrentFile(name=name, size=utils.convert_size(size), path=path))

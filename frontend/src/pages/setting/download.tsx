@@ -41,7 +41,15 @@ function SettingDownload(props: { data?: any }) {
                         {TransModeOptions.map(i => (<Select.Option key={i.value}>{i.name}</Select.Option>))}
                     </Select>
                 </Form.Item>
-                <Form.Item label={'自动转移'} name={'trans_auto'} valuePropName={'checked'} tooltip={'下载完成后是否自动转移到影片任务'}>
+                <Form.Item label={'下载路径'} name={'download_path'}
+                           tooltip={'将下载路径对应到系统路径，解决下载器和系统下载路径不一致的问题'}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label={'对应路径'} name={'mapping_path'}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label={'自动转移'} name={'trans_auto'} valuePropName={'checked'}
+                           tooltip={'下载完成后是否自动转移到影片任务'}>
                     <Switch/>
                 </Form.Item>
                 <Form.Item label={'任务分类'} name={'category'} tooltip="只有指定类别的任务会被识别，留空则为所有任务"
