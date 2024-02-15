@@ -97,18 +97,9 @@ class VideoService(BaseService):
             raise BizException('视频不存在')
 
         _, ext_name = os.path.splitext(video.path)
-        nfo_path = nfo.get_nfo_path_by_video(video.path)
-        exist = nfo.get_full(nfo_path)
 
-        if exist and trans_mode == 'move':
-            exist_path, _ = os.path.split(video.path)
-            if os.path.exists(nfo_path):
-                os.remove(nfo_path)
-            for item in ['poster', 'thumb', 'fanart']:
-                image = getattr(exist, item)
-                image_path = os.path.join(exist_path, image)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
+        if trans_mode == 'move':
+            self.delete_video_meta(video.path)
 
         actor_folder = ",".join(map(lambda i: i.name, video.actors[0:3])) + ("等" if len(video.actors) > 3 else "")
         video_folder = video.title[0:80]
@@ -134,3 +125,23 @@ class VideoService(BaseService):
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)
         nfo.save(new_nfo_path, video)
         return video_path
+
+    def delete_video(self, path):
+        if not os.path.exists(path):
+            raise BizException("视频不存在")
+        self.delete_video_meta(path)
+        os.remove(path)
+        utils.remove_empty_directory(path)
+
+    def delete_video_meta(self, path):
+        nfo_path = nfo.get_nfo_path_by_video(path)
+        exist = nfo.get_full(nfo_path)
+        if exist:
+            if os.path.exists(nfo_path):
+                os.remove(nfo_path)
+            exist_path, _ = os.path.split(path)
+            for item in ['poster', 'thumb', 'fanart']:
+                image = getattr(exist, item)
+                image_path = os.path.join(exist_path, image)
+                if os.path.exists(image_path):
+                    os.remove(image_path)

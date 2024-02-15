@@ -1,6 +1,6 @@
 import {useRequest} from "ahooks";
 import * as api from "../../apis/video";
-import {Card, Col, Empty, Row, Skeleton, Space, Tag} from "antd";
+import {Card, Col, Empty, FloatButton, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
 import React, {useState} from "react";
 import VideoDetail from "./detail";
@@ -48,7 +48,7 @@ function Video() {
                     </Card>
                 </Col>
             )}
-
+            <FloatButton.BackTop />
             <VideoDetail title={'编辑'}
                          mode={'video'}
                          width={1100}

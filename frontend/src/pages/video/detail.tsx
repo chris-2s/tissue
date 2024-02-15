@@ -1,7 +1,7 @@
 import {
     Button,
     Checkbox,
-    Col,
+    Col, Divider,
     Form,
     Input,
     message,
@@ -56,6 +56,14 @@ function VideoDetail(props: Props) {
         }
     })
 
+    const {run: onDelete, loading: onDeleting} = useRequest(api.deleteVideo, {
+        manual: true,
+        onSuccess: (response) => {
+            message.success('删除成功')
+            onOk?.(response.request.data)
+        }
+    })
+
     async function loadVideoDetail(path: string) {
         let response = await api.getVideoDetail(path)
         if (!response.num) {
@@ -81,6 +89,15 @@ function VideoDetail(props: Props) {
         return onSave(value, mode, transMode)
     }
 
+    function handleDelete() {
+        Modal.confirm({
+            title: '是否确认删除',
+            onOk: () => {
+                onDelete(path)
+            }
+        })
+    }
+
     useEffect(() => {
         if (otherProps.open && path) {
             onLoad(path)
@@ -91,6 +108,10 @@ function VideoDetail(props: Props) {
 
     return (
         <Modal {...otherProps} footer={[
+            mode === 'video' && (<>
+                <Button onClick={handleDelete} danger loading={onDeleting}>删除</Button>
+                <Divider type={'vertical'}/>
+            </>),
             <Button key={'scrape'} onClick={handleScrape} loading={onScraping}>刮削</Button>,
             <Button key={'save'} type={"primary"} loading={onSaving} onClick={() => form.submit()}>确定</Button>,
         ]}>

@@ -47,3 +47,11 @@ export function saveVideo(data: any, mode?: string, transMode?: string) {
         data: data
     })
 }
+
+export function deleteVideo(path?: string) {
+    return request.request({
+        url: '/video/',
+        method: 'delete',
+        params: {path},
+    })
+}
