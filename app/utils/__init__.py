@@ -13,6 +13,10 @@ def convert_size(text):
 def remove_empty_directory(path: str):
     parent = os.path.abspath(os.path.join(path, '..'))
     if os.path.isdir(path):
+        ds_store = os.path.join(path, '.DS_Store')
+        if os.path.exists(ds_store):
+            os.remove(ds_store)
+
         children = os.listdir(path)
         if children:
             return

@@ -40,3 +40,9 @@ def save_video(video: VideoDetail,
                service=Depends(get_video_service)):
     service.save_video(video, mode, trans_mode)
     return R.ok()
+
+
+@router.delete('/')
+def delete_video(path: str, service=Depends(get_video_service)):
+    service.delete_video(path)
+    return R.ok()
