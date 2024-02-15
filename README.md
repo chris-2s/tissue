@@ -1,5 +1,10 @@
 # Tissue
 
+![GitHub License](https://img.shields.io/github/license/chris-2s/tissue)
+![Docker Image Version](https://img.shields.io/docker/v/chris2s/tissue)
+![Docker Image Size](https://img.shields.io/docker/image-size/chris2s/tissue)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/chris-2s/tissue/build.yml)
+
 老师教材刮削工具，提供海报下载、元数据匹配等功能，使教材能够在Jellyfin、Emby、Kodi等工具里装订成册，便于学习。
 
 [效果图传送阵](#talk-is-cheap-show-me-the-view)
