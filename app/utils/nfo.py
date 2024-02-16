@@ -39,6 +39,9 @@ def get_full(path: str):
                 actor = VideoActor()
                 actor.name = element.find('name').text
                 actor.thumb = element.find('thumb').text
+                if actor.thumb.startswith('/'):
+                    actor.thumb = element.find('avatar').text
+
                 nfo.actors.append(actor)
             case 'tag':
                 if element.text.startswith('系列:'):
@@ -119,6 +122,10 @@ def save(path: str, detail: VideoDetail):
                 thumb = ET.Element('thumb')
                 thumb.text = actor.thumb
                 actor_element.append(thumb)
+
+                avatar = ET.Element('avatar')
+                avatar.text = actor.thumb
+                actor_element.append(avatar)
             root.append(actor_element)
 
     if detail.studio:

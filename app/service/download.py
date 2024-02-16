@@ -75,11 +75,14 @@ class DownloadService(BaseService):
             num = None
             video = VideoNotify(path=file.path)
             try:
-                num = video_service.parse_video(file.path).num
+                match_num = video_service.parse_video(file.path)
+                num = match_num.num
                 if num is None:
                     raise BizException(message='番号识别失败')
                 video = video_service.scrape_video(num)
                 video.path = file.path
+                video.is_zh = match_num.is_zh
+                video.is_uncensored = match_num.is_uncensored
                 video_service.save_video(video, mode='download')
             except BizException as e:
                 has_error = True
