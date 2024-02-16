@@ -47,7 +47,8 @@ class Scheduler:
                                replace_existing=True)
 
     def remove(self, key: str):
-        self.scheduler.remove_job(key)
+        if self.scheduler.get_job(key):
+            self.scheduler.remove_job(key)
 
     def manually(self, key: str):
         job = self.scheduler.get_job(key)
