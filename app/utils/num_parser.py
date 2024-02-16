@@ -38,10 +38,10 @@ def parse_extra(name: str):
     name = name.replace('_', '-').upper()
     is_zh = False
     is_uncensored = False
-    if name.endswith('cn') or name.endswith('-C') or name.endswith(' -UC'):
+    if name.endswith('cn') or name.endswith('-C') or name.endswith('-UC'):
         is_zh = True
 
-    if name.endswith('uncensored') or name.endswith('-UC') or name.endswith(' -U'):
+    if name.endswith('uncensored') or name.endswith('-UC') or name.endswith('-U'):
         is_uncensored = True
     return is_zh, is_uncensored
 

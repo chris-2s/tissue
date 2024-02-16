@@ -41,16 +41,16 @@ def get_full(path: str):
             case 'actor':
                 actor = VideoActor()
                 actor_name = element.find('name')
-                if actor_name:
+                if actor_name is not None:
                     actor.name = actor_name.text
 
                 actor_thumb = element.find('thumb')
-                if actor_thumb:
+                if actor_thumb is not None:
                     actor.thumb = actor_thumb.text
 
                 if not actor.thumb or actor.thumb.startswith('/'):
                     avatar = element.find('avatar')
-                    if avatar:
+                    if avatar is not None:
                         actor.thumb = avatar.text
 
                 nfo.actors.append(actor)
