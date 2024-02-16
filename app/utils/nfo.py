@@ -14,15 +14,18 @@ def get_basic(video: str):
     if not os.path.exists(path):
         return None
 
-    tree = ET.parse(path)
-    root = tree.getroot()
-    title = root.find('title')
-    cover = root.find('cover')
-    extra = root.find('extra')
-    is_zh = (extra.get('is_zh') == '1') if extra is not None else False
-    is_uncensored = (extra.get('is_uncensored') == '1') if extra is not None else False
-    nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored)
-    return nfo
+    try:
+        tree = ET.parse(path)
+        root = tree.getroot()
+        title = root.find('title')
+        cover = root.find('cover')
+        extra = root.find('extra')
+        is_zh = (extra.get('is_zh') == '1') if extra is not None else False
+        is_uncensored = (extra.get('is_uncensored') == '1') if extra is not None else False
+        nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored)
+        return nfo
+    except:
+        return None
 
 
 def get_full(path: str):
@@ -37,10 +40,18 @@ def get_full(path: str):
         match element.tag:
             case 'actor':
                 actor = VideoActor()
-                actor.name = element.find('name').text
-                actor.thumb = element.find('thumb').text
-                if actor.thumb.startswith('/'):
-                    actor.thumb = element.find('avatar').text
+                actor_name = element.find('name')
+                if actor_name:
+                    actor.name = actor_name.text
+
+                actor_thumb = element.find('thumb')
+                if actor_thumb:
+                    actor.thumb = actor_thumb.text
+
+                if not actor.thumb or actor.thumb.startswith('/'):
+                    avatar = element.find('avatar')
+                    if avatar:
+                        actor.thumb = avatar.text
 
                 nfo.actors.append(actor)
             case 'tag':
