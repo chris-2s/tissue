@@ -1,7 +1,7 @@
-import {Layout, theme, Drawer, ConfigProvider, message} from "antd";
+import {Layout, theme, Drawer, ConfigProvider, message, FloatButton, InputRef} from "antd";
 import {Navigate, Outlet} from "react-router-dom";
 import Styles from "./index.module.css";
-import {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useScreen} from "../../utils/useScreen";
 import Sider from "./sider";
 import Header from "./header";
@@ -20,6 +20,8 @@ function Index() {
     const {token} = useToken()
     const {userToken, logging} = useSelector((state: RootState) => state.auth)
     const dispatch = useDispatch<Dispatch>().auth
+
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (userToken) {
@@ -63,9 +65,10 @@ function Index() {
                             <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
                         </Layout.Header>
                         <Layout.Content style={{overflowY: "scroll", background: token.colorBgLayout}}
-                                        className={Styles.content}>
+                                        className={Styles.content} ref={contentRef}>
                             <div style={{padding: token.paddingContentVertical}}>
                                 <Outlet/>
+                                {contentRef.current && <FloatButton.BackTop target={() => contentRef.current!!}/>}
                             </div>
                         </Layout.Content>
                     </Layout>
