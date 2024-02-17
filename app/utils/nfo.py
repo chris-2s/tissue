@@ -48,11 +48,6 @@ def get_full(path: str):
                 if actor_thumb is not None:
                     actor.thumb = actor_thumb.text
 
-                if not actor.thumb or actor.thumb.startswith('/'):
-                    avatar = element.find('avatar')
-                    if avatar is not None:
-                        actor.thumb = avatar.text
-
                 nfo.actors.append(actor)
             case 'tag':
                 if element.text.startswith('系列:'):
@@ -133,10 +128,6 @@ def save(path: str, detail: VideoDetail):
                 thumb = ET.Element('thumb')
                 thumb.text = actor.thumb
                 actor_element.append(thumb)
-
-                avatar = ET.Element('avatar')
-                avatar.text = actor.thumb
-                actor_element.append(avatar)
             root.append(actor_element)
 
     if detail.studio:
@@ -205,5 +196,9 @@ def save(path: str, detail: VideoDetail):
     if detail.is_uncensored:
         extra.set('is_uncensored', '1')
     root.append(extra)
+
+    lock = ET.Element('lockdata')
+    lock.text = 'true'
+    root.append(lock)
 
     tree.write(path, encoding='utf-8', xml_declaration=True)
