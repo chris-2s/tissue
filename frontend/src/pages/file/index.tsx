@@ -48,7 +48,7 @@ function File() {
                       )}
                 />
             ) : (
-                <Empty description={(<span>暂无文件，<Link to={'/setting#file'}>配置文件</Link></span>)}/>
+                <Empty description={(<span>无文件，<Link to={'/setting#file'}>配置文件</Link></span>)}/>
             )}
             <VideoDetail title={'文件整理'}
                          mode={'file'}
