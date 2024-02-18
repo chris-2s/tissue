@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.scheduler import scheduler
 from app.schema import Setting
 from app.schema.r import R
+from app.utils.qbittorent import qbittorent
 
 router = APIRouter()
 
@@ -29,5 +30,7 @@ def save_setting(section: str, setting: dict):
             scheduler.add('delete_complete_download')
         else:
             scheduler.remove('delete_complete_download')
+
+        qbittorent.host = setting.get('host')
 
     return R.ok()

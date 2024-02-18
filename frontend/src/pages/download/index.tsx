@@ -85,7 +85,7 @@ function Download() {
             {realData.length > 0 ? (
                 <Collapse items={items} ghost={true}/>
             ) : (
-                <Empty description={(<span>暂无下载，<Link to={'/setting#download'}>配置下载</Link></span>)}/>
+                <Empty description={(<span>无完成下载，<Link to={'/setting#download'}>配置下载</Link></span>)}/>
             )}
             <VideoDetail title={'下载整理'}
                          mode={'download'}

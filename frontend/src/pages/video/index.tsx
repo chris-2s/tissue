@@ -44,7 +44,7 @@ function Video() {
             ) : (
                 <Col span={24}>
                     <Card>
-                        <Empty description={(<span>暂无视频，<Link to={'/setting#app'}>配置视频</Link></span>)}/>
+                        <Empty description={(<span>无视频，<Link to={'/setting#app'}>配置视频</Link></span>)}/>
                     </Card>
                 </Col>
             )}

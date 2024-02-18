@@ -7,11 +7,11 @@ from app import utils
 from app.db import get_db, SessionFactory
 from app.db.models import History
 from app.exception import BizException
-from app.schema import Torrent, TorrentFile, Setting, VideoNotify, VideoDetail
+from app.schema import Torrent, TorrentFile, Setting, VideoNotify
 from app.service.base import BaseService
 from app.service.video import VideoService
 from app.utils import notify
-from app.utils.qbittorent import QBittorent
+from app.utils.qbittorent import qbittorent
 
 
 def get_download_service(db: Session = Depends(get_db)):
@@ -23,7 +23,7 @@ class DownloadService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db)
         self.setting = Setting()
-        self.qb = QBittorent(self.setting.download.host, self.setting.download.username, self.setting.download.password)
+        self.qb = qbittorent
 
     def get_downloads(self, include_success=False, include_failed=True):
         if not self.setting.download.host:
