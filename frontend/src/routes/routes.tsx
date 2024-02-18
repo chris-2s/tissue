@@ -1,6 +1,6 @@
 import {
     CloudDownloadOutlined,
-    FolderOpenOutlined, HistoryOutlined, ScheduleOutlined,
+    FolderOpenOutlined, HistoryOutlined, HomeOutlined, ScheduleOutlined,
     SettingOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -14,8 +14,15 @@ import File from "../pages/file";
 import Download from "../pages/download";
 import History from "../pages/history";
 import Schedule from "../pages/schedule";
+import Home from "../pages/home";
 
 export default [
+    {
+        title: '首页',
+        path: '/',
+        icon: (<HomeOutlined />),
+        element: (<Home/>),
+    },
     {
         title: '影片',
         path: '/video',

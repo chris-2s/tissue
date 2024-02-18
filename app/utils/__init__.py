@@ -1,12 +1,12 @@
 import os
 
 
-def convert_size(text):
+def convert_size(text, bits=2):
     units = ["B", "KB", "MB", "GB", "TB", "PB"]
     size = 1024
     for i in range(len(units)):
         if (text / size) < 1:
-            return "%.2f%s" % (text, units[i])
+            return f"%.{bits}f%s" % (text, units[i])
         text = text / size
 
 

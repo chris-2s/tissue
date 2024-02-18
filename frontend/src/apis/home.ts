@@ -1,15 +1,34 @@
 import {request} from "../utils/requests";
 
-export function getStatistics() {
-    return request.request({
-        url: '/home/statistic',
+export async function getSystemInfo() {
+    const response = await request.request({
+        url: '/home/system',
         method: 'get'
     })
+    return response.data
 }
 
-export function getSchedules() {
-    return request.request({
-        url: '/home/schedule',
+export async function getVideoCount() {
+    const response = await request.request({
+        url: '/home/video',
         method: 'get'
     })
+    return response.data
+}
+
+export async function getDiskSpace() {
+    const response = await request.request({
+        url: '/home/disk',
+        method: 'get'
+    })
+    return response.data
+}
+
+
+export async function getDownloadInfo() {
+    const response = await request.request({
+        url: '/home/download',
+        method: 'get'
+    })
+    return response.data
 }

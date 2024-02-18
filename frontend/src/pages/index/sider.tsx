@@ -2,7 +2,7 @@ import React from "react";
 import Styles from "./side.module.css";
 import {Menu, theme} from "antd";
 import routes from "../../routes/routes";
-import {useLocation, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import Logo from "../../assets/logo.png";
 
 
@@ -41,7 +41,7 @@ function Sider(props: Props) {
     return (
         <div>
             <div className={Styles.logo}>
-                <img src={Logo} alt=""/>
+                <Link to={'/'}><img src={Logo} alt=""/></Link>
             </div>
             <Menu selectedKeys={[location.pathname]} mode={'inline'} items={generateItems(routes)} onSelect={item => {
                 props.onSelect?.()
