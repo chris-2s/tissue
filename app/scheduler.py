@@ -11,7 +11,7 @@ class Scheduler:
     jobs = {
         'scrape_download': {
             'key': 'scrape_download',
-            'name': '整理下载',
+            'name': '整理已完成下载',
             'job': DownloadService.job_scrape_download,
             'interval': 5
         },

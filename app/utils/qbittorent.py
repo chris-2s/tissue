@@ -77,5 +77,9 @@ class QBittorent:
             'deleteFiles': 'true'
         })
 
+    @auth
+    def get_trans_info(self):
+        return self.session.get(urljoin(self.host, '/api/v2/transfer/info')).json()
+
 
 qbittorent = QBittorent()
