@@ -8,7 +8,7 @@ ENV LANG="C.UTF-8" \
     UMASK=000
 
 RUN apt-get update -y \
-    && apt-get -y install nginx locales gosu
+    && apt-get -y install nginx locales gosu gcc
 
 COPY ./nginx/ /etc/nginx/conf.d/
 COPY . /app/
