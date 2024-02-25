@@ -11,15 +11,15 @@ class JavbusSpider(Spider):
     host = "https://www.javbus.com/"
     name = 'Javbus'
 
-    def get_info(self):
+    def get_info(self, num: str):
 
-        url = urljoin(self.host, self.num)
+        url = urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)
 
         html = etree.HTML(response.text)
 
         meta = VideoDetail()
-        meta.num = self.num
+        meta.num = num
 
         title_element = html.xpath("//h3")
         if title_element:

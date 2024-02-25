@@ -18,14 +18,16 @@ class Spider:
     name = None
     host = None
 
-    def __init__(self, num):
-        self.num = num
+    def __init__(self):
         self.setting = Setting().app
         self.session = Session()
         self.session.headers = {'User-Agent': self.setting.user_agent}
         self.session.timeout = (5, self.session.timeout)
 
-    def get_info(self):
+    def get_info(self, num: str):
+        pass
+
+    def get_video(self, url: str):
         pass
 
     @classmethod
