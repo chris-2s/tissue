@@ -13,14 +13,15 @@ class JavdbSpider(Spider):
     host = "https://javdb.com"
     name = 'Javdb'
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
-    def get_info(self):
 
-        url = self.search()
+    def get_info(self, num: str):
+
+        url = self.search(num)
         if not url:
             raise SpiderException('未找到匹配影片')
 
         meta = VideoDetail()
-        meta.num = self.num
+        meta.num = num
 
         response = self.session.get(url)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
@@ -28,7 +29,7 @@ class JavdbSpider(Spider):
         title_element = html.xpath("//strong[@class='current-title']")
         if title_element:
             title = title_element[0].text.strip()
-            meta.title = f'{self.num.upper()} {title}'
+            meta.title = f'{num.upper()} {title}'
 
         premiered_element = html.xpath("//strong[text()='日期:']/../span")
         if premiered_element:
@@ -92,12 +93,12 @@ class JavdbSpider(Spider):
 
         return meta
 
-    def search(self):
-        url = urljoin(self.host, f"/search?q={self.num}&f=all")
+    def search(self, num: str):
+        url = urljoin(self.host, f"/search?q={num}&f=all")
         response = self.session.get(url)
 
         html = etree.HTML(response.content)
-        matched_element = html.xpath(fr"//strong[text()='{self.num}']/../..")
+        matched_element = html.xpath(fr"//strong[text()='{num}']/../..")
         if matched_element:
             code = matched_element[0].get('href')
             return urljoin(self.host, code)

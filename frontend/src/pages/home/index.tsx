@@ -15,7 +15,7 @@ function Home() {
 
         setInterval(() => {
             loadSystem()
-        }, 10000)
+        }, 3000)
 
         setInterval(() => {
             loadDownloadInfo()
@@ -26,7 +26,7 @@ function Home() {
     return (
         <Row gutter={[15, 15]}>
             <Col span={12} lg={8}>
-                <Card bordered={false} loading={!system}>
+                <Card bordered={false}>
                     <Statistic
                         title="CPU"
                         value={system?.cpu_percent}
@@ -35,7 +35,7 @@ function Home() {
                 </Card>
             </Col>
             <Col span={12} lg={8}>
-                <Card bordered={false} loading={!system}>
+                <Card bordered={false}>
                     <Statistic
                         title="可用内存"
                         value={system?.memory_available}

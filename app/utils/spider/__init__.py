@@ -31,12 +31,12 @@ def get_video_cover(url: str):
 
 
 def get_video_info(number: str):
-    spiders = [JavbusSpider(number), JavdbSpider(number), Jav321Spider(number), DmmSpider(number)]
+    spiders = [JavbusSpider(), JavdbSpider(), Jav321Spider(), DmmSpider()]
     metas = []
     for spider in spiders:
         try:
             logger.info(f"站点《{spider.name}》开始获取...")
-            meta = spider.get_info()
+            meta = spider.get_info(number)
             metas.append(meta)
             logger.info(f"站点《{spider.name}》获取成功!")
         except SpiderException as e:

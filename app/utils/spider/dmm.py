@@ -12,14 +12,14 @@ class DmmSpider(Spider):
     host = "https://www.dmm.co.jp"
     name = 'DMM'
 
-    def get_info(self):
-        url = self.get_real_page()
+    def get_info(self, num: str):
+        url = self.get_real_page(num)
         response = self.session.get(url)
         if response.status_code == 404:
             raise SpiderException('未找到匹配影片')
 
         meta = VideoDetail()
-        meta.num = self.num
+        meta.num = num
 
         html = etree.HTML(response.text)
         outline_element = html.xpath("//div[@class='clear']/following-sibling::div[1]")
@@ -37,13 +37,13 @@ class DmmSpider(Spider):
         meta.website.append(response.url)
         return meta
 
-    def generate_url(self):
-        parts = self.num.split("-")
+    def generate_url(self, num: str):
+        parts = num.split("-")
         url = "{0}{1:0>5d}".format(parts[0], int(parts[1]))
         return urljoin(self.host, f"/digital/videoa/-/detail/=/cid={url}/")
 
-    def get_real_page(self):
-        url = self.generate_url()
+    def get_real_page(self, num: str):
+        url = self.generate_url(num)
         response = self.session.get(url)
         html = etree.HTML(response.text)
         check_element = html.xpath("//div[@class='ageCheck__btn']/a")

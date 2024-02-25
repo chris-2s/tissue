@@ -8,6 +8,7 @@ import {Input, Modal, theme} from "antd";
 interface Props {
     value?: string
     onChange?: (value?: string) => void
+    disabled?: boolean
 }
 
 const {useToken} = theme
@@ -15,7 +16,7 @@ const {useToken} = theme
 function VideoCoverEditor(props: Props) {
 
     const {token} = useToken()
-    const {value, onChange} = props
+    const {value, disabled = false, onChange} = props
     const [modalVisible, setModalVisible] = useState(false)
     const [url, setUrl] = useState<string>()
 
@@ -26,9 +27,11 @@ function VideoCoverEditor(props: Props) {
     return (
         <div style={{position: 'relative'}}>
             <VideoCover src={value}/>
-            <div className={Styles.cover} onClick={() => setModalVisible(true)}>
-                <EditOutlined style={{fontSize: token.sizeMD, color: token.colorWhite}}/>
-            </div>
+            {!disabled && (
+                <div className={Styles.cover} onClick={() => setModalVisible(true)}>
+                    <EditOutlined style={{fontSize: token.sizeMD, color: token.colorWhite}}/>
+                </div>
+            )}
             <Modal title={'图片地址'}
                    open={modalVisible}
                    onOk={() => {

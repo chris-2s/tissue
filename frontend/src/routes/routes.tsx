@@ -1,4 +1,5 @@
 import {
+    CarryOutOutlined,
     CloudDownloadOutlined,
     FolderOpenOutlined, HistoryOutlined, HomeOutlined, ScheduleOutlined,
     SettingOutlined,
@@ -15,37 +16,56 @@ import Download from "../pages/download";
 import History from "../pages/history";
 import Schedule from "../pages/schedule";
 import Home from "../pages/home";
+import Subscribe from "../pages/subscribe";
 
 export default [
     {
         title: '首页',
         path: '/',
-        icon: (<HomeOutlined />),
+        icon: (<HomeOutlined/>),
         element: (<Home/>),
     },
     {
-        title: '影片',
-        path: '/video',
-        icon: (<VideoCameraOutlined/>),
-        element: (<Video/>),
+        title: '整理',
+        type: 'group',
+        children: [
+            {
+                title: '影片',
+                path: '/video',
+                icon: (<VideoCameraOutlined/>),
+                element: (<Video/>),
+            },
+            {
+                title: '文件',
+                path: '/file',
+                icon: (<FolderOpenOutlined/>),
+                element: (<File/>),
+            },
+            {
+                title: '下载',
+                path: '/download',
+                icon: (<CloudDownloadOutlined/>),
+                element: (<Download/>),
+            },
+            {
+                title: '历史',
+                path: '/history',
+                icon: (<HistoryOutlined/>),
+                element: (<History/>),
+            },
+        ]
     },
     {
-        title: '文件',
-        path: '/file',
-        icon: (<FolderOpenOutlined />),
-        element: (<File/>),
-    },
-    {
-        title: '下载',
-        path: '/download',
-        icon: (<CloudDownloadOutlined />),
-        element: (<Download/>),
-    },
-    {
-        title: '历史',
-        path: '/history',
-        icon: (<HistoryOutlined />),
-        element: (<History />),
+        title: '订阅',
+        type: 'group',
+        children: [
+            {
+                title: '订阅',
+                path: '/subscribe',
+                icon: (<CarryOutOutlined/>),
+                element: (<Subscribe/>),
+            },
+        ]
     },
     {
         title: '设置',
@@ -68,7 +88,7 @@ export default [
             {
                 title: '任务',
                 path: '/schedule',
-                icon: (<ScheduleOutlined />),
+                icon: (<ScheduleOutlined/>),
                 element: (<Schedule/>),
                 group: '系统'
             },
