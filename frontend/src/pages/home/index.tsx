@@ -12,15 +12,17 @@ function Home() {
     const {data: downloadInfo, loading: loadingDownloadInfo, run: loadDownloadInfo} = useRequest(api.getDownloadInfo)
 
     useEffect(() => {
-
-        setInterval(() => {
+        const systemTimer = setInterval(() => {
             loadSystem()
         }, 3000)
 
-        setInterval(() => {
+        const downloadTimer = setInterval(() => {
             loadDownloadInfo()
         }, 3000)
-
+        return () => {
+            clearTimeout(systemTimer)
+            clearTimeout(downloadTimer)
+        }
     }, [])
 
     return (
