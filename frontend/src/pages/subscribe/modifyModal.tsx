@@ -50,7 +50,7 @@ function ModifyModal(props: Props) {
             <Button key={'save'} type={"primary"} loading={props.confirmLoading}
                     onClick={props.onOk}>确定</Button>,
         ]}>
-            <Form form={form} layout={'vertical'}>
+            <Form form={form} disabled={true} layout={'vertical'}>
                 <Form.Item noStyle name={'id'}>
                     <Input style={{display: 'none'}}/>
                 </Form.Item>
@@ -85,18 +85,18 @@ function ModifyModal(props: Props) {
                             </Col>
                             <Col span={8}>
                                 <Form.Item label={'高清'} name={'is_hd'} valuePropName={'checked'} initialValue={true}>
-                                    <Checkbox/>
+                                    <Checkbox disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
                                 <Form.Item label={'中文'} name={'is_zh'} valuePropName={'checked'} initialValue={false}>
-                                    <Checkbox/>
+                                    <Checkbox disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
                                 <Form.Item label={'无码'} name={'is_uncensored'} valuePropName={'checked'}
                                            initialValue={false}>
-                                    <Checkbox/>
+                                    <Checkbox disabled={false}/>
                                 </Form.Item>
                             </Col>
                         </Row>

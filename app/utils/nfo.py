@@ -58,6 +58,8 @@ def get_full(path: str):
                     nfo.tags.append(element.text)
             case 'website':
                 nfo.website.append(element.text)
+            case 'plot':
+                if not nfo.outline: nfo.outline = element.text
             case 'extra':
                 nfo.is_zh = element.attrib.get('is_zh') == '1'
                 nfo.is_uncensored = element.attrib.get('is_uncensored') == '1'

@@ -1,8 +1,11 @@
+import random
+import re
+
 import requests
 from lxml import etree
 from urllib.parse import urljoin
 
-from app.schema import VideoDetail, VideoActor
+from app.schema import VideoDetail, VideoActor, SubscribeScrape
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -82,3 +85,53 @@ class JavbusSpider(Spider):
         meta.website.append(url)
 
         return meta
+
+    def get_video(self, url: str):
+        response = self.session.get(url, allow_redirects=False).text
+
+        params = {'lang': 'zh', 'floor': random.Random().randint(100, 1000)}
+
+        gid = re.search(r'var gid = (\w+);', response)
+        params['gid'] = gid.group(1)
+
+        uc = re.search(r'var uc = (\w+);', response)
+        params['uc'] = uc.group(1)
+
+        img = re.search(r'var img = \'(.+)\';', response)
+        params['img'] = img.group(1)
+
+        response = self.session.get(urljoin(self.host, '/ajax/uncledatoolsbyajax.php'), params=params,
+                                    allow_redirects=True, headers={'Referer': self.host})
+        html = etree.HTML(f'<table>{response.text}</table>', parser=etree.HTMLParser(encoding='utf-8'))
+
+        result = []
+        table = html.xpath("//tr")
+        for item in table:
+            parts = item.xpath("./td[1]/a")
+            if not parts:
+                continue
+
+            video = SubscribeScrape()
+            video.website = self.name
+            video.url = url
+            video.name = parts[0].text.strip()
+            video.magnet = parts[0].get('href')
+
+            title = parts[0].text.strip()
+            if '无码' in title or '破解' in title:
+                video.is_uncensored = True
+
+            for tag in parts[1:]:
+                if tag.text == '高清':
+                    video.is_hd = True
+                if tag.text == '字幕':
+                    video.is_zh = True
+
+            size_element = item.xpath("./td[2]/a")[0]
+            video.size = size_element.text.strip()
+
+            publish_date_element = item.xpath("./td[3]/a")[0]
+            video.publish_date = publish_date_element.text.strip()
+
+            result.append(video)
+        return result

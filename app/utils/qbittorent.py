@@ -28,6 +28,8 @@ class QBittorent:
         def wrapper(self, *args, **kwargs):
             try:
                 response = func(self, *args, **kwargs)
+                if response.status_code == 403:
+                    raise Exception()
             except:
                 self.login()
                 response = func(self, *args, **kwargs)
@@ -80,6 +82,12 @@ class QBittorent:
     @auth
     def get_trans_info(self):
         return self.session.get(urljoin(self.host, '/api/v2/transfer/info')).json()
+
+    @auth
+    def add_magnet(self, magnet: str):
+        return self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
+            'urls': magnet
+        })
 
 
 qbittorent = QBittorent()
