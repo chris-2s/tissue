@@ -59,3 +59,17 @@ def get_video_info(number: str):
         meta.website = [m.website[0] for m in metas if m.website]
         logger.info("站点信息合并完成！")
     return meta
+
+
+def get_video(number: str):
+    spiders = [JavbusSpider(), JavdbSpider()]
+    result = []
+    for spider in spiders:
+        try:
+            meta = spider.get_info(number)
+            if meta:
+                videos = spider.get_video(meta.website[0])
+                result += videos
+        except:
+            continue
+    return result

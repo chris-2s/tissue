@@ -5,10 +5,17 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from app.schema import Setting
 from app.service.download import DownloadService
+from app.service.subscribe import SubscribeService
 
 
 class Scheduler:
     jobs = {
+        'subscribe': {
+            'key': 'subscribe',
+            'name': '订阅下载',
+            'job': SubscribeService.job_subscribe,
+            'interval': 60
+        },
         'scrape_download': {
             'key': 'scrape_download',
             'name': '整理已完成下载',
@@ -27,6 +34,8 @@ class Scheduler:
         self.scheduler = BackgroundScheduler()
 
     def init(self):
+        self.add('subscribe')
+
         setting = Setting()
         if setting.download.trans_auto:
             self.add('scrape_download')

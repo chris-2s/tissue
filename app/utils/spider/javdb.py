@@ -4,7 +4,7 @@ from lxml import etree
 
 import requests
 
-from app.schema import VideoDetail, VideoActor
+from app.schema import VideoDetail, VideoActor, SubscribeScrape
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -102,3 +102,40 @@ class JavdbSpider(Spider):
         if matched_element:
             code = matched_element[0].get('href')
             return urljoin(self.host, code)
+
+    def get_video(self, url: str):
+        response = self.session.get(url)
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+
+        result = []
+        table = html.xpath("//div[@id='magnets-content']/div")
+        for item in table:
+            video = SubscribeScrape()
+
+            parts = item.xpath("./div[1]/a")[0]
+            video.website = self.name
+            video.url = url
+            video.name = parts[0].text.strip()
+            video.magnet = parts.get('href')
+
+            name = parts.xpath("./span[1]")
+            if name:
+                if '无码' in name[0].text or '破解' in name[0].text:
+                    video.is_uncensored = True
+
+            size = parts.xpath("./span[2]")
+            if size:
+                video.size = size[0].text.split(',')[0].strip()
+
+            for tag in parts.xpath('./div[@class="tags"]/span'):
+                if tag.text == '高清':
+                    video.is_hd = True
+                if tag.text == '字幕':
+                    video.is_zh = True
+
+            publish_date = item.xpath("./div[2]/span")
+            if publish_date:
+                video.publish_date = publish_date[0].text.strip()
+
+            result.append(video)
+        return result
