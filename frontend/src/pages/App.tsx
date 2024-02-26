@@ -23,12 +23,13 @@ dayjs.locale('zh-cn')
 function App() {
 
     const currentTheme = useSelector((state: RootState) => state.app.theme)
+    const algorithm = themes.find(i => i.name === currentTheme)?.algorithm
 
     return (
         <ConfigProvider
             locale={zhCN}
             theme={{
-                algorithm: themes.find(i => i.name === currentTheme)?.algorithm,
+                algorithm: algorithm,
             }}>
             <div className="App">
                 <RouterProvider router={routes}/>

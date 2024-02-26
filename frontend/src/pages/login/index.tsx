@@ -1,4 +1,4 @@
-import {Button, Form, Input, theme} from "antd";
+import {Button, Checkbox, Form, Input, theme} from "antd";
 import Styles from "./index.module.css";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
 import React from "react";
@@ -36,6 +36,9 @@ function Login() {
                     </Form.Item>
                     <Form.Item name={'password'}>
                         <Input.Password prefix={<LockOutlined/>}/>
+                    </Form.Item>
+                    <Form.Item noStyle name={'remember'} valuePropName={'checked'}>
+                        <Checkbox style={{marginBottom: 20}}>保持登录</Checkbox>
                     </Form.Item>
                     <Button type={'primary'} style={{width: '100%'}} loading={logging}
                             htmlType={'submit'}>登录</Button>

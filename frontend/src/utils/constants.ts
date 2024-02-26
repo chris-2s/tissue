@@ -1,6 +1,7 @@
 import {theme} from "antd";
+import {SunOutlined, MoonOutlined} from "@ant-design/icons";
 
 export const themes = [
-    {name: 'default', algorithm: theme.defaultAlgorithm, icon: 'icon-light-mode'},
-    {name: 'dark', algorithm: theme.darkAlgorithm, icon: 'icon-dark-mode'},
+    {name: 'default', algorithm: theme.defaultAlgorithm, icon: SunOutlined},
+    {name: 'dark', algorithm: theme.darkAlgorithm, icon: MoonOutlined},
 ]

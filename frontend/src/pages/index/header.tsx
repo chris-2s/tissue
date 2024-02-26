@@ -1,8 +1,7 @@
 import {Divider, Dropdown, Space, theme} from "antd";
 
-import {LogoutOutlined, MenuOutlined, UserOutlined} from "@ant-design/icons";
+import {EyeInvisibleOutlined, EyeOutlined, LogoutOutlined, MenuOutlined, UserOutlined} from "@ant-design/icons";
 import Styles from "./header.module.css";
-import IconFont from "../../components/IconFont";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import {themes} from "../../utils/constants";
@@ -21,13 +20,20 @@ function Header(props: Props) {
 
     const {token} = useToken()
     const currentTheme = useSelector((state: RootState) => state.app.theme)
+    const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
     const appDispatch = useDispatch<Dispatch>().app
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
 
+    const theme = themes.find(i => i.name === currentTheme)!!
+
     function onThemeChange() {
-        const themeIndex = (themes.findIndex(i => i.name === currentTheme) + 1) % 2
+        const themeIndex = (themes.indexOf(theme) + 1) % 2
         appDispatch.setTheme(themes[themeIndex].name)
+    }
+
+    function onGoodBoyChange() {
+        appDispatch.setGoodBoy(!isGoodBoy)
     }
 
     const items = [
@@ -63,6 +69,7 @@ function Header(props: Props) {
         )
     }
 
+
     return (
         <div className={Styles.container}>
             <div className={Styles.trigger} onClick={() => props.onCollapse?.()}>
@@ -74,9 +81,12 @@ function Header(props: Props) {
             </div>
             <div className={Styles.toolbar}>
                 <Space>
+                    <IconButton onClick={() => onGoodBoyChange()}>
+                        {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
+                            <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
+                    </IconButton>
                     <IconButton onClick={() => onThemeChange()}>
-                        <IconFont type={themes.find(i => i.name === currentTheme)!!.icon}
-                                  style={{fontSize: token.sizeLG}}/>
+                        <theme.icon style={{fontSize: token.sizeLG}}/>
                     </IconButton>
                     <Dropdown arrow menu={{items, onClick}} dropdownRender={renderDropdown}>
                         <IconButton>

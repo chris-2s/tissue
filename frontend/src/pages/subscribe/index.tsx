@@ -40,7 +40,7 @@ function Subscribe() {
         <div>
             <div style={{marginBottom: 10, textAlign: "right"}}>
                 <Space>
-                    <Button type={'primary'} onClick={() => setOpen(true)}>新增订阅</Button>
+                    <Button type={'primary'} onClick={() => setOpen(true)}>新增</Button>
                 </Space>
             </div>
             <Row gutter={[15, 15]}>
