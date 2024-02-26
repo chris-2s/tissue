@@ -28,12 +28,12 @@ export const auth = createModel<RootModel>()({
         }
     },
     effects: (dispatch) => ({
-        async login(params: { username: string, password: string }) {
+        async login(params: { username: string, password: string, remember: boolean }) {
             try {
                 dispatch.auth.setLogging(true)
                 const response = await api.login(params)
                 const token = response.data.data
-                Cookies.set('userToken', token)
+                Cookies.set('userToken', token, params.remember ? {expires: 365} : {})
                 dispatch.auth.setToken(token)
             } finally {
                 dispatch.auth.setLogging(false)

@@ -25,7 +25,7 @@ function VideoCoverEditor(props: Props) {
     }, [value])
 
     return (
-        <div style={{position: 'relative'}}>
+        <div style={{position: 'relative', borderRadius: 8, overflow: 'hidden'}}>
             <VideoCover src={value}/>
             {!disabled && (
                 <div className={Styles.cover} onClick={() => setModalVisible(true)}>
