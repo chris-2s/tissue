@@ -8,6 +8,7 @@ from app.db.transaction import transaction
 from app.exception import BizException
 from app.service.base import BaseService
 from app.utils import spider, notify
+from app.utils.logger import logger
 from app.utils.qbittorent import qbittorent
 
 
@@ -40,31 +41,40 @@ class SubscribeService(BaseService):
 
     def do_subscribe(self):
         subscribes = self.get_subscribes()
+        logger.info(f"获取到{len(subscribes)}个订阅")
         for subscribe in subscribes:
             result = spider.get_video(subscribe.num)
             if not result:
+                logger.error("所有站点均未获取到影片")
                 continue
 
             def get_matched(item):
                 if subscribe.is_hd and not item.is_hd:
+                    logger.error("不匹配高清，已跳过")
                     return False
                 if subscribe.is_zh and not item.is_zh:
+                    logger.error("不匹配中文，已跳过")
                     return False
                 if subscribe.is_uncensored and not item.is_uncensored:
+                    logger.error("不匹配无码，已跳过")
                     return False
                 return True
 
             result = list(filter(get_matched, result))
             result.sort(key=lambda i: i.publish_date, reverse=True)
+            logger.info(f"匹配到符合条件的影片{len(result)}部，将选择最新发布的影片")
             matched = result[0]
             if matched:
                 response = qbittorent.add_magnet(matched.magnet)
                 if response.status_code != 200:
+                    logger.error(f"下载创建失败")
                     continue
+                logger. info(f"下载创建成功")
                 subscribe_notify = schema.SubscribeNotify.model_validate(subscribe)
                 subscribe_notify = subscribe_notify.model_copy(update=matched.model_dump())
                 notify.send_subscribe(subscribe_notify)
 
+                logger.info(f"订阅《{subscribe.num}》已完成")
                 self.db.delete(subscribe)
 
     @classmethod

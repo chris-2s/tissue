@@ -18,7 +18,7 @@ class JavdbSpider(Spider):
 
         url = self.search(num)
         if not url:
-            raise SpiderException('未找到匹配影片')
+            raise SpiderException('未找到番号')
 
         meta = VideoDetail()
         meta.num = num

@@ -13,6 +13,7 @@ from app.schema import VideoList, VideoDetail, Setting, VideoNotify
 from app.service.base import BaseService
 from app.utils import nfo, spider, num_parser, cache, notify
 from app.utils.image import save_images
+from app.utils.logger import logger
 
 
 def get_video_service(db: Session = Depends(get_db)):
@@ -114,16 +115,23 @@ class VideoService(BaseService):
                     os.remove(video.path)
             else:
                 if trans_mode == 'move':
+                    logger.info(f"开始移动影片《{video.num}》...")
                     shutil.move(video.path, video_path)
+                    logger.info(f"移动影片完成")
                 else:
+                    logger.info(f"开始复制影片...")
                     shutil.copy(video.path, video_path)
+                    logger.info(f"复制影片完成")
             utils.remove_empty_directory(video.path)
 
         if video.cover:
+            logger.info(f"生成封面及水印图片")
             save_images(video, video_path)
 
+        logger.info(f"生成NFO文件")
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)
         nfo.save(new_nfo_path, video)
+        logger.info(f"影片保存完成")
         return video_path
 
     def delete_video(self, path):

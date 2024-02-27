@@ -16,7 +16,7 @@ class DmmSpider(Spider):
         url = self.get_real_page(num)
         response = self.session.get(url)
         if response.status_code == 404:
-            raise SpiderException('未找到匹配影片')
+            raise SpiderException('未找到番号')
 
         meta = VideoDetail()
         meta.num = num

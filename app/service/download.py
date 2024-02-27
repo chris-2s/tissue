@@ -11,6 +11,7 @@ from app.schema import Torrent, TorrentFile, Setting, VideoNotify
 from app.service.base import BaseService
 from app.service.video import VideoService
 from app.utils import notify
+from app.utils.logger import logger
 from app.utils.qbittorent import qbittorent
 
 
@@ -65,6 +66,7 @@ class DownloadService(BaseService):
             download_service = DownloadService(db=db)
             video_service = VideoService(db=db)
             torrents = download_service.get_downloads(include_failed=False, include_success=False)
+            logger.info(f"获取到{len(torrents)}个已完成下载任务")
             for torrent in torrents:
                 download_service.scrape_download(video_service, torrent, setting.download.trans_mode)
             db.commit()
@@ -100,6 +102,7 @@ class DownloadService(BaseService):
                     video_notify.size = 'N/A'
                     video_notify.message = '文件不存在'
                 video_notify.is_success = False
+                logger.error(f"影片刮削失败，{video_notify.message}")
                 notify.send_video(video_notify)
 
         self.complete_download(torrent.hash, not has_error)
