@@ -1,4 +1,5 @@
 from app.schema import VideoNotify, Setting, SubscribeNotify
+from app.utils.logger import logger
 from app.utils.notify.base import Base
 from app.utils.notify.telegram import Telegram
 from app.utils.notify.webhook import Webhook
@@ -19,7 +20,7 @@ def send_video(video: VideoNotify):
         notification = match_notification()
         notification.send_video(video)
     except:
-        pass
+        logger.error("消息发送失败：视频整理成功")
 
 
 def send_subscribe(subscribe: SubscribeNotify):
@@ -27,4 +28,4 @@ def send_subscribe(subscribe: SubscribeNotify):
         notification = match_notification()
         notification.send_subscribe(subscribe)
     except:
-        pass
+        logger.error("消息发送失败：订阅下载成功")

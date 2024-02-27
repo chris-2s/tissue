@@ -2,10 +2,13 @@ import os.path
 import re
 
 from app.schema import VideoDetail
+from app.utils.logger import logger
 
 
 def parse(path: str):
     file_name = os.path.splitext(os.path.split(path)[-1])[0]
+
+    logger.info(f"提取文件名番号信息：{file_name}")
 
     video = VideoDetail(path=path)
 
@@ -15,7 +18,13 @@ def parse(path: str):
         if video.num:
             video.is_zh, video.is_uncensored = parse_extra(part)
             break
-    return video if video.num else None
+
+    if video:
+        logger.info(f"提取到番号：{video.num}, 中文：{video.is_zh}，无码：{video.is_uncensored}")
+        return video
+    else:
+        logger.error("提取番号失败")
+        return None
 
 
 def parse_num(name: str):

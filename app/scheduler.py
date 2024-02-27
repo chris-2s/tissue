@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -6,6 +8,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.schema import Setting
 from app.service.download import DownloadService
 from app.service.subscribe import SubscribeService
+from app.utils.logger import logger
 
 
 class Scheduler:
@@ -34,6 +37,8 @@ class Scheduler:
         self.scheduler = BackgroundScheduler()
 
     def init(self):
+        self.scheduler.start()
+
         self.add('subscribe')
 
         setting = Setting()
@@ -42,13 +47,12 @@ class Scheduler:
         if setting.download.delete_auto:
             self.add('delete_complete_download')
 
-        self.scheduler.start()
-
     def list(self):
         return self.scheduler.get_jobs()
 
     def add(self, key: str):
         job = self.jobs.get(key)
+        logger.info(f"启动任务，{job['name']}")
         self.scheduler.add_job(job['job'],
                                trigger=IntervalTrigger(minutes=job['interval']),
                                id=job['key'],
@@ -56,12 +60,16 @@ class Scheduler:
                                replace_existing=True)
 
     def remove(self, key: str):
-        if self.scheduler.get_job(key):
+        job = self.scheduler.get_job(key)
+        if job:
+            logger.info(f"停止任务，{job.name}")
             self.scheduler.remove_job(key)
 
     def manually(self, key: str):
         job = self.scheduler.get_job(key)
+        logger.info(f"手动执行任务，{job.name}")
         job.modify(next_run_time=datetime.now())
 
 
+logging.getLogger('apscheduler.scheduler').propagate = False
 scheduler = Scheduler()

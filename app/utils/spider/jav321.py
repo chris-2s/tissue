@@ -18,7 +18,7 @@ class Jav321Spider(Spider):
 
         no = html.xpath("//small")
         if not no or no[0].text.strip() != num.lower():
-            raise SpiderException('未找到匹配影片')
+            raise SpiderException('未找到番号')
 
         meta = VideoDetail()
         meta.num = num

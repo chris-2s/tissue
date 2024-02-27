@@ -29,7 +29,7 @@ class JavbusSpider(Spider):
             title = title_element[0].text
             meta.title = title
         else:
-            raise SpiderException('未找到匹配影片')
+            raise SpiderException('未找到番号')
 
         premiered_element = html.xpath("//span[text()='發行日期:']")
         if premiered_element:

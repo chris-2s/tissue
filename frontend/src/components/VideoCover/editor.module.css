@@ -13,6 +13,8 @@
     align-items: center;
 
     cursor: pointer;
+
+    z-index: 2;
 }
 
 .cover:hover {

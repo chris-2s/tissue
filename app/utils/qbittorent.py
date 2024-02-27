@@ -6,6 +6,7 @@ import requests
 
 from app.exception import BizException
 from app.schema import Setting
+from app.utils.logger import logger
 
 
 class QBittorent:
@@ -22,6 +23,7 @@ class QBittorent:
             if response.status_code != 200:
                 raise BizException(response.text)
         except:
+            logger.info("下载器连接失败")
             raise BizException('下载器连接失败')
 
     def auth(func):
@@ -29,6 +31,7 @@ class QBittorent:
             try:
                 response = func(self, *args, **kwargs)
                 if response.status_code == 403:
+                    logger.info("登录信息失效，将尝试重新登登录...")
                     raise Exception()
             except:
                 self.login()

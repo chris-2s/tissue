@@ -3,6 +3,8 @@ import os.path
 from app.schema import VideoDetail, VideoActor, VideoList
 import xml.etree.ElementTree as ET
 
+from app.utils.logger import logger
+
 
 def get_nfo_path_by_video(path: str):
     file_path, ext_name = os.path.splitext(path)
@@ -25,6 +27,7 @@ def get_basic(video: str):
         nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored)
         return nfo
     except:
+        logger.error("NFO文件读取失败")
         return None
 
 
