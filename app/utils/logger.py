@@ -28,7 +28,9 @@ class CustomFormatter(logging.Formatter):
 class LoggerManager:
 
     def __init__(self):
-        self.logger = logging.getLogger()
+        log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
+
+        self.logger = logging.getLogger(log_path.stem)
         self.logger.setLevel(logging.INFO)
 
         # 终端日志
@@ -38,8 +40,6 @@ class LoggerManager:
         console_handler.setFormatter(console_formatter)
         self.logger.addHandler(console_handler)
 
-        # 文件日志
-        log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
         file_handler = RotatingFileHandler(filename=log_path,
                                            mode='w',
                                            maxBytes=5 * 1024 * 1024,
