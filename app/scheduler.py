@@ -71,5 +71,4 @@ class Scheduler:
         job.modify(next_run_time=datetime.now())
 
 
-logging.getLogger('apscheduler.scheduler').propagate = False
 scheduler = Scheduler()

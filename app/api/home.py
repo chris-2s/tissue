@@ -1,11 +1,15 @@
 import os
+import time
+from pathlib import Path
 
 import psutil
+import tailer
 from fastapi import APIRouter
 
 from app import utils
 from app.schema import HomeSystem, Setting, HomeDisk, HomeDownload
 from app.utils.qbittorent import qbittorent
+from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
@@ -68,3 +72,18 @@ def get_download_info():
                             download_speed=utils.convert_size(info['dl_info_speed']))
     except:
         return None
+
+
+@router.get('/log')
+def get_logs():
+    def log_generator():
+        log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
+        with open(log_path, 'r', encoding='utf-8') as f:
+            for line in f.readlines()[-50:]:
+                yield line
+        while True:
+            for t in tailer.follow(open(log_path, 'r', encoding='utf-8')):
+                yield t or ''
+            time.sleep(1)
+
+    return StreamingResponse(log_generator(), media_type="text/event-stream")
