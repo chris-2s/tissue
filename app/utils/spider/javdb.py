@@ -98,10 +98,11 @@ class JavdbSpider(Spider):
         response = self.session.get(url)
 
         html = etree.HTML(response.content)
-        matched_element = html.xpath(fr"//strong[text()='{num}']/../..")
-        if matched_element:
-            code = matched_element[0].get('href')
-            return urljoin(self.host, code)
+        matched_elements = html.xpath(fr"//div[@class='video-title']/strong")
+        for matched_element in matched_elements:
+            if matched_element.text.lower() == num.lower():
+                code = matched_element.xpath('./../..')[0].get('href')
+                return urljoin(self.host, code)
 
     def get_video(self, url: str):
         response = self.session.get(url)

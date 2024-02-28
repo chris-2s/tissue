@@ -117,11 +117,11 @@ class VideoService(BaseService):
                 if trans_mode == 'move':
                     logger.info(f"开始移动影片《{video.num}》...")
                     shutil.move(video.path, video_path)
-                    logger.info(f"移动影片完成")
+                    logger.info(f"移动影片完成: {video_path}")
                 else:
                     logger.info(f"开始复制影片...")
                     shutil.copy(video.path, video_path)
-                    logger.info(f"复制影片完成")
+                    logger.info(f"复制影片完成: {video_path}")
             utils.remove_empty_directory(video.path)
 
         if video.cover:

@@ -17,7 +17,7 @@ class Jav321Spider(Spider):
         html = etree.HTML(response.text)
 
         no = html.xpath("//small")
-        if not no or no[0].text.strip() != num.lower():
+        if not no or num.lower() not in no[0].text.lower().strip():
             raise SpiderException('未找到番号')
 
         meta = VideoDetail()
