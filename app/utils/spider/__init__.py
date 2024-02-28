@@ -62,7 +62,7 @@ def get_video_info(number: str):
                         break
         meta.website = [m.website[0] for m in metas if m.website]
         logger.info("信息合并成功")
-    logger.info(f"番号《{number}》刮削完成")
+    logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
     return meta
 
 
@@ -81,5 +81,6 @@ def get_video(number: str):
                 result += videos
         except:
             logger.error(f"{spider.name} 获取下载列表失败")
+            traceback.print_exc()
             continue
     return result

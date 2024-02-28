@@ -50,18 +50,22 @@ class SubscribeService(BaseService):
 
             def get_matched(item):
                 if subscribe.is_hd and not item.is_hd:
-                    logger.error("不匹配高清，已跳过")
+                    logger.error(f"{item.name} 不匹配高清，已跳过")
                     return False
                 if subscribe.is_zh and not item.is_zh:
-                    logger.error("不匹配中文，已跳过")
+                    logger.error(f"{item.name} 不匹配中文，已跳过")
                     return False
                 if subscribe.is_uncensored and not item.is_uncensored:
-                    logger.error("不匹配无码，已跳过")
+                    logger.error(f"{item.name} 不匹配无码，已跳过")
                     return False
                 return True
 
             result = list(filter(get_matched, result))
             result.sort(key=lambda i: i.publish_date, reverse=True)
+            if not result:
+                logger.error(f"未匹配到符合条件的影片")
+                continue
+
             logger.info(f"匹配到符合条件的影片{len(result)}部，将选择最新发布的影片")
             matched = result[0]
             if matched:
@@ -69,7 +73,7 @@ class SubscribeService(BaseService):
                 if response.status_code != 200:
                     logger.error(f"下载创建失败")
                     continue
-                logger. info(f"下载创建成功")
+                logger.info(f"下载创建成功")
                 subscribe_notify = schema.SubscribeNotify.model_validate(subscribe)
                 subscribe_notify = subscribe_notify.model_copy(update=matched.model_dump())
                 notify.send_subscribe(subscribe_notify)
