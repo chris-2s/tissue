@@ -28,7 +28,7 @@ export async function parseVideoNum(path: string) {
 }
 
 export function getVideoCover(url: string) {
-    return configs.BASE_IMAGE + '/common/cover?url=' + encodeURIComponent(url)
+    return configs.BASE_API + '/common/cover?url=' + encodeURIComponent(url)
 }
 
 export function scrapeVideo(num: string) {

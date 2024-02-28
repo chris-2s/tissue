@@ -1,12 +1,20 @@
-import {Divider, Dropdown, Space, theme} from "antd";
+import {Divider, Dropdown, Modal, Space, theme} from "antd";
 
-import {EyeInvisibleOutlined, EyeOutlined, LogoutOutlined, MenuOutlined, UserOutlined} from "@ant-design/icons";
+import {
+    CodeOutlined,
+    EyeInvisibleOutlined,
+    EyeOutlined,
+    LogoutOutlined,
+    MenuOutlined,
+    UserOutlined
+} from "@ant-design/icons";
 import Styles from "./header.module.css";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import {themes} from "../../utils/constants";
-import React from "react";
+import React, {useState} from "react";
 import IconButton from "../../components/IconButton";
+import Log from "./log";
 
 
 const {useToken} = theme
@@ -24,6 +32,8 @@ function Header(props: Props) {
     const appDispatch = useDispatch<Dispatch>().app
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
+
+    const [logOpen, setLogOpen] = useState(false)
 
     const theme = themes.find(i => i.name === currentTheme)!!
 
@@ -81,6 +91,9 @@ function Header(props: Props) {
             </div>
             <div className={Styles.toolbar}>
                 <Space>
+                    <IconButton onClick={() => setLogOpen(true)}>
+                        <CodeOutlined style={{fontSize: token.sizeLG}}/>
+                    </IconButton>
                     <IconButton onClick={() => onGoodBoyChange()}>
                         {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
                             <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
@@ -95,6 +108,16 @@ function Header(props: Props) {
                     </Dropdown>
                 </Space>
             </div>
+            <Modal title={'日志'}
+                   open={logOpen}
+                   onCancel={() => setLogOpen(false)}
+                   footer={null}
+                   destroyOnClose
+                   width={1100}
+                   centered
+            >
+                <Log/>
+            </Modal>
         </div>
     )
 }
