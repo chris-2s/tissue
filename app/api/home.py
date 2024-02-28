@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from pathlib import Path
 
@@ -75,15 +76,16 @@ def get_download_info():
 
 
 @router.get('/log')
-def get_logs():
+async def get_logs():
+    log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
+
     def log_generator():
-        log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
         with open(log_path, 'r', encoding='utf-8') as f:
             for line in f.readlines()[-50:]:
-                yield line
+                yield 'data: %s\n\n' % line
         while True:
             for t in tailer.follow(open(log_path, 'r', encoding='utf-8')):
-                yield t or ''
+                yield 'data: %s\n\n' % (t or '')
             time.sleep(1)
 
     return StreamingResponse(log_generator(), media_type="text/event-stream")
