@@ -23,10 +23,19 @@
 
 [前往Docker Hub下载](https://hub.docker.com/r/chris2s/tissue)
 
-或直接执行以下命令
+或直接执行以下命令，请将路径或端口按照自己的实际情况做调整，相关说明请往下看
 
 ```shell
-docker pull chris2s/tissue:latest
+docker run \
+  -d \
+  --name=tissue \
+  -e TZ="Asia/Shanghai" \
+  -p '9193:9193' \
+  -v '/path/for/config':'/app/config' \
+  -v '/path/for/video':'/data/video' \
+  -v '/path/for/file':'/data/file' \
+  -v '/path/for/downloads':'/downloads' \
+  'chris2s/tissue:latest'
 ```
 
 ### Docker环境变量
