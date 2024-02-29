@@ -54,7 +54,7 @@ function Home() {
                 </Card>
             </Col>
             <Col span={24} lg={12}>
-                <Card bordered={false} loading={loadingDiskSpace}>
+                <Card bordered={false}>
                     <Row>
                         <Col span={8}>
                             <Statistic
@@ -71,24 +71,24 @@ function Home() {
                         <Col span={8}>
                             <Statistic
                                 title="下载磁盘"
-                                value={disk?.download}
+                                value={disk?.download || 0}
                             />
                         </Col>
                     </Row>
                 </Card>
             </Col><Col span={24} lg={12}>
-            <Card bordered={false} loading={!downloadInfo}>
+            <Card bordered={false}>
                 <Row>
                     <Col span={8}>
                         <Statistic
                             title="下载速度"
-                            value={downloadInfo?.downloadSpeed}
+                            value={downloadInfo?.downloadSpeed || 0}
                         />
                     </Col>
                     <Col span={8}>
                         <Statistic
                             title="上传速度"
-                            value={downloadInfo?.uploadSpeed}
+                            value={downloadInfo?.uploadSpeed || 0}
                         />
                     </Col>
                 </Row>
