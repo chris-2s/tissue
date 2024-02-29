@@ -1,8 +1,9 @@
-import {Button, Card, message, Table} from "antd";
+import {Button, Card, message, Table, Tag} from "antd";
 import {ColumnsType} from "antd/lib/table";
 import dayjs from "dayjs";
 import * as api from "../../apis/schedule";
 import {useRequest} from "ahooks";
+import React from "react";
 
 
 function Schedule() {
@@ -24,6 +25,9 @@ function Schedule() {
         {
             title: '状态',
             dataIndex: 'status',
+            render: (value) => (
+                value ? (<Tag color={"success"}>运行中</Tag>) : (<Tag color={'warning'}>等待</Tag>)
+            )
         },
         {
             title: '下次执行',

@@ -9,14 +9,16 @@ router = APIRouter()
 
 @router.get("/")
 def get_schedules():
-    schedules = scheduler.list()
+    schedules = sorted(scheduler.list(), key=lambda i: i.id)
 
     result = []
     for schedule in schedules:
+        job = scheduler.jobs[schedule.id]
         key = schedule.id
         name = schedule.name
         next_run_time = schedule.next_run_time
-        result.append(schema.Schedule(key=key, name=name, next_run_time=next_run_time))
+        status = job.running > 0
+        result.append(schema.Schedule(key=key, name=name, next_run_time=next_run_time, status=status))
 
     return R.list(result)
 

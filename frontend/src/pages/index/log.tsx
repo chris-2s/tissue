@@ -77,13 +77,15 @@ function Log() {
             width: 220
         },
         {
-            dataIndex: 'content'
+            dataIndex: 'content',
+            width: 600
         }
     ]
 
     return (
         <div ref={container} style={{height: '85vh', overflowY: 'scroll'}}>
-            <Table rowKey={'index'} showHeader={false} columns={columns} dataSource={messages} pagination={false}/>
+            <Table rowKey={'index'} showHeader={false} columns={columns} dataSource={messages} pagination={false}
+                   scroll={{x: 'max-content'}}/>
         </div>
     )
 }
