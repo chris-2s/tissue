@@ -7,5 +7,5 @@ from pydantic import BaseModel
 class Schedule(BaseModel):
     key: str
     name: str
-    status: Optional[str] = None
+    status: bool
     next_run_time: Optional[datetime] = None
