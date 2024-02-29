@@ -42,8 +42,8 @@ function Log() {
                         setMessages(data => [...data, {
                             index: data.length + 1,
                             level: matched[1],
-                            module: matched[2],
-                            time: matched[3],
+                            time: matched[2].split(" ")[1],
+                            module: matched[3],
                             content: matched[4],
                         }])
                     }
@@ -70,11 +70,11 @@ function Log() {
         },
         {
             dataIndex: 'time',
-            width: 80
+            width: 100
         },
         {
             dataIndex: 'module',
-            width: 220
+            width: 80
         },
         {
             dataIndex: 'content',
@@ -83,7 +83,7 @@ function Log() {
     ]
 
     return (
-        <div ref={container} style={{height: '85vh', overflowY: 'scroll'}}>
+        <div ref={container} style={{height: '80vh', overflowY: 'auto'}}>
             <Table rowKey={'index'} showHeader={false} columns={columns} dataSource={messages} pagination={false}
                    scroll={{x: 'max-content'}}/>
         </div>

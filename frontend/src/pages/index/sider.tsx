@@ -39,7 +39,7 @@ function Sider(props: Props) {
     }
 
     return (
-        <div>
+        <div className={Styles.container}>
             <div className={Styles.logo}>
                 <Link to={'/'}><img src={Logo} alt=""/></Link>
             </div>

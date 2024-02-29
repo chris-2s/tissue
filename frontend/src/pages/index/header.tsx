@@ -113,7 +113,7 @@ function Header(props: Props) {
                    onCancel={() => setLogOpen(false)}
                    footer={null}
                    destroyOnClose
-                   width={1100}
+                   width={1000}
                    centered
             >
                 <Log/>

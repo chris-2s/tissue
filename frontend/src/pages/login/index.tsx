@@ -1,11 +1,10 @@
 import {Button, Checkbox, Form, Input, theme} from "antd";
 import Styles from "./index.module.css";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
-import React from "react";
+import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import {Navigate} from "react-router-dom";
-import {Helmet} from "react-helmet";
 import Logo from "../../assets/logo.png";
 
 const {useToken} = theme
@@ -17,15 +16,16 @@ function Login() {
     const {userToken, logging} = useSelector((state: RootState) => state.auth)
     const {login} = useDispatch<Dispatch>().auth
 
+    useEffect(()=>{
+        document.body.style.backgroundColor = token.colorPrimaryBg
+    },[token.colorPrimaryBg])
+
     if (userToken) {
         return <Navigate to={'/'}/>
     }
 
     return (
         <div className={Styles.container} style={{background: token.colorPrimaryBg}}>
-            <Helmet>
-                <meta name="theme-color" content={token.colorPrimaryBg}/>
-            </Helmet>
             <div className={Styles.logo}>
                 <img src={Logo} alt=""/>
             </div>

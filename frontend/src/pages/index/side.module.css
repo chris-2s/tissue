@@ -1,7 +1,12 @@
+.container{
+
+}
+
 .logo {
     height: 64px;
     display: flex;
     align-items: center;
+    margin-top: env(safe-area-inset-top);
 }
 
 .logo img{

@@ -7,7 +7,6 @@ import Sider from "./sider";
 import Header from "./header";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
-import {Helmet} from "react-helmet";
 
 const {useToken} = theme
 
@@ -29,9 +28,14 @@ function Index() {
         }
     }, [])
 
+    useEffect(() => {
+        document.body.style.backgroundColor = token.colorBgLayout
+    }, [token.colorBgLayout])
+
     if (!userToken) {
         return <Navigate to={'/login'}/>
     }
+
 
     return (
         <div className={Styles.container}>
@@ -46,25 +50,27 @@ function Index() {
                     }
                 }
             }}>
-                <Helmet>
-                    <meta name="theme-color" content={token.colorBgContainer}/>
-                </Helmet>
                 <Layout style={{height: '100%'}}>
                     {isLg ? (
                         <Layout.Sider style={{background: token.colorBgContainer}} className={Styles.sider}>
                             <Sider/>
                         </Layout.Sider>
                     ) : (
-                        <Drawer width={208} title={null} closeIcon={null} placement={'left'}
+                        <Drawer style={{
+                            width: 'calc(100% + env(safe-area-inset-left))',
+                            paddingLeft: 'env(safe-area-inset-left)'
+                        }} width={208} title={null} closeIcon={null} placement={'left'}
                                 open={!collapsed} onClose={() => setCollapsed(true)} styles={{body: {padding: 0}}}>
                             <Sider onSelect={() => setCollapsed(true)}/>
                         </Drawer>
                     )}
-                    <Layout>
-                        <Layout.Header style={{background: token.colorBgContainer}} className={Styles.header}>
-                            <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
-                        </Layout.Header>
-                        <Layout.Content style={{overflowY: "scroll", background: token.colorBgLayout}}
+                    <Layout style={{position:'relative'}}>
+                        <div className={Styles.header} style={{background: token.colorBgContainer}}>
+                            <Layout.Header style={{background: token.colorBgContainer}}>
+                                <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
+                            </Layout.Header>
+                        </div>
+                        <Layout.Content style={{overflowY: "auto"}}
                                         className={Styles.content} ref={contentRef}>
                             <div style={{padding: token.paddingContentVertical}}>
                                 <Outlet/>
