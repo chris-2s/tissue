@@ -2,14 +2,24 @@
     height: 100%;
 }
 
-.sider{
-
+.sider {
+    z-index: 999;
+    overflow-y: auto;
 }
 
 .header {
-
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 99;
 }
 
-.content{
-
+.content {
+    margin-top: calc(env(safe-area-inset-top) + 64px);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    overscroll-behavior: contain;
 }
