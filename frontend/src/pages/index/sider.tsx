@@ -9,12 +9,12 @@ const {useToken} = theme
 
 interface Props {
     onSelect?: () => void
+    showLogo?: boolean
 }
 
 function Sider(props: Props) {
 
-    const {token} = useToken()
-
+    const {showLogo = true} = props
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -40,9 +40,11 @@ function Sider(props: Props) {
     return (
         <div>
             <div className={'h-16 flex items-center'} style={{marginTop: 'env(safe-area-inset-top)'}}>
-                <Link to={'/'}>
-                    <img className={'ml-8 mr-4 h-12'} src={Logo} alt=""/>
-                </Link>
+                {showLogo && (
+                    <Link to={'/'}>
+                        <img className={'ml-8 mr-4 h-12'} src={Logo} alt=""/>
+                    </Link>
+                )}
             </div>
             <Menu selectedKeys={[location.pathname]} mode={'inline'} items={generateItems(routes)} onSelect={item => {
                 props.onSelect?.()

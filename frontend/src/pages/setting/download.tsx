@@ -25,7 +25,7 @@ function SettingDownload(props: { data?: any }) {
     }
 
     return (
-        <div style={{width: 600, maxWidth: '100%', margin: '0 auto'}}>
+        <div className={'w-[600px] max-w-full my-0 mx-auto'}>
             <Form layout={'vertical'} form={form} onFinish={onFinish}>
                 <Form.Item label={'地址(qBittorrent)'} name={'host'}>
                     <Input/>

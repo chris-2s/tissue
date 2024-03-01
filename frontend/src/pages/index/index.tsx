@@ -52,8 +52,9 @@ function Index() {
             }}>
                 <Layout style={{height: '100%'}}>
                     {isLg ? (
-                        <Layout.Sider style={{background: token.colorBgContainer}} className={'z-30 overflow-y-auto'}>
-                            <Sider/>
+                        <Layout.Sider style={{background: token.colorBgLayout}}
+                                      className={`${Styles.side} overflow-y-auto pt-2`}>
+                            <Sider showLogo={false}/>
                         </Layout.Sider>
                     ) : (
                         <Drawer style={{
@@ -65,14 +66,14 @@ function Index() {
                         </Drawer>
                     )}
                     <Layout style={{position: 'relative'}}>
-                        <div className={Styles.header} style={{background: token.colorBgContainer}}>
-                            <Layout.Header style={{background: token.colorBgContainer}}>
+                        <div className={Styles.header} style={{background: token.colorBgContainer + '99'}}>
+                            <Layout.Header className={'bg-transparent'}>
                                 <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
                             </Layout.Header>
                         </div>
                         <Layout.Content style={{overflowY: "auto"}}
                                         className={Styles.content} ref={contentRef}>
-                            <div style={{padding: token.paddingContentVertical}}>
+                            <div style={{padding: isLg ? 16 : 12}}>
                                 <Outlet/>
                                 {contentRef.current && <FloatButton.BackTop target={() => contentRef.current!!}/>}
                             </div>

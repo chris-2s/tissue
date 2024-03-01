@@ -116,7 +116,7 @@ function VideoDetail(props: Props) {
             <Button key={'save'} type={"primary"} loading={onSaving} onClick={() => form.submit()}>确定</Button>,
         ]}>
             {loading ? (
-                <div style={{textAlign: 'center'}}><Spin spinning/></div>
+                <div className={'text-center'}><Spin spinning/></div>
             ) : (
                 <Form className={Styles.form} form={form} layout={'vertical'} onFinish={handleSave}>
                     <Row gutter={[30, 15]}>

@@ -6,10 +6,17 @@
     left: 0;
     right: 0;
     z-index: 20;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.6);
+    border-block-end: 1px solid rgba(5, 5, 5, 0.06);
+}
+
+.side{
+    border-right: 1px solid rgba(5, 5, 5, 0.06);
 }
 
 .content {
-    margin-top: calc(env(safe-area-inset-top) + 64px);
+    padding-top: calc(env(safe-area-inset-top) + 64px);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     overscroll-behavior: contain;

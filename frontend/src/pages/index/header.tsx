@@ -14,6 +14,8 @@ import {themes} from "../../utils/constants";
 import React, {useState} from "react";
 import IconButton from "../../components/IconButton";
 import Log from "./log";
+import {Link} from "react-router-dom";
+import Logo from "../../assets/logo.png";
 
 
 const {useToken} = theme
@@ -86,6 +88,11 @@ function Header(props: Props) {
                     <IconButton>
                         <MenuOutlined style={{color: token.colorText, fontSize: token.sizeMD}}/>
                     </IconButton>
+                )}
+                {!props.collapsible && (
+                    <Link to={'/'} className={'flex items-center'}>
+                        <img className={'ml-4 mr-4 h-12'} src={Logo} alt=""/>
+                    </Link>
                 )}
             </div>
             <div className={'flex-1 flex flex-row-reverse items-center'}>
