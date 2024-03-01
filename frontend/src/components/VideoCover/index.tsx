@@ -19,7 +19,7 @@ function VideoCover(props: HTMLProps<any>) {
             {src ? (
                 <img {...otherProps} src={api.getVideoCover(src)}/>
             ) : (
-                <div style={{display: "flex", alignItems: "center", justifyContent: 'center'}}>
+                <div className={'flex justify-center items-center'}>
                     <Empty description={'暂无图片'}/>
                 </div>
             )}

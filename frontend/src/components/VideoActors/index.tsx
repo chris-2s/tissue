@@ -63,7 +63,7 @@ function VideoActors(props: Props) {
                     </Tooltip>
                 </Avatar.Group>
             </div>
-            <ModifyModal data={(selected != undefined) && value?.at(selected)}
+            <ModifyModal data={(selected != undefined && value) && value[selected]}
                          open={!!editMode}
                          onOk={onSave}
                          onCancel={() => setEditMode(undefined)}
