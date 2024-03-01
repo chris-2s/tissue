@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 import {RouterProvider} from "react-router-dom";
 import zhCN from "antd/lib/locale/zh_CN";
 import dayjs from "dayjs";
@@ -31,7 +30,7 @@ function App() {
             theme={{
                 algorithm: algorithm,
             }}>
-            <div className="App">
+            <div className="h-full">
                 <RouterProvider router={routes}/>
             </div>
         </ConfigProvider>

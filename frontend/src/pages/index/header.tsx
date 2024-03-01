@@ -8,7 +8,6 @@ import {
     MenuOutlined,
     UserOutlined
 } from "@ant-design/icons";
-import Styles from "./header.module.css";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import {themes} from "../../utils/constants";
@@ -69,9 +68,9 @@ function Header(props: Props) {
                 borderRadius: token.borderRadiusLG,
                 boxShadow: token.boxShadowSecondary,
             }}>
-                <div className={Styles.userContainer}>
-                    <div style={{color: token.colorText}}>{userInfo.name}</div>
-                    <div style={{color: token.colorTextSecondary}}>{userInfo.username}</div>
+                <div className={'w-36 py-2.5 px-4'}>
+                    <div className={'text-base'} style={{color: token.colorText}}>{userInfo.name}</div>
+                    <div className={'text-xs'} style={{color: token.colorTextSecondary}}>{userInfo.username}</div>
                 </div>
                 <Divider style={{margin: 0}} type={'horizontal'}/>
                 {menu}
@@ -81,15 +80,15 @@ function Header(props: Props) {
 
 
     return (
-        <div className={Styles.container}>
-            <div className={Styles.trigger} onClick={() => props.onCollapse?.()}>
+        <div className={`h-full flex items-center`}>
+            <div className={'cursor-pointer flex items-center'} onClick={() => props.onCollapse?.()}>
                 {props.collapsible && (
                     <IconButton>
                         <MenuOutlined style={{color: token.colorText, fontSize: token.sizeMD}}/>
                     </IconButton>
                 )}
             </div>
-            <div className={Styles.toolbar}>
+            <div className={'flex-1 flex flex-row-reverse items-center'}>
                 <Space>
                     <IconButton onClick={() => setLogOpen(true)}>
                         <CodeOutlined style={{fontSize: token.sizeLG}}/>
