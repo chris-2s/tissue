@@ -21,7 +21,7 @@ function DatePicker(props: DatePickerProps) {
     }
 
     return (
-        <AntDatePicker {...otherProps} onChange={handleChange} value={realValue}/>
+        <AntDatePicker {...otherProps} onChange={handleChange as any} value={realValue}/>
     )
 }
 
