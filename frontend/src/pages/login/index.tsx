@@ -1,5 +1,4 @@
 import {Button, Checkbox, Form, Input, theme} from "antd";
-import Styles from "./index.module.css";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
 import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
@@ -25,11 +24,11 @@ function Login() {
     }
 
     return (
-        <div className={Styles.container} style={{background: token.colorPrimaryBg}}>
-            <div className={Styles.logo}>
-                <img src={Logo} alt=""/>
+        <div className={'h-full flex flex-col justify-center items-center'} style={{background: token.colorPrimaryBg}}>
+            <div className={'flex m-5'}>
+                <img className={'h-20 mr-4'} src={Logo} alt=""/>
             </div>
-            <div className={Styles.main}>
+            <div className={'w-80'}>
                 <Form size={'large'} form={form} onFinish={(values) => login(values)}>
                     <Form.Item name={'username'}>
                         <Input prefix={<UserOutlined/>}/>

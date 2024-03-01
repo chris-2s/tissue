@@ -38,7 +38,7 @@ function Index() {
 
 
     return (
-        <div className={Styles.container}>
+        <div className={'h-full'}>
             <ConfigProvider theme={{
                 components: {
                     Layout: {
@@ -52,7 +52,7 @@ function Index() {
             }}>
                 <Layout style={{height: '100%'}}>
                     {isLg ? (
-                        <Layout.Sider style={{background: token.colorBgContainer}} className={Styles.sider}>
+                        <Layout.Sider style={{background: token.colorBgContainer}} className={'z-30 overflow-y-auto'}>
                             <Sider/>
                         </Layout.Sider>
                     ) : (
@@ -64,7 +64,7 @@ function Index() {
                             <Sider onSelect={() => setCollapsed(true)}/>
                         </Drawer>
                     )}
-                    <Layout style={{position:'relative'}}>
+                    <Layout style={{position: 'relative'}}>
                         <div className={Styles.header} style={{background: token.colorBgContainer}}>
                             <Layout.Header style={{background: token.colorBgContainer}}>
                                 <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
