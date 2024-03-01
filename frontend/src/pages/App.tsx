@@ -14,7 +14,7 @@ import {themes} from "../utils/constants";
 
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from "dayjs/plugin/relativeTime";
-require('dayjs/locale/zh-cn')
+import 'dayjs/locale/zh-cn'
 
 dayjs.extend(relativeTime)
 dayjs.extend(localizedFormat)

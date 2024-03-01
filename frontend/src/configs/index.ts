@@ -1,8 +1,16 @@
+import development from "./development.ts";
+import docker from "./docker.ts";
+
+
 export interface ConfigProperties {
     BASE_API: string
 }
 
-const env = process.env.REACT_APP_ENV || 'dev'
-const config = require(`./${env}`)
+const mode = import.meta.env.MODE
 
-export default config.default
+const configs: { [key: string]: ConfigProperties } = {
+    development,
+    docker,
+}
+
+export default configs[mode]
