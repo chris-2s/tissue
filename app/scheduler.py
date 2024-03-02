@@ -19,6 +19,7 @@ class Job(BaseModel):
     job: Callable
     interval: int
     running: int = 0
+    jitter: int = 0
 
 
 class Scheduler:
@@ -26,7 +27,7 @@ class Scheduler:
         'subscribe': Job(key='subscribe',
                          name='订阅下载',
                          job=SubscribeService.job_subscribe,
-                         interval=60),
+                         interval=200, jitter=30 * 60),
         'scrape_download': Job(key='scrape_download',
                                name='整理已完成下载',
                                job=DownloadService.job_scrape_download,
@@ -58,7 +59,7 @@ class Scheduler:
         job = self.jobs.get(key)
         logger.info(f"启动任务，{job.name}")
         self.scheduler.add_job(self.do_job,
-                               trigger=IntervalTrigger(minutes=job.interval),
+                               trigger=IntervalTrigger(minutes=job.interval,jitter=job.jitter),
                                id=job.key,
                                name=job.name,
                                args=[job.key],

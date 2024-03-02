@@ -21,7 +21,7 @@ class Spider:
     def __init__(self):
         self.setting = Setting().app
         self.session = Session()
-        self.session.headers = {'User-Agent': self.setting.user_agent}
+        self.session.headers = {'User-Agent': self.setting.user_agent, 'Referer': self.host}
         self.session.timeout = (5, self.session.timeout)
 
     def get_info(self, num: str):
