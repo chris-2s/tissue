@@ -20,3 +20,7 @@ body {
 #root {
     height: 100%;
 }
+
+.ant-message-top {
+    top: calc(8px + env(safe-area-inset-top)) !important;
+}

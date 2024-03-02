@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -81,8 +83,30 @@ class SubscribeService(BaseService):
                 logger.info(f"订阅《{subscribe.num}》已完成")
                 self.db.delete(subscribe)
 
+    def do_subscribe_meta_update(self):
+        subscribes = self.get_subscribes()
+        logger.info(f"获取到{len(subscribes)}个订阅")
+        for subscribe in subscribes:
+            info = spider.get_video_info(subscribe.num)
+            if info:
+                subscribe.cover = info.cover or subscribe.cover
+                subscribe.title = info.title or subscribe.title
+                subscribe.premiered = datetime.strptime(info.premiered,
+                                                        '%Y-%m-%d').date() if info.premiered else subscribe.premiered
+                subscribe.actors = ', '.join([i.name for i in info.actors]) if info.actors else subscribe.actors
+                logger.info(f"已更新订阅《{subscribe.num}》元数据")
+                self.db.add(subscribe)
+            else:
+                logger.error(f"未找到订阅《{subscribe.num}》元数据")
+
     @classmethod
     def job_subscribe(cls):
         with SessionFactory() as db:
             SubscribeService(db).do_subscribe()
+            db.commit()
+
+    @classmethod
+    def job_subscribe_meta_update(cls):
+        with SessionFactory() as db:
+            SubscribeService(db).do_subscribe_meta_update()
             db.commit()
