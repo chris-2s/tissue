@@ -3,6 +3,7 @@ annotated-types==0.6.0
 anyio==4.2.0
 APScheduler==3.10.4
 bcrypt==4.1.2
+cachetools==5.3.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
