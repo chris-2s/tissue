@@ -10,6 +10,8 @@ class VideoList(BaseModel):
     is_zh: bool = False
     is_uncensored: bool = False
 
+    actors: List[str] = []
+
 
 class VideoActor(BaseModel):
     name: Optional[str] = None

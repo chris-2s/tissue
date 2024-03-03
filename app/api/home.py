@@ -1,5 +1,4 @@
 import os
-import re
 import time
 from pathlib import Path
 
@@ -7,72 +6,76 @@ import psutil
 import tailer
 from fastapi import APIRouter
 
-from app import utils
-from app.schema import HomeSystem, Setting, HomeDisk, HomeDownload
+from app.schema import HomeMemory, Setting, HomeDisk, HomeDownload
+from app.utils import nfo
 from app.utils.qbittorent import qbittorent
 from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
 
-@router.get("/system")
-def get_system_info():
+@router.get("/cpu")
+def get_cpu_percent():
     cpu_percent = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
+    return cpu_percent
 
-    return HomeSystem(cpu_percent=cpu_percent, memory_total=utils.convert_size(memory.total),
-                      memory_available=utils.convert_size(memory.available))
+
+@router.get("/memory")
+def get_memory_info():
+    memory = psutil.virtual_memory()
+    return HomeMemory(total=memory.total, available=memory.available)
 
 
 @router.get("/disk")
 def get_disk_space():
     setting = Setting()
 
-    if not os.path.exists(setting.app.video_path):
-        os.makedirs(setting.app.video_path)
-    video_usage = psutil.disk_usage(setting.app.video_path)
-    video = utils.convert_size(video_usage.free, bits=0)
+    result = []
+    if os.path.exists(setting.app.video_path):
+        video_usage = psutil.disk_usage(setting.app.video_path)
+        result.append(HomeDisk(type='视频', total=video_usage.total, available=video_usage.free))
+    else:
+        result.append(HomeDisk(type='视频', total=0, available=0))
 
-    if not os.path.exists(setting.file.path):
-        os.makedirs(setting.file.path)
-    file_usage = psutil.disk_usage(setting.file.path)
-    file = utils.convert_size(file_usage.free, bits=0)
+    if os.path.exists(setting.file.path):
+        file_usage = psutil.disk_usage(setting.file.path)
+        result.append(HomeDisk(type='文件', total=file_usage.total, available=file_usage.free))
+    else:
+        result.append(HomeDisk(type='文件', total=0, available=0))
 
-    disk = HomeDisk(video=video, file=file)
-
-    if setting.download.mapping_path and setting.download.host:
-        if not os.path.exists(setting.download.mapping_path):
-            os.makedirs(setting.download.mapping_path)
+    if setting.download.mapping_path and os.path.exists(setting.download.mapping_path):
         download_usage = psutil.disk_usage(setting.download.mapping_path)
-        disk.download = utils.convert_size(download_usage.free, bits=0)
+        result.append(HomeDisk(type='下载', total=download_usage.total, available=download_usage.free))
+    else:
+        result.append(HomeDisk(type='下载', total=0, available=0))
 
-    return disk
+    return result
 
 
 @router.get('/video')
 def get_video_count():
     setting = Setting().app
-    count = 0
+    videos = []
     for root, _, files in os.walk(setting.video_path):
         for file in files:
             path = os.path.join(root, file)
             _, ext_name = os.path.splitext(path)
             size = os.stat(path).st_size
 
-            if ext_name in setting.video_format.split(',') and size > (
-                    setting.video_size_minimum * 1024 * 1024):
-                count += 1
-    return count
+            if ext_name in setting.video_format.split(',') and size > (setting.video_size_minimum * 1024 * 1024):
+                videos.append(nfo.get_basic(path, True))
+    return videos
 
 
 @router.get('/download')
 def get_download_info():
     try:
         info = qbittorent.get_trans_info()
-        return HomeDownload(upload_speed=utils.convert_size(info['up_info_speed']),
-                            download_speed=utils.convert_size(info['dl_info_speed']))
+        return HomeDownload(upload_speed=info['up_info_speed'],
+                            download_speed=info['dl_info_speed'])
     except:
-        return None
+        return HomeDownload(upload_speed=0,
+                            download_speed=0)
 
 
 @router.get('/log')

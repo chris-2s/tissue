@@ -11,7 +11,7 @@ def get_nfo_path_by_video(path: str):
     return file_path + ".nfo"
 
 
-def get_basic(video: str):
+def get_basic(video: str, include_actor: bool = False):
     path = get_nfo_path_by_video(video)
     if not os.path.exists(path):
         return None
@@ -24,9 +24,19 @@ def get_basic(video: str):
         extra = root.find('extra')
         is_zh = (extra.get('is_zh') == '1') if extra is not None else False
         is_uncensored = (extra.get('is_uncensored') == '1') if extra is not None else False
-        nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored)
+
+        names = []
+        if include_actor:
+            names = []
+            actors = root.find('actor')
+            for actor in actors:
+                if actor.tag == 'name':
+                    names.append(actor.text)
+
+        nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored,
+                        actors=names)
         return nfo
-    except:
+    except Exception as e:
         logger.error("NFO文件读取失败")
         return None
 
