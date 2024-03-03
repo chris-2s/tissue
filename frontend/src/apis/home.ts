@@ -1,14 +1,22 @@
 import {request} from "../utils/requests";
 
-export async function getSystemInfo() {
+export async function getCpuPercent() {
     const response = await request.request({
-        url: '/home/system',
+        url: '/home/cpu',
         method: 'get'
     })
     return response.data
 }
 
-export async function getVideoCount() {
+export async function getMemoryInfo() {
+    const response = await request.request({
+        url: '/home/memory',
+        method: 'get'
+    })
+    return response.data
+}
+
+export async function getVideoInfo() {
     const response = await request.request({
         url: '/home/video',
         method: 'get'

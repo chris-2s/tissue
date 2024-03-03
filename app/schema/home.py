@@ -3,18 +3,17 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class HomeSystem(BaseModel):
-    cpu_percent: float
-    memory_total: str
-    memory_available: str
+class HomeMemory(BaseModel):
+    total: float
+    available: float
 
 
 class HomeDisk(BaseModel):
-    video: str
-    file: str
-    download: Optional[str] = None
+    total: float
+    available: float
+    type: str
 
 
 class HomeDownload(BaseModel):
-    upload_speed: str
-    download_speed: str
+    upload_speed: float
+    download_speed: float
