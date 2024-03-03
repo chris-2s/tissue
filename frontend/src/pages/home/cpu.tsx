@@ -26,16 +26,15 @@ function Cpu() {
         manual: true,
         onSuccess: (response) => {
             const area = chart.current.getNodesByType("area")[0];
-            const oldData = area.data()
-            const newData = area.data().map((i: any, index: number) => {
-                if (index == (oldData.length - 1)) {
-                    return {...i, value: response}
+            const data = area.data()
+            data.forEach((i: any, index: number) => {
+                if (index == (data.length - 1)) {
+                    i.value = response
                 } else {
-                    return {...i, value: oldData[index + 1].value}
+                    i.value = data[index + 1].value
                 }
             })
-            area.data(newData);
-            chart.current.render();
+            area.changeData(data);
             setCurrent(response)
         }
     })
@@ -46,8 +45,8 @@ function Cpu() {
             autoFit: true
         });
 
-        const data = new Array(30).fill(0).map((_, index) => ({
-            value: 0,
+        const data = new Array(60).fill(0).map((_, index) => ({
+            value: 0.0,
             index: index
         }));
 

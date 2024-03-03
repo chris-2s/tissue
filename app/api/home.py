@@ -4,6 +4,7 @@ from pathlib import Path
 
 import psutil
 import tailer
+from cachetools import cached, TTLCache
 from fastapi import APIRouter
 
 from app.schema import HomeMemory, Setting, HomeDisk, HomeDownload
@@ -53,7 +54,8 @@ def get_disk_space():
 
 
 @router.get('/video')
-def get_video_count():
+@cached(cache=TTLCache(maxsize=1, ttl=300))
+def get_video_info():
     setting = Setting().app
     videos = []
     for root, _, files in os.walk(setting.video_path):
