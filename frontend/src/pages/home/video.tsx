@@ -49,7 +49,7 @@ function Video() {
     }
 
     return (
-        <Card>
+        <Card className={'pointer-events-none'}>
             <div className={'text-lg'}>影片: {data.length} 部</div>
             <div ref={container}></div>
         </Card>

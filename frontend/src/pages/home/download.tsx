@@ -79,7 +79,7 @@ function Download() {
     }
 
     return (
-        <Card>
+        <Card className={'pointer-events-none'}>
             <div className={'text-lg'}>下载器</div>
             <div className={'h-20'} ref={container}></div>
             <div className={'text-center'}>
