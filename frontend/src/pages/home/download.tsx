@@ -49,7 +49,7 @@ function Download() {
             autoFit: true
         });
 
-        const data = new Array(60).fill(0).map((_, index) => ({
+        const data = new Array(120).fill(0).map((_, index) => ({
             index: Math.floor(index / 2),
             type: (index % 2) === 0 ? 'download' : 'upload',
             value: 0

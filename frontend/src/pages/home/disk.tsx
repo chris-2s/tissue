@@ -49,7 +49,7 @@ function Disk() {
             autoFit: true
         });
 
-        data.percent = (data.available / data.total).toFixed(1)
+        data.percent = (data.available / data.total).toFixed(3)
 
         chart.coordinate({type: 'theta', outerRadius: 0.8, innerRadius: 0.5});
 
@@ -62,7 +62,9 @@ function Disk() {
                 type: 'ordinal',
                 range: ['#e8e8e8', '#95e3b0', '#6c7893'],
             })
-            .legend(false);
+            .legend(false)
+            .interaction({tooltip: false})
+
 
         chart.text()
             .style('text', data.type)

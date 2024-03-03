@@ -48,7 +48,7 @@ function Cpu() {
             autoFit: true
         });
 
-        const data = new Array(30).fill(0).map((_, index) => ({
+        const data = new Array(60).fill(0).map((_, index) => ({
             total: 0,
             available: 0,
             index: index
