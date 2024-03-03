@@ -74,7 +74,7 @@ function Cpu() {
     }
 
     return (
-        <Card>
+        <Card className={'pointer-events-none'}>
             <div className={'text-lg'}>CPU</div>
             <div className={'h-20'} ref={container}></div>
             <div className={'text-center'}>当前占用：{current}%</div>

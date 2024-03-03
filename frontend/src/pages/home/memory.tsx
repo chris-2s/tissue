@@ -77,7 +77,7 @@ function Cpu() {
     }
 
     return (
-        <Card>
+        <Card className={'pointer-events-none'}>
             <div className={'text-lg'}>可用内存</div>
             <div className={'h-20'} ref={container}></div>
             <div className={'text-center'}>当前可用：{bytesToSize(current.available || 0)}</div>
