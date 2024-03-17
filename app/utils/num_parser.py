@@ -38,6 +38,10 @@ def parse_num(name: str):
     if matched:
         return matched.group(1)
 
+    matched = re.compile(r'^(\w+-\w+?)(-C|CH)').search(name)
+    if matched:
+        return matched.group(1)
+
     matched = re.compile(r'^(\w+-\w+)[\w.]?').search(name)
     if matched:
         return matched.group(1)
@@ -47,7 +51,7 @@ def parse_extra(name: str):
     name = name.replace('_', '-').upper()
     is_zh = False
     is_uncensored = False
-    if name.endswith('ch') or name.endswith('-C') or name.endswith('-UC'):
+    if name.endswith('CH') or name.endswith('-C') or name.endswith('-UC'):
         is_zh = True
 
     if name.endswith('uncensored') or name.endswith('-UC') or name.endswith('-U'):
@@ -64,3 +68,5 @@ if __name__ == '__main__':
     print(parse('/ss/aavv39.xyz@020924-001-carib.mp4'))
     print(parse('/ss/mkbd-s120.mp4'))
     print(parse('/ss/CAWD-621-C.mp4'))
+    print(parse('/ss/midv-639ch.mp4'))
+    print(parse('/ss/www.freedl.org@200GANA-1921.mp4'))
