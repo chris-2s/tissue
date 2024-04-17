@@ -42,13 +42,13 @@ def parse_num(name: str):
     if matched:
         return matched.group(1)
 
-    matched = re.compile(r'^(\w+-\w+)[\w.]?').search(name)
+    matched = re.compile(r'^(\w+\s?-\s?\w+)[\w.]?').search(name)
     if matched:
-        return matched.group(1)
+        return matched.group(1).replace(' ', '')
 
 
 def parse_extra(name: str):
-    name = name.replace('_', '-').upper()
+    name = name.replace('_', '-').replace(' ', '').upper()
     is_zh = False
     is_uncensored = False
     if name.endswith('CH') or name.endswith('-C') or name.endswith('-UC'):
