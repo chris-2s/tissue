@@ -3,7 +3,7 @@
 groupmod -o -g ${PGID} tissue
 usermod -o -u ${PUID} tissue
 
-chown -R moviepilot:moviepilot /app
+chown -R tissue:tissue /app
 
 umask ${UMASK}
 
