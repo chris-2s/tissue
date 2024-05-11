@@ -52,8 +52,9 @@ function Index() {
             }}>
                 <Layout style={{height: '100%'}}>
                     {isLg ? (
-                        <Layout.Sider style={{background: token.colorBgLayout}}
-                                      className={`${Styles.side} overflow-y-auto pt-2`}>
+                        <Layout.Sider
+                            style={{background: token.colorBgLayout, borderRightColor: token.colorBorderSecondary}}
+                            className={`${Styles.side} overflow-y-auto pt-2`}>
                             <Sider showLogo={false}/>
                         </Layout.Sider>
                     ) : (
@@ -66,7 +67,10 @@ function Index() {
                         </Drawer>
                     )}
                     <Layout style={{position: 'relative'}}>
-                        <div className={Styles.header} style={{background: token.colorBgContainer + '99'}}>
+                        <div className={Styles.header} style={{
+                            background: token.colorBgContainer + '99',
+                            borderBlockEndColor: token.colorBorderSecondary
+                        }}>
                             <Layout.Header className={'bg-transparent'}>
                                 <Header collapsible={!isLg} onCollapse={() => setCollapsed(!collapsed)}/>
                             </Layout.Header>
@@ -75,7 +79,9 @@ function Index() {
                                         className={Styles.content} ref={contentRef}>
                             <div style={{padding: isLg ? 16 : 12}}>
                                 <Outlet/>
-                                {contentRef.current && <FloatButton.BackTop target={() => contentRef.current!!}/>}
+                                <FloatButton.Group className={'index-float-button-group'}>
+                                    {contentRef.current && <FloatButton.BackTop target={() => contentRef.current!!}/>}
+                                </FloatButton.Group>
                             </div>
                         </Layout.Content>
                     </Layout>
