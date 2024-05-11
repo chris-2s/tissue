@@ -39,13 +39,13 @@ function Log() {
                 if (msg.data) {
                     const matched = msg.data.match(/【(.+)】(.+) - (.+) - (.+)/)
                     if (matched) {
-                        setMessages(data => [...data, {
+                        setMessages(data => [{
                             index: data.length + 1,
                             level: matched[1],
                             time: matched[2].split(" ")[1],
                             module: matched[3],
                             content: matched[4],
-                        }])
+                        }, ...data])
                     }
                 }
             },
@@ -57,7 +57,7 @@ function Log() {
 
     useEffect(() => {
         container.current?.scrollTo({
-            top: 99999999,
+            top: 0,
             behavior: "smooth"
         })
     }, [messages]);

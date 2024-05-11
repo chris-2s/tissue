@@ -1,4 +1,4 @@
-import {Button, Card, Col, Empty, message, Row, Skeleton, Space, Tag} from "antd";
+import {Button, Card, Col, Empty, FloatButton, message, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
 import {Link} from "react-router-dom";
 import React, {useState} from "react";
@@ -6,6 +6,8 @@ import * as api from "../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./modifyModal";
 import {useFormModal} from "../../utils/useFormModal";
+import {createPortal} from "react-dom";
+import {PlusOutlined} from "@ant-design/icons";
 
 
 function Subscribe() {
@@ -38,11 +40,6 @@ function Subscribe() {
 
     return (
         <div>
-            <div style={{marginBottom: 10, textAlign: "right"}}>
-                <Space>
-                    <Button type={'primary'} onClick={() => setOpen(true)}>新增</Button>
-                </Space>
-            </div>
             <Row gutter={[15, 15]}>
                 {data.length > 0 ? (
                     data.map((subscribe: any) => (
@@ -80,6 +77,12 @@ function Subscribe() {
             <ModifyModal width={1100}
                          onDelete={onDelete}
                          {...modalProps} />
+            <>
+                {createPortal((
+                        <FloatButton icon={<PlusOutlined/>} type={'primary'} onClick={() => setOpen(true)}/>),
+                    document.getElementsByClassName('index-float-button-group')[0]
+                )}
+            </>
         </div>
     )
 }
