@@ -30,6 +30,7 @@ class SettingDownload(BaseModel):
     trans_auto: bool = False
     delete_auto: bool = False
     category: Optional[str] = ''
+    tracker_subscribe: Optional[str] = ''
 
 
 class SettingNotify(BaseModel):

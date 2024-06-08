@@ -1,4 +1,5 @@
 import json
+import random
 from typing import Optional, List
 from urllib.parse import urljoin
 
@@ -13,6 +14,7 @@ class QBittorent:
     def __init__(self):
         setting = Setting().download
         self.host = setting.host
+        self.tracker_subscribe = setting.tracker_subscribe
         self.session = requests.Session()
 
     def login(self):
@@ -88,9 +90,33 @@ class QBittorent:
 
     @auth
     def add_magnet(self, magnet: str):
-        return self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
-            'urls': magnet
+        nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 5))
+        response = self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
+            'urls': magnet,
+            'tags': nonce if self.tracker_subscribe else ''
         })
+
+        if response.status_code != 200:
+            return response
+
+        if self.tracker_subscribe:
+            torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
+                'tags': nonce
+            }).json()
+            if torrents:
+                try:
+                    torrent = torrents[0]
+                    torrent_hash = torrent['hash']
+                    trackers_text = requests.get(self.tracker_subscribe).text
+                    trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
+                    self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
+                        'hash': torrent_hash,
+                        'urls': trackers
+                    })
+                finally:
+                    self.remove_torrent_tags(torrent_hash, [nonce])
+
+        return response
 
 
 qbittorent = QBittorent()
