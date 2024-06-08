@@ -44,11 +44,11 @@ class SubscribeService(BaseService):
         exist.delete(self.db)
 
     def do_subscribe(self):
-        time.sleep(randint(5, 10))
-
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
         for subscribe in subscribes:
+            time.sleep(randint(5, 10))
+
             result = spider.get_video(subscribe.num)
             if not result:
                 logger.error("所有站点均未获取到影片")
