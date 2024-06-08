@@ -32,5 +32,6 @@ def save_setting(section: str, setting: dict):
             scheduler.remove('delete_complete_download')
 
         qbittorent.host = setting.get('host')
+        qbittorent.tracker_subscribe = setting.get('tracker_subscribe')
 
     return R.ok()

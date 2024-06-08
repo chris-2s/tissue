@@ -60,6 +60,13 @@ function SettingDownload(props: { data?: any }) {
                 >
                     <Input placeholder={'留空则为所有任务'}/>
                 </Form.Item>
+                <Form.Item label={'订阅Tracker'} name={'tracker_subscribe'} tooltip={(
+                    <span>通过Tracker订阅链接，自动为任务添加Tracker列表。
+                        <a target='_blank' href={'https://trackerslist.com/'}>示例</a>
+                    </span>)}
+                >
+                    <Input placeholder={'请输入Tracker订阅链接'}/>
+                </Form.Item>
                 <div style={{textAlign: 'center'}}>
                     <Button type={'primary'} style={{width: 150}} loading={loading} htmlType={"submit"}>提交</Button>
                 </div>

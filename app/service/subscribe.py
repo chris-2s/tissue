@@ -1,4 +1,6 @@
+import time
 from datetime import datetime
+from random import randint
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -83,6 +85,8 @@ class SubscribeService(BaseService):
                 logger.info(f"订阅《{subscribe.num}》已完成")
                 self.db.delete(subscribe)
 
+            time.sleep(randint(5, 10))
+
     def do_subscribe_meta_update(self):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
@@ -98,6 +102,8 @@ class SubscribeService(BaseService):
                 self.db.add(subscribe)
             else:
                 logger.error(f"未找到订阅《{subscribe.num}》元数据")
+
+            time.sleep(randint(5, 10))
 
     @classmethod
     def job_subscribe(cls):
