@@ -1,5 +1,6 @@
 import json
 import random
+import traceback
 from typing import Optional, List
 from urllib.parse import urljoin
 
@@ -104,15 +105,17 @@ class QBittorent:
                 'tags': nonce
             }).json()
             if torrents:
+                torrent = torrents[0]
+                torrent_hash = torrent['hash']
                 try:
-                    torrent = torrents[0]
-                    torrent_hash = torrent['hash']
                     trackers_text = requests.get(self.tracker_subscribe).text
                     trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
                     self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
                         'hash': torrent_hash,
                         'urls': trackers
                     })
+                except:
+                    traceback.print_exc()
                 finally:
                     self.remove_torrent_tags(torrent_hash, [nonce])
 
