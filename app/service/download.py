@@ -5,9 +5,9 @@ from requests import Session
 
 from app import utils
 from app.db import get_db, SessionFactory
-from app.db.models import History
+from app.db.models import History, Torrent as DBTorrent
 from app.exception import BizException
-from app.schema import Torrent, TorrentFile, Setting, VideoNotify
+from app.schema import Torrent, TorrentFile, Setting, VideoNotify, VideoDetail
 from app.service.base import BaseService
 from app.service.video import VideoService
 from app.utils import notify
@@ -35,7 +35,7 @@ class DownloadService(BaseService):
         torrents = []
         for info in infos:
             torrent = Torrent(hash=info['hash'], name=info['name'], size=utils.convert_size(info['total_size']),
-                              path=info['save_path'], tags=info['tags'].split(','))
+                              path=info['save_path'], tags=list(map(lambda i: i.strip(), info['tags'].split(','))))
             files = self.qb.get_torrent_files(info['hash'])
             for file in filter(lambda item: item['progress'] == 1 and item['priority'] != 0, files):
                 _, ext_name = os.path.splitext(file['name'])
@@ -77,7 +77,12 @@ class DownloadService(BaseService):
             num = None
             video = VideoNotify(path=file.path)
             try:
-                match_num = video_service.parse_video(file.path)
+                matched_torrent = self.db.query(DBTorrent).filter_by(hash=torrent.hash).one_or_none()
+                if matched_torrent is not None:
+                    match_num = VideoDetail(**matched_torrent.__dict__)
+                else:
+                    match_num = video_service.parse_video(file.path)
+
                 num = match_num.num
                 if num is None:
                     raise BizException(message='番号识别失败')
@@ -86,6 +91,9 @@ class DownloadService(BaseService):
                 video.is_zh = match_num.is_zh
                 video.is_uncensored = match_num.is_uncensored
                 video_service.save_video(video, mode='download')
+
+                if matched_torrent is not None:
+                    matched_torrent.delete(self.db)
             except BizException as e:
                 has_error = True
 
