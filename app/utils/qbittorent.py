@@ -1,5 +1,6 @@
 import json
 import random
+import time
 import traceback
 from typing import Optional, List
 from urllib.parse import urljoin
@@ -94,31 +95,28 @@ class QBittorent:
         nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 5))
         response = self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
             'urls': magnet,
-            'tags': nonce if self.tracker_subscribe else ''
+            'tags': nonce
         })
 
-        if response.status_code != 200:
-            return response
-
-        if self.tracker_subscribe:
+        torrent_hash = ''
+        for _ in range(3):
+            time.sleep(1)
             torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
                 'tags': nonce
             }).json()
             if torrents:
-                torrent = torrents[0]
-                torrent_hash = torrent['hash']
-                try:
-                    trackers_text = requests.get(self.tracker_subscribe).text
-                    trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
-                    self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
-                        'hash': torrent_hash,
-                        'urls': trackers
-                    })
-                except:
-                    traceback.print_exc()
-                finally:
-                    self.remove_torrent_tags(torrent_hash, [nonce])
+                torrent_hash = torrents[0]['hash']
+                response.hash = torrent_hash
 
+        if self.tracker_subscribe and torrent_hash:
+            trackers_text = requests.get(self.tracker_subscribe).text
+            trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
+            self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
+                'hash': torrent_hash,
+                'urls': trackers
+            })
+
+        self.remove_torrent_tags(torrent_hash, [nonce])
         return response
 
 

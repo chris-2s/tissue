@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import schema
 from app.db import get_db, SessionFactory
-from app.db.models import Subscribe
+from app.db.models import Subscribe, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
 from app.service.base import BaseService
@@ -80,13 +80,19 @@ class SubscribeService(BaseService):
                     logger.error(f"下载创建失败")
                     continue
                 logger.info(f"下载创建成功")
+                torrent = Torrent()
+                torrent.hash = response.hash
+                torrent.num = subscribe.num
+                torrent.is_zh = subscribe.is_zh
+                torrent.is_uncensored = subscribe.is_uncensored
+                torrent.add(self.db)
+
                 subscribe_notify = schema.SubscribeNotify.model_validate(subscribe)
                 subscribe_notify = subscribe_notify.model_copy(update=matched.model_dump())
                 notify.send_subscribe(subscribe_notify)
 
                 logger.info(f"订阅《{subscribe.num}》已完成")
                 self.db.delete(subscribe)
-
 
     def do_subscribe_meta_update(self):
         subscribes = self.get_subscribes()
