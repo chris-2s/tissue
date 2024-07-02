@@ -25,16 +25,17 @@ def get_basic(video: str, include_actor: bool = False):
         is_zh = (extra.get('is_zh') == '1') if extra is not None else False
         is_uncensored = (extra.get('is_uncensored') == '1') if extra is not None else False
 
-        names = []
+        video_actors = []
         if include_actor:
-            names = []
-            actors = root.find('actor')
+            actors = root.findall('actor')
             for actor in actors:
-                if actor.tag == 'name':
-                    names.append(actor.text)
+                video_actor = VideoActor()
+                video_actor.name = actor.find('name').text
+                video_actor.thumb = actor.find('thumb').text
+                video_actors.append(video_actor)
 
         nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored,
-                        actors=names)
+                        actors=video_actors)
         return nfo
     except Exception as e:
         logger.error("NFO文件读取失败")
