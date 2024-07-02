@@ -32,14 +32,16 @@ def get_basic(video: str, include_actor: bool = False):
             for actor in actors:
                 video_actor = VideoActor()
                 video_actor.name = actor.find('name').text
-                video_actor.thumb = actor.find('thumb').text
+                thumb_element = actor.find('thumb')
+                if thumb_element:
+                    video_actor.thumb = thumb_element.text
                 video_actors.append(video_actor)
 
         nfo = VideoList(path=video, title=title.text, cover=cover.text, is_zh=is_zh, is_uncensored=is_uncensored,
                         actors=video_actors)
         return nfo
     except Exception as e:
-        logger.error("NFO文件读取失败")
+        logger.error(f'{video} NFO文件读取失败')
         traceback.print_exc()
         return None
 
