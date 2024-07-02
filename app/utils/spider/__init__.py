@@ -54,7 +54,7 @@ def get_video_info(number: str):
     if len(metas) >= 2:
         logger.info("合并多个刮削信息...")
         for key in meta.__dict__:
-            if getattr(meta, key) is None:
+            if not getattr(meta, key):
                 for other_meta in metas[1:]:
                     value = getattr(other_meta, key)
                     if value:

@@ -3,6 +3,11 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 
+class VideoActor(BaseModel):
+    name: Optional[str] = None
+    thumb: Optional[str] = None
+
+
 class VideoList(BaseModel):
     title: str
     path: str
@@ -10,12 +15,7 @@ class VideoList(BaseModel):
     is_zh: bool = False
     is_uncensored: bool = False
 
-    actors: List[str] = []
-
-
-class VideoActor(BaseModel):
-    name: Optional[str] = None
-    thumb: Optional[str] = None
+    actors: List[VideoActor] = []
 
 
 class VideoDetail(BaseModel):

@@ -29,9 +29,9 @@ function Video() {
 
         const names: { [key: string]: number } = {}
         response.forEach(item => {
-            item.actors.forEach((name: string) => {
-                const count = names[name] || 0
-                names[name] = count + 1
+            item.actors.forEach((actor: any) => {
+                const count = names[actor.name] || 0
+                names[actor.name] = count + 1
             })
         })
 

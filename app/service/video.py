@@ -36,7 +36,7 @@ class VideoService(BaseService):
 
         videos = []
         for path in video_paths:
-            video = nfo.get_basic(path)
+            video = nfo.get_basic(path, include_actor=True)
             if not video:
                 video = VideoList(title=path.split("/")[-1], path=path)
             videos.append(video)
