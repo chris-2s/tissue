@@ -1,4 +1,5 @@
 import os.path
+import traceback
 
 from app.schema import VideoDetail, VideoActor, VideoList
 import xml.etree.ElementTree as ET
@@ -39,6 +40,7 @@ def get_basic(video: str, include_actor: bool = False):
         return nfo
     except Exception as e:
         logger.error("NFO文件读取失败")
+        traceback.print_exc()
         return None
 
 
