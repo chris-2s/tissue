@@ -97,16 +97,19 @@ class QBittorent:
             'urls': magnet,
             'tags': nonce
         })
+        if response.status_code != 200:
+            return response
 
         torrent_hash = ''
         for _ in range(3):
             time.sleep(1)
             torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
-                'tags': nonce
+                'tag': nonce
             }).json()
             if torrents:
                 torrent_hash = torrents[0]['hash']
                 response.hash = torrent_hash
+                break
 
         if self.tracker_subscribe and torrent_hash:
             trackers_text = requests.get(self.tracker_subscribe).text
