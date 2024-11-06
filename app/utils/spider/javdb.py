@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from urllib.parse import urljoin
 from lxml import etree
 
@@ -134,9 +135,9 @@ class JavdbSpider(Spider):
                 if tag.text == '字幕':
                     video.is_zh = True
 
-            publish_date = item.xpath("./div[2]/span")
+            publish_date = item.xpath(".//span[@class='time']")
             if publish_date:
-                video.publish_date = publish_date[0].text.strip()
+                video.publish_date = datetime.strptime(publish_date[0].text.strip(), "%Y-%m-%d").date()
 
             result.append(video)
         return result

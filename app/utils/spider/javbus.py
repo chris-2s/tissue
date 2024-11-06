@@ -1,5 +1,6 @@
 import random
 import re
+from datetime import datetime
 
 import requests
 from lxml import etree
@@ -131,7 +132,7 @@ class JavbusSpider(Spider):
             video.size = size_element.text.strip()
 
             publish_date_element = item.xpath("./td[3]/a")[0]
-            video.publish_date = publish_date_element.text.strip()
+            video.publish_date = datetime.strptime(publish_date_element.text.strip(), "%Y-%m-%d").date()
 
             result.append(video)
         return result
