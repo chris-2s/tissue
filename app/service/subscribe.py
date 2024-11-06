@@ -67,7 +67,7 @@ class SubscribeService(BaseService):
                 return True
 
             result = list(filter(get_matched, result))
-            result.sort(key=lambda i: i.publish_date, reverse=True)
+            result.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
             if not result:
                 logger.error(f"未匹配到符合条件的影片")
                 continue
