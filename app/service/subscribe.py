@@ -47,7 +47,7 @@ class SubscribeService(BaseService):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
         for subscribe in subscribes:
-            time.sleep(randint(5, 10))
+            time.sleep(randint(30, 60))
 
             result = spider.get_video(subscribe.num)
             if not result:
@@ -110,7 +110,7 @@ class SubscribeService(BaseService):
             else:
                 logger.error(f"未找到订阅《{subscribe.num}》元数据")
 
-            time.sleep(randint(5, 10))
+            time.sleep(randint(30, 60))
 
     @classmethod
     def job_subscribe(cls):

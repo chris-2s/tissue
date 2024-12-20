@@ -1,10 +1,9 @@
 import re
+import time
 from datetime import datetime
+from random import randint
 from urllib.parse import urljoin
 from lxml import etree
-
-import requests
-
 from app.schema import VideoDetail, VideoActor, SubscribeScrape
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
@@ -20,6 +19,8 @@ class JavdbSpider(Spider):
         url = self.search(num)
         if not url:
             raise SpiderException('未找到番号')
+        else:
+            time.sleep(randint(1, 3))
 
         meta = VideoDetail()
         meta.num = num
