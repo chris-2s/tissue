@@ -80,12 +80,13 @@ class SubscribeService(BaseService):
                     logger.error(f"下载创建失败")
                     continue
                 logger.info(f"下载创建成功")
-                torrent = Torrent()
-                torrent.hash = response.hash
-                torrent.num = subscribe.num
-                torrent.is_zh = subscribe.is_zh
-                torrent.is_uncensored = subscribe.is_uncensored
-                torrent.add(self.db)
+                if response.hash:
+                    torrent = Torrent()
+                    torrent.hash = response.hash
+                    torrent.num = subscribe.num
+                    torrent.is_zh = subscribe.is_zh
+                    torrent.is_uncensored = subscribe.is_uncensored
+                    torrent.add(self.db)
 
                 subscribe_notify = schema.SubscribeNotify.model_validate(subscribe)
                 subscribe_notify = subscribe_notify.model_copy(update=matched.model_dump())

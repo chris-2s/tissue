@@ -101,7 +101,7 @@ class QBittorent:
             return response
 
         torrent_hash = ''
-        for _ in range(3):
+        for _ in range(5):
             time.sleep(1)
             torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
                 'tag': nonce
