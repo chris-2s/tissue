@@ -1,6 +1,6 @@
 import {useRequest} from "ahooks";
 import * as api from "../../apis/video";
-import {Card, Col, Empty, FloatButton, Modal, Row, Skeleton, Space, Tag} from "antd";
+import {Button, Card, Col, Empty, FloatButton, Modal, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
 import React, {useMemo, useState} from "react";
 import VideoDetail from "./detail";
@@ -36,7 +36,7 @@ function Video() {
     const videos = useMemo(() => {
         return data.filter((item: any) => {
             if (filterParams.title) {
-                if (!item.title.includes(filterParams.title)) {
+                if (!item.title.toUpperCase().includes(filterParams.title.toUpperCase())) {
                     return false
                 }
             }
@@ -61,7 +61,7 @@ function Video() {
         <Row gutter={[15, 15]}>
             {videos.length > 0 ? (
                 videos.map((video: any) => (
-                    <Col key={video.path} span={24} lg={6}>
+                    <Col key={video.path} span={24} md={12} lg={6}>
                         <Card hoverable
                               cover={(<VideoCover src={video.cover}/>)}
                               onClick={() => setSelected(video.path)}
@@ -99,8 +99,10 @@ function Video() {
                              refresh()
                          }}
             />
-            <VideoFilterModal open={filterOpen} onCancel={() => setFilterOpen(false)}
+            <VideoFilterModal open={filterOpen}
                               actors={actors}
+                              initialValues={filterParams}
+                              onCancel={() => setFilterOpen(false)}
                               onFilter={params => {
                                   setFilterParams(params)
                                   setFilterOpen(false)

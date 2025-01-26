@@ -1,4 +1,4 @@
-import {Checkbox, Form, Input, List, Modal, ModalProps, Select} from "antd";
+import {Button, Checkbox, Form, Input, List, Modal, ModalProps, Select, Space} from "antd";
 
 export interface FilterParams {
     title?: string
@@ -7,13 +7,13 @@ export interface FilterParams {
 
 interface Props extends ModalProps {
     actors: any[]
-    onCancel: () => void
+    initialValues: any
     onFilter: (params: FilterParams) => void
 }
 
 function VideoFilterModal(props: Props) {
 
-    const {onFilter, actors = [], onCancel, ...otherProps} = props
+    const {onFilter, actors = [], initialValues, ...otherProps} = props
     const [form] = Form.useForm()
 
     async function onOk() {
@@ -21,7 +21,7 @@ function VideoFilterModal(props: Props) {
         onFilter(values)
     }
 
-    function handleCancel() {
+    function handleRest() {
         form.resetFields()
         onFilter({})
     }
@@ -31,8 +31,13 @@ function VideoFilterModal(props: Props) {
     ))
 
     return (
-        <Modal title={'影片过滤'} {...otherProps} onCancel={handleCancel} cancelText={'重置'} onOk={onOk}>
-            <Form form={form} layout={'vertical'}>
+        <Modal title={'影片过滤'} {...otherProps} footer={(
+            <Space>
+                <Button onClick={handleRest}>重 制</Button>
+                <Button type={'primary'} onClick={onOk}>确 定</Button>
+            </Space>
+        )}>
+            <Form form={form} layout={'vertical'} initialValues={initialValues}>
                 <Form.Item name={'title'} label={'标题'}>
                     <Input allowClear/>
                 </Form.Item>
