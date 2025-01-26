@@ -1,4 +1,4 @@
-import {Button, Card, Col, Empty, FloatButton, message, Row, Skeleton, Space, Tag} from "antd";
+import {Button, Card, Col, Empty, FloatButton, Input, message, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
 import {Link} from "react-router-dom";
 import React, {useState} from "react";
@@ -13,6 +13,7 @@ import {PlusOutlined} from "@ant-design/icons";
 function Subscribe() {
 
     const {data = [], loading, refresh} = useRequest(api.getSubscribes, {})
+    const [filter, setFilter] = useState<string>()
     const {setOpen, modalProps} = useFormModal({
         service: api.modifySubscribe,
         onOk: () => {
@@ -38,12 +39,25 @@ function Subscribe() {
         )
     }
 
+    const subscribes = data.filter((item: any) => {
+        if (!filter) return true
+        return item.title.toUpperCase().includes(filter.toUpperCase()) || item.num.toUpperCase().includes(filter.toUpperCase())
+    })
+
     return (
         <div>
+            <Row>
+                <Col span={24} lg={{
+                    span: 6,
+                    offset: 18,
+                }}>
+                    <Input.Search allowClear enterButton style={{marginBottom: 15}} onSearch={setFilter}/>
+                </Col>
+            </Row>
             <Row gutter={[15, 15]}>
-                {data.length > 0 ? (
-                    data.map((subscribe: any) => (
-                        <Col key={subscribe.id} span={24} lg={6}>
+                {subscribes.length > 0 ? (
+                    subscribes.map((subscribe: any) => (
+                        <Col key={subscribe.id} span={24} md={12} lg={6}>
                             <Card hoverable
                                   cover={(<VideoCover src={subscribe.cover}/>)}
                                   onClick={() => setOpen(true, subscribe)}
