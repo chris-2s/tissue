@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict
 
 
 class SubscribeCreate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     num: str
     premiered: Optional[date] = None
     title: Optional[str] = None
@@ -23,9 +25,7 @@ class Subscribe(SubscribeUpdate):
     last_updated: Optional[datetime] = None
 
 
-class SubscribeNotify(SubscribeUpdate):
-    model_config = ConfigDict(from_attributes=True)
-
+class SubscribeNotify(SubscribeCreate):
     name: Optional[str] = None
     website: Optional[str] = None
     url: Optional[str] = None

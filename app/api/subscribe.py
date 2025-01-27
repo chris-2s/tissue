@@ -37,3 +37,9 @@ def delete_subscribe(subscribe_id: int, service=Depends(get_subscribe_service)):
 def get_videos(num: str, service=Depends(get_subscribe_service)):
     videos = service.get_videos(num)
     return R.list(videos)
+
+
+@router.post('/download')
+def download_video(video: schema.SubscribeCreate, link: schema.SubscribeScrape, service=Depends(get_subscribe_service)):
+    service.download_video(video, link)
+    return R.ok()

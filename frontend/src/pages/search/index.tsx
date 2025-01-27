@@ -5,14 +5,14 @@ import {
     Descriptions,
     Empty,
     Input,
-    List, message,
+    List, message, Modal,
     Row,
     Skeleton,
     Tag,
     Tooltip
 } from "antd";
 import VideoCover from "../../components/VideoCover";
-import React, {useMemo, useState} from "react";
+import React, {useMemo, useRef, useState} from "react";
 import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, SearchOutlined} from "@ant-design/icons";
 import Websites from "../../components/Websites";
 import * as api from "../../apis/video";
@@ -38,7 +38,7 @@ function Search() {
     const {run: onSearchVideo, loading: videoSearching} = useRequest(api.scrapeVideo, {
         manual: true,
         onSuccess: (response) => {
-            setVideo(response.data.data)
+            setVideo({...response.data.data, actors: response.data.data.actors.map((i: any) => i.name).join(", ")})
         }
     })
 
@@ -46,6 +46,14 @@ function Search() {
         manual: true,
         onSuccess: (response) => {
             setVideoLinks(response.sort((x: any, y: any) => -dayjs(x.publish_date).diff(dayjs(y.publish_date))))
+            return message.success("搜索完成")
+        }
+    })
+
+    const {runAsync: onDownload} = useRequest(subscribeApi.downloadVideos, {
+        manual: true,
+        onSuccess: () => {
+            return message.success("下载任务创建成功")
         }
     })
 
@@ -56,7 +64,7 @@ function Search() {
                 key: 'actors',
                 label: '演员',
                 span: 24,
-                children: video.actors.map((i: any) => i.name).join(", "),
+                children: video.actors,
             },
             {
                 key: 'num',
@@ -141,9 +149,28 @@ function Search() {
         ]
     }, [video])
 
-    async function onCopy(item: any) {
+    async function onCopyClick(item: any) {
         await navigator.clipboard.writeText(item.magnet)
         message.success("磁力链接已复制")
+    }
+
+    function onDownloadClick(item: any) {
+        Modal.confirm({
+            title: '是否确认下载：' + item.name,
+            content: (
+                <div>
+                    <Tag>{item.size}</Tag>
+                    <Tag>{item.publish_date}</Tag>
+                    {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
+                    {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
+                    {item.is_uncensored &&
+                        <Tag color={'green'} bordered={false}>无码</Tag>}
+                </div>
+            ),
+            onOk: () => {
+                return onDownload(video, item)
+            }
+        })
     }
 
     return (
@@ -165,10 +192,7 @@ function Search() {
                                 <Tooltip title={'添加订阅'}>
                                     <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
                                             onClick={() => {
-                                                setSubscribeOpen(true, {
-                                                    ...video,
-                                                    actors: video.actors.map((i: any) => i.name).join(", ")
-                                                })
+                                                setSubscribeOpen(true, video)
                                             }}/>
                                 </Tooltip>
                                 <Tooltip title={'搜索资源'}>
@@ -206,11 +230,13 @@ function Search() {
                         <List dataSource={videoLinks} renderItem={(item: any) => (
                             <List.Item actions={[
                                 <Tooltip title={'发送到下载器'}>
-                                    <Button type={'primary'} icon={<CloudDownloadOutlined/>} shape={'circle'}/>
+                                    <Button type={'primary'} icon={<CloudDownloadOutlined/>} shape={'circle'}
+                                            onClick={() => onDownloadClick(item)}
+                                    />
                                 </Tooltip>,
                                 <Tooltip title={'复制磁力链接'}>
                                     <Button type={'primary'} icon={<CopyOutlined/>} shape={'circle'}
-                                            onClick={() => onCopy(item)}/>
+                                            onClick={() => onCopyClick(item)}/>
                                 </Tooltip>
                             ]}>
                                 <List.Item.Meta title={item.name}
