@@ -7,7 +7,7 @@ import DatePicker from "../../components/DatePicker";
 import React from "react";
 
 interface Props extends FormModalProps {
-    onDelete: (id: number) => void
+    onDelete?: (id: number) => void
 }
 
 function ModifyModal(props: Props) {
@@ -38,7 +38,7 @@ function ModifyModal(props: Props) {
         Modal.confirm({
             title: '是否确认删除',
             onOk: () => {
-                onDelete(id)
+                onDelete?.(id)
             }
         })
     }
