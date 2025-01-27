@@ -1,4 +1,5 @@
 import time
+import traceback
 from datetime import datetime
 from random import randint
 
@@ -78,25 +79,31 @@ class SubscribeService(BaseService):
             logger.info(f"匹配到符合条件的影片{len(result)}部，将选择最新发布的影片")
             matched = result[0]
             if matched:
-                response = qbittorent.add_magnet(matched.magnet)
-                if response.status_code != 200:
-                    logger.error(f"下载创建失败")
+                try:
+                    self.download_video(schema.SubscribeCreate.model_validate(subscribe), matched)
+                    logger.info(f"订阅《{subscribe.num}》已完成")
+                    self.db.delete(subscribe)
+                except Exception as e:
+                    logger.error("下载任务创建失败")
+                    traceback.print_exc()
                     continue
-                logger.info(f"下载创建成功")
-                if response.hash:
-                    torrent = Torrent()
-                    torrent.hash = response.hash
-                    torrent.num = subscribe.num
-                    torrent.is_zh = subscribe.is_zh
-                    torrent.is_uncensored = subscribe.is_uncensored
-                    torrent.add(self.db)
 
-                subscribe_notify = schema.SubscribeNotify.model_validate(subscribe)
-                subscribe_notify = subscribe_notify.model_copy(update=matched.model_dump())
-                notify.send_subscribe(subscribe_notify)
+    def download_video(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
+        response = qbittorent.add_magnet(link.magnet)
+        if response.status_code != 200:
+            raise BizException('下载创建失败')
+        logger.info(f"下载创建成功")
+        if response.hash:
+            torrent = Torrent()
+            torrent.hash = response.hash
+            torrent.num = video.num
+            torrent.is_zh = link.is_zh
+            torrent.is_uncensored = link.is_uncensored
+            torrent.add(self.db)
 
-                logger.info(f"订阅《{subscribe.num}》已完成")
-                self.db.delete(subscribe)
+        subscribe_notify = schema.SubscribeNotify.model_validate(video)
+        subscribe_notify = subscribe_notify.model_copy(update=link.model_dump())
+        notify.send_subscribe(subscribe_notify)
 
     def do_subscribe_meta_update(self):
         subscribes = self.get_subscribes()

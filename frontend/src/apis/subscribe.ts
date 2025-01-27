@@ -32,3 +32,14 @@ export async function getVideos(num: string) {
     })
     return response.data.data
 }
+
+export async function downloadVideos(video: any, link: any) {
+    const response = await request.request({
+        url: '/subscribe/download',
+        method: 'post',
+        data: {
+            video, link
+        }
+    })
+    return response.data.data
+}

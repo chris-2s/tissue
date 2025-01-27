@@ -39,7 +39,7 @@ class Telegram(Base):
         if subscribe.is_uncensored: tags.append('无码')
 
         content = f'''
-<b><tg-spoiler>{subscribe.num}</tg-spoiler>订阅成功</b>
+<b><tg-spoiler>{subscribe.num}</tg-spoiler>开始下载</b>
 演员：<tg-spoiler>{subscribe.actors}</tg-spoiler>
 大小：{subscribe.size}
 名称：<tg-spoiler>{subscribe.name}</tg-spoiler>
