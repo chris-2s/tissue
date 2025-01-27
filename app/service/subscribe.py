@@ -43,6 +43,9 @@ class SubscribeService(BaseService):
         exist = Subscribe.get(self.db, subscribe_id)
         exist.delete(self.db)
 
+    def get_videos(self, num: str):
+        return spider.get_video(num)
+
     def do_subscribe(self):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
