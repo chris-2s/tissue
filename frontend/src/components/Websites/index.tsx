@@ -5,6 +5,7 @@ import {PlusOutlined} from "@ant-design/icons";
 interface Props {
     value?: string[],
     onChange?: (value?: string[]) => void
+    readonly?: boolean
 }
 
 
@@ -23,7 +24,7 @@ function Websites(props: Props) {
         borderStyle: 'dashed',
     };
 
-    const {value, onChange} = props
+    const {value, onChange, readonly = false} = props
     const inputRef = useRef<InputRef>(null);
     const [inputVisible, setInputVisible] = useState(false);
     const [editInputValue, setEditInputValue] = useState('');
@@ -64,7 +65,7 @@ function Websites(props: Props) {
             <>
                 {value?.map((tag, index) => (
                     <Tag key={tag}
-                         closable
+                         closable={!readonly}
                          style={{userSelect: 'none'}}
                          onClose={() => handleClose(tag)}
                          onClick={() => window.open(tag)}
@@ -82,9 +83,11 @@ function Websites(props: Props) {
                            onPressEnter={handleEditInputConfirm}
                     />
                 ) : (
-                    <Tag style={tagPlusStyle} icon={<PlusOutlined/>} onClick={() => setInputVisible(true)}>
-                        新增
-                    </Tag>
+                    !readonly && (
+                        <Tag style={tagPlusStyle} icon={<PlusOutlined/>} onClick={() => setInputVisible(true)}>
+                            新增
+                        </Tag>
+                    )
                 )}
             </>
         </Space>

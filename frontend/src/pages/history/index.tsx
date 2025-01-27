@@ -20,9 +20,9 @@ function History() {
     const realData = useMemo(() => {
         return data.filter((item: any) => {
             return !keywordDebounce ||
-                item.num.indexOf(keywordDebounce) != -1 ||
-                item.source_path.indexOf(keywordDebounce) != -1 ||
-                item.dest_path.indexOf(keywordDebounce) != -1
+                item.num?.indexOf(keywordDebounce) > -1 ||
+                item.source_path?.indexOf(keywordDebounce) > -1 ||
+                item.dest_path?.indexOf(keywordDebounce) > -1
         })
     }, [data, keywordDebounce])
 

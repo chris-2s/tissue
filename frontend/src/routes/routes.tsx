@@ -1,7 +1,7 @@
 import {
     CarryOutOutlined,
     CloudDownloadOutlined,
-    FolderOpenOutlined, HistoryOutlined, HomeOutlined, ScheduleOutlined,
+    FolderOpenOutlined, HistoryOutlined, HomeOutlined, ScheduleOutlined, SearchOutlined,
     SettingOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -17,6 +17,7 @@ import History from "../pages/history";
 import Schedule from "../pages/schedule";
 import Home from "../pages/home";
 import Subscribe from "../pages/subscribe";
+import Search from "../pages/search";
 
 export default [
     {
@@ -64,6 +65,12 @@ export default [
                 path: '/subscribe',
                 icon: (<CarryOutOutlined/>),
                 element: (<Subscribe/>),
+            },
+            {
+                title: '搜索',
+                path: '/search',
+                icon: (<SearchOutlined/>),
+                element: (<Search/>),
             },
         ]
     },

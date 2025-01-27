@@ -1,6 +1,5 @@
-import {Button, Card, Col, Empty, FloatButton, Input, message, Row, Skeleton, Space, Tag} from "antd";
+import {Card, Col, Empty, FloatButton, Input, message, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
-import {Link} from "react-router-dom";
 import React, {useState} from "react";
 import * as api from "../../apis/subscribe";
 import {useRequest} from "ahooks";
