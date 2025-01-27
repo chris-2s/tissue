@@ -23,3 +23,12 @@ export function deleteSubscribe(id: number) {
         params: {subscribe_id: id},
     })
 }
+
+export async function getVideos(num: string) {
+    const response = await request.request({
+        url: '/subscribe/videos',
+        method: 'get',
+        params: {num}
+    })
+    return response.data.data
+}

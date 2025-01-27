@@ -31,3 +31,9 @@ def update_subscribe(subscribe: schema.SubscribeUpdate, service=Depends(get_subs
 def delete_subscribe(subscribe_id: int, service=Depends(get_subscribe_service)):
     service.delete_subscribe(subscribe_id)
     return R.ok()
+
+
+@router.get('/videos', response_model=R[List[schema.SubscribeScrape]])
+def get_videos(num: str, service=Depends(get_subscribe_service)):
+    videos = service.get_videos(num)
+    return R.list(videos)
