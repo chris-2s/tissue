@@ -24,7 +24,7 @@ function Login() {
     }
 
     return (
-        <div className={'h-full flex flex-col justify-center items-center'} style={{background: token.colorPrimaryBg}}>
+        <div className={'h-dvh flex flex-col justify-center items-center'} style={{background: token.colorPrimaryBg}}>
             <div className={'flex m-5'}>
                 <img className={'h-20 mr-4'} src={Logo} alt=""/>
             </div>
