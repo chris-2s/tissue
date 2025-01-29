@@ -120,7 +120,7 @@ function VideoDetail(props: Props) {
             ) : (
                 <Form className={Styles.form} form={form} layout={'vertical'} onFinish={handleSave}>
                     <Row gutter={[30, 15]}>
-                        <Col span={24} lg={10}>
+                        <Col span={24} md={10} lg={10}>
                             <Form.Item noStyle name={'cover'}>
                                 <VideoCoverEditor/>
                             </Form.Item>
@@ -133,7 +133,7 @@ function VideoDetail(props: Props) {
                                 <Websites/>
                             </Form.Item>
                         </Col>
-                        <Col span={24} lg={14}>
+                        <Col span={24} md={14} lg={14}>
                             <Row gutter={[15, 15]}>
                                 <Col span={8}>
                                     <Form.Item name={'num'} label={'番号'}

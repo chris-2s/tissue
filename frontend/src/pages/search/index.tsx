@@ -17,15 +17,15 @@ import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, SearchOutlined} f
 import Websites from "../../components/Websites";
 import * as api from "../../apis/video";
 import * as subscribeApi from "../../apis/subscribe";
-import {useRequest} from "ahooks";
+import {useLocalStorageState, useRequest} from "ahooks";
 import SubscribeModifyModal from "../subscribe/modifyModal.tsx";
 import {useFormModal} from "../../utils/useFormModal.ts";
 import dayjs from "dayjs";
 
 function Search() {
 
-    const [video, setVideo] = useState<any>();
-    const [videoLinks, setVideoLinks] = useState<any[]>();
+    const [video, setVideo] = useLocalStorageState<any>('search_video_information');
+    const [videoLinks, setVideoLinks] = useLocalStorageState<any[]>('search_video_links');
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: subscribeApi.modifySubscribe,
@@ -121,7 +121,7 @@ function Search() {
                 children: (
                     <div className={'leading-7'}>
                         {video.tags.map((i: any) => (
-                            <Tag>{i}</Tag>
+                            <Tag key={i}>{i}</Tag>
                         ))}
                     </div>
                 ),

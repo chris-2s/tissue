@@ -28,26 +28,30 @@ interface Props {
 function Header(props: Props) {
 
     const {token} = useToken()
-    const currentTheme = useSelector((state: RootState) => state.app.theme)
     const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
     const appDispatch = useDispatch<Dispatch>().app
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
-
     const [logOpen, setLogOpen] = useState(false)
 
-    const theme = themes.find(i => i.name === currentTheme)!!
-
-    function onThemeChange() {
-        const themeIndex = (themes.indexOf(theme) + 1) % 2
-        appDispatch.setTheme(themes[themeIndex].name)
-    }
+    const themeMode = useSelector((state: RootState) => state.app?.themeMode)
+    const CurrentTheme = themes.find(i => i.name === themeMode) || themes[0]
 
     function onGoodBoyChange() {
         appDispatch.setGoodBoy(!isGoodBoy)
     }
 
-    const items = [
+    const themeItems = themes.map(i => ({
+        key: i.name,
+        label: i.title,
+        icon: <i.icon></i.icon>
+    })) as any
+
+    function onThemeClick(event: any) {
+        appDispatch.setThemeMode(event.key)
+    }
+
+    const userItems = [
         {
             key: 'logout',
             label: '退出登录',
@@ -55,7 +59,7 @@ function Header(props: Props) {
         }
     ] as any
 
-    function onClick(event: any) {
+    function onUserClick(event: any) {
         switch (event.key) {
             case 'logout':
                 authDispatch.logout()
@@ -104,10 +108,12 @@ function Header(props: Props) {
                         {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
                             <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
                     </IconButton>
-                    <IconButton onClick={() => onThemeChange()}>
-                        <theme.icon style={{fontSize: token.sizeLG}}/>
-                    </IconButton>
-                    <Dropdown arrow menu={{items, onClick}} dropdownRender={renderDropdown}>
+                    <Dropdown arrow menu={{items: themeItems, onClick: onThemeClick}}>
+                        <IconButton>
+                            <CurrentTheme.icon style={{fontSize: token.sizeLG}}/>
+                        </IconButton>
+                    </Dropdown>
+                    <Dropdown arrow menu={{items: userItems, onClick: onUserClick}} dropdownRender={renderDropdown}>
                         <IconButton>
                             <UserOutlined style={{fontSize: token.sizeLG}}/>
                         </IconButton>

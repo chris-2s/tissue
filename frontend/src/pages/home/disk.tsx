@@ -103,8 +103,10 @@ function Disk() {
             <div className={'text-lg'}>磁盘</div>
             <Row>
                 {sections.map((section, index) => (
-                    <Col span={24} lg={8}>
-                        <div ref={ref => containers.current[index] = ref}></div>
+                    <Col key={index} span={24} lg={8}>
+                        <div ref={ref => {
+                            containers.current[index] = ref
+                        }}></div>
                     </Col>
                 ))}
             </Row>
