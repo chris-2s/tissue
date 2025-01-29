@@ -1,7 +1,7 @@
 .header {
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
     position: fixed;
     left: 0;
     right: 0;
@@ -11,13 +11,24 @@
     border-block-end: 1px solid;
 }
 
-.side{
+.footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.6);
+    border-block-start: 1px solid;
+}
+
+.side {
     border-right: 1px solid;
 }
 
 .content {
-    padding-top: calc(env(safe-area-inset-top) + 64px);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-top: calc(env(safe-area-inset-top, 0) + 64px);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
     overscroll-behavior: contain;
 }

@@ -16,6 +16,7 @@ import IconButton from "../../components/IconButton";
 import Log from "./log";
 import {Link} from "react-router-dom";
 import Logo from "../../assets/logo.png";
+import {useResponsive} from "ahooks";
 
 
 const {useToken} = theme
@@ -26,6 +27,8 @@ interface Props {
 }
 
 function Header(props: Props) {
+
+    const responsive = useResponsive()
 
     const {token} = useToken()
     const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
@@ -95,7 +98,7 @@ function Header(props: Props) {
                 )}
                 {!props.collapsible && (
                     <Link to={'/'} className={'flex items-center'}>
-                        <img className={'ml-4 mr-4 h-12'} src={Logo} alt=""/>
+                        <img className={responsive.lg ? 'ml-4 mr-4 h-12' : 'mr-1 h-10'} src={Logo} alt=""/>
                     </Link>
                 )}
             </div>

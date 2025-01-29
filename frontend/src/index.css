@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    height: calc(100% + env(safe-area-inset-top));
+}
+
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -13,4 +17,8 @@ body {
 
 .ant-message-top {
     top: calc(8px + env(safe-area-inset-top)) !important;
+}
+
+.ant-float-btn-group {
+    bottom: calc(64px + env(safe-area-inset-top)) !important;
 }
