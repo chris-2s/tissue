@@ -1,7 +1,7 @@
 import {
     CarryOutOutlined,
     CloudDownloadOutlined,
-    FolderOpenOutlined, HistoryOutlined, HomeOutlined, ScheduleOutlined, SearchOutlined,
+    FolderOpenOutlined, HistoryOutlined, HomeOutlined, MenuOutlined, ScheduleOutlined, SearchOutlined,
     SettingOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -18,6 +18,7 @@ import Schedule from "../pages/schedule";
 import Home from "../pages/home";
 import Subscribe from "../pages/subscribe";
 import Search from "../pages/search";
+import Menu from "../pages/index/menu.tsx";
 
 export default [
     {
@@ -25,6 +26,13 @@ export default [
         path: '/',
         icon: (<HomeOutlined/>),
         element: (<Home/>),
+    },
+    {
+        title: '菜单',
+        path: '/menu',
+        icon: (<MenuOutlined/>),
+        element: (<Menu/>),
+        hidden: true,
     },
     {
         title: '整理',

@@ -2,7 +2,6 @@ import {createBrowserRouter} from "react-router-dom";
 import Login from "../pages/login";
 import Index from "../pages/index";
 import routes from "./routes";
-import {List} from "antd";
 
 export default createBrowserRouter([
     {

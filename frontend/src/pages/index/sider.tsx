@@ -1,11 +1,8 @@
 import React from "react";
-import {Menu, theme} from "antd";
+import {Menu} from "antd";
 import routes from "../../routes/routes";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import Logo from "../../assets/logo.png";
-
-
-const {useToken} = theme
 
 interface Props {
     onSelect?: () => void
@@ -28,7 +25,7 @@ function Sider(props: Props) {
     }
 
     function generateItems(routes: any) {
-        return routes.map((item: any) => {
+        return routes.filter((i: any) => i.hidden !== true).map((item: any) => {
             const menuItem = getItem(item)
             if (item.children) {
                 menuItem.children = generateItems(item.children)
@@ -39,7 +36,7 @@ function Sider(props: Props) {
 
     return (
         <div>
-            <div className={'h-16 flex items-center'} style={{marginTop: 'env(safe-area-inset-top)'}}>
+            <div className={'h-16 flex items-center'} style={{marginTop: 'env(safe-area-inset-top, 0)'}}>
                 {showLogo && (
                     <Link to={'/'}>
                         <img className={'ml-8 mr-4 h-12'} src={Logo} alt=""/>
