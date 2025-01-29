@@ -2,19 +2,16 @@ import React from 'react';
 import {RouterProvider} from "react-router-dom";
 import zhCN from "antd/lib/locale/zh_CN";
 import dayjs from "dayjs";
-
-
-import routes from "../routes";
-import {ConfigProvider, theme} from "antd";
-import {useSelector} from "react-redux";
-import {RootState} from "../models";
-import {themes} from "../utils/constants";
-
-
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from "dayjs/plugin/relativeTime";
 import 'dayjs/locale/zh-cn'
 import {useTheme} from "ahooks";
+import {useSelector} from "react-redux";
+
+import routes from "../routes";
+import {ConfigProvider, theme} from "antd";
+import {RootState} from "../models";
+
 
 dayjs.extend(relativeTime)
 dayjs.extend(localizedFormat)
@@ -42,7 +39,7 @@ function App() {
             theme={{
                 algorithm: handleThemeChange(),
             }}>
-            <div className="h-full">
+            <div>
                 <RouterProvider router={routes}/>
             </div>
         </ConfigProvider>

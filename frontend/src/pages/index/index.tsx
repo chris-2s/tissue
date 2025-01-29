@@ -1,4 +1,4 @@
-import {Layout, theme, Drawer, ConfigProvider, message, FloatButton, InputRef} from "antd";
+import {Layout, theme, Drawer, ConfigProvider, FloatButton} from "antd";
 import {Navigate, Outlet} from "react-router-dom";
 import Styles from "./index.module.css";
 import React, {useEffect, useRef, useState} from "react";
@@ -20,8 +20,6 @@ function Index() {
     const {userToken, logging} = useSelector((state: RootState) => state.auth)
     const dispatch = useDispatch<Dispatch>().auth
 
-    const contentRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
         if (userToken) {
             dispatch.getInfo()
@@ -38,7 +36,7 @@ function Index() {
 
 
     return (
-        <div className={'h-full'}>
+        <div>
             <ConfigProvider theme={{
                 components: {
                     Layout: {
@@ -76,11 +74,11 @@ function Index() {
                             </Layout.Header>
                         </div>
                         <Layout.Content style={{overflowY: "auto"}}
-                                        className={Styles.content} ref={contentRef}>
+                                        className={Styles.content}>
                             <div style={{padding: isLg ? 16 : 12}}>
                                 <Outlet/>
                                 <FloatButton.Group className={'index-float-button-group'}>
-                                    {contentRef.current && <FloatButton.BackTop target={() => contentRef.current!!}/>}
+                                    <FloatButton.BackTop/>
                                 </FloatButton.Group>
                             </div>
                         </Layout.Content>

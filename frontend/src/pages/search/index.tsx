@@ -26,6 +26,7 @@ function Search() {
 
     const [video, setVideo] = useLocalStorageState<any>('search_video_information');
     const [videoLinks, setVideoLinks] = useLocalStorageState<any[]>('search_video_links');
+    const linksRef = useRef<any>(null);
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: subscribeApi.modifySubscribe,
@@ -46,6 +47,13 @@ function Search() {
         manual: true,
         onSuccess: (response) => {
             setVideoLinks(response.sort((x: any, y: any) => -dayjs(x.publish_date).diff(dayjs(y.publish_date))))
+            setTimeout(() => {
+                const linksEle = linksRef.current
+                if (linksEle) {
+                    const top = linksEle.getBoundingClientRect().top
+                    window.scrollTo({top: top, behavior: "smooth"})
+                }
+            }, 500)
             return message.success("搜索完成")
         }
     })
@@ -149,9 +157,15 @@ function Search() {
         ]
     }, [video])
 
-    async function onCopyClick(item: any) {
-        await navigator.clipboard.writeText(item.magnet)
-        message.success("磁力链接已复制")
+    function onCopyClick(item: any) {
+        const textarea = document.createElement('textarea');
+        textarea.value = item.magnet;
+        textarea.style.position = 'fixed';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return message.success("磁力链接已复制")
     }
 
     function onDownloadClick(item: any) {
@@ -224,7 +238,7 @@ function Search() {
                     )}
                 </Card>
             </Col>
-            <Col span={24} md={14}>
+            <Col span={24} md={14} ref={linksRef}>
                 <Card title={'资源列表'}>
                     {videoLinks ? (
                         <List dataSource={videoLinks} renderItem={(item: any) => (
