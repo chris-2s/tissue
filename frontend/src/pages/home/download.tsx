@@ -1,7 +1,7 @@
 import {Card, Divider} from "antd";
 import {useEffect, useRef, useState} from "react";
 import {Chart} from "@antv/g2";
-import {useRequest} from "ahooks";
+import {useLocalStorageState, useRequest} from "ahooks";
 import * as api from "../../apis/home.ts";
 import {bytesToSize} from "../../utils/util.ts";
 
@@ -11,6 +11,7 @@ function Download() {
     const container = useRef<any>(null);
     const chart = useRef<any>(null);
     const [current, setCurrent] = useState<any>({})
+    const [history, setHistory] = useLocalStorageState('home_download_usage_history')
 
     useEffect(() => {
         if (!chart.current) {
@@ -40,6 +41,7 @@ function Download() {
             line.data(newData);
             chart.current.render();
             setCurrent(response)
+            setHistory(newData)
         }
     })
 
@@ -49,11 +51,13 @@ function Download() {
             autoFit: true
         });
 
-        const data = new Array(120).fill(0).map((_, index) => ({
-            index: Math.floor(index / 2),
-            type: (index % 2) === 0 ? 'download' : 'upload',
-            value: 0
-        }));
+        const data = history ? history : (
+            new Array(120).fill(0).map((_, index) => ({
+                index: Math.floor(index / 2),
+                type: (index % 2) === 0 ? 'download' : 'upload',
+                value: 0
+            }))
+        );
 
         chart.options({
             type: 'line',

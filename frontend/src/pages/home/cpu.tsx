@@ -1,7 +1,7 @@
 import {Card} from "antd";
 import {useEffect, useRef, useState} from "react";
 import {Chart} from "@antv/g2";
-import {useRequest} from "ahooks";
+import {useLocalStorageState, useRequest} from "ahooks";
 import * as api from "../../apis/home.ts";
 
 
@@ -10,6 +10,7 @@ function Cpu() {
     const container = useRef<any>(null);
     const chart = useRef<any>(null);
     const [current, setCurrent] = useState(0)
+    const [history, setHistory] = useLocalStorageState('home_cpu_usage_history')
 
     useEffect(() => {
         if (!chart.current) {
@@ -36,6 +37,7 @@ function Cpu() {
             })
             area.changeData(data);
             setCurrent(response)
+            setHistory(data)
         }
     })
 
@@ -45,10 +47,12 @@ function Cpu() {
             autoFit: true
         });
 
-        const data = new Array(60).fill(0).map((_, index) => ({
-            value: 0.0,
-            index: index
-        }));
+        const data = history ? history : (
+            new Array(60).fill(0).map((_, index) => ({
+                value: 0.0,
+                index: index
+            }))
+        );
 
         chart.options({
             type: 'area',

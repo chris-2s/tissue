@@ -55,12 +55,12 @@ function ModifyModal(props: Props) {
                     <Input style={{display: 'none'}}/>
                 </Form.Item>
                 <Row gutter={[15, 15]}>
-                    <Col span={24} lg={11}>
+                    <Col span={24} md={11} lg={11}>
                         <Form.Item noStyle name={'cover'}>
                             <VideoCoverEditor disabled={true}/>
                         </Form.Item>
                     </Col>
-                    <Col span={24} lg={13}>
+                    <Col span={24} md={13} lg={13}>
                         <Row gutter={[15, 0]}>
                             <Col span={12}>
                                 <Form.Item label={'番号'} name={'num'}>
