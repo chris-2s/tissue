@@ -7,7 +7,7 @@ import {RootState} from "../../models";
 function IconButton(props: ComponentProps<any>) {
 
     const {children, ...otherProps} = props
-    const currentTheme = useSelector((state: RootState) => state.app.theme)
+    const currentTheme = useSelector((state: RootState) => state.app?.themeMode)
 
 
     return (
