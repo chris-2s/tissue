@@ -33,7 +33,7 @@ function Subscribe() {
     if (loading) {
         return (
             <Card>
-                <Skeleton loading/>
+                <Skeleton active/>
             </Card>
         )
     }
