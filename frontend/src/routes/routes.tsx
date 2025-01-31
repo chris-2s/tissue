@@ -1,7 +1,13 @@
 import {
     CarryOutOutlined,
     CloudDownloadOutlined,
-    FolderOpenOutlined, HistoryOutlined, HomeOutlined, MenuOutlined, ScheduleOutlined, SearchOutlined,
+    FolderOpenOutlined,
+    HistoryOutlined,
+    HomeOutlined,
+    InfoCircleOutlined,
+    MenuOutlined,
+    ScheduleOutlined,
+    SearchOutlined,
     SettingOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -19,6 +25,7 @@ import Home from "../pages/home";
 import Subscribe from "../pages/subscribe";
 import Search from "../pages/search";
 import Menu from "../pages/index/menu.tsx";
+import Abount from "../pages/abount";
 
 export default [
     {
@@ -105,6 +112,13 @@ export default [
                 path: '/schedule',
                 icon: (<ScheduleOutlined/>),
                 element: (<Schedule/>),
+                group: '系统'
+            },
+            {
+                title: '关于',
+                path: '/about',
+                icon: (<InfoCircleOutlined/>),
+                element: (<Abount/>),
                 group: '系统'
             },
         ]

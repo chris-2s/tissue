@@ -17,6 +17,7 @@
     "ahooks": "^3.8.4",
     "antd": "^5.23.3",
     "axios": "^1.7.9",
+    "compare-versions": "^6.1.1",
     "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -15,3 +15,10 @@ export function getInfo() {
         method: 'get'
     })
 }
+
+export function getVersions() {
+    return request.request({
+        url: '/common/version',
+        method: 'get'
+    })
+}
