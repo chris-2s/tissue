@@ -107,7 +107,14 @@ class VideoService(BaseService):
         save_path = os.path.join(video_path, actor_folder, video_folder)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        video_path = os.path.join(save_path, video.num + ('-C' if video.is_zh else '') + ext_name)
+
+        video_tags = []
+        if video.is_uncensored:
+            video_tags.append("U")
+        if video.is_zh:
+            video_tags.append("C")
+
+        video_path = os.path.join(save_path, video.num + (f'-{"".join(video_tags)}' if video_tags else '') + ext_name)
 
         if video_path != video.path:
             if os.path.exists(video_path) and os.stat(video_path).st_size != os.stat(video.path).st_size:
