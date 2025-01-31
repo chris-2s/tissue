@@ -1,3 +1,4 @@
+import re
 from urllib.parse import urljoin
 
 import requests
@@ -45,8 +46,8 @@ class DmmSpider(Spider):
     def get_real_page(self, num: str):
         url = self.generate_url(num)
         response = self.session.get(url)
-        html = etree.HTML(response.text)
-        check_element = html.xpath("//div[@class='ageCheck__btn']/a")
-        if not check_element:
+
+        results = re.findall(r'\"yesButtonLink\":\"(.+?)\"', response.text)
+        if not results:
             raise Exception("找不到年龄确认按钮")
-        return check_element[1].get('href')
+        return results[0]

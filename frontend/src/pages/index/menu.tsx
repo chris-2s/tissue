@@ -1,5 +1,5 @@
 import routes from "../../routes/routes.tsx";
-import {Divider, theme} from "antd";
+import {Card, Divider, theme} from "antd";
 import {Link, Navigate} from "react-router-dom";
 import {useResponsive} from "ahooks";
 import React from "react";
@@ -47,9 +47,9 @@ function Menu() {
     }
 
     return (
-        <div>
+        <Card>
             {renderMenuSection()}
-        </div>
+        </Card>
     )
 }
 

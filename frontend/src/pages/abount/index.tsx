@@ -3,6 +3,7 @@ import {Card, Space, Tag} from "antd";
 import {useResponsive} from "ahooks";
 import {useSelector} from "react-redux";
 import {RootState} from "../../models";
+import {DockerOutlined, GithubOutlined} from "@ant-design/icons";
 
 function About() {
 
@@ -20,6 +21,12 @@ function About() {
                         <Tag className={'ml-2'} color={'red'}>新版本：{versions?.latest}</Tag>
                     )}
                 </div>
+                <Space size={"large"} className={'text-4xl mt-4'}>
+                    <div className={'cursor-pointer'} onClick={() => window.open('https://github.com/chris-2s/tissue')}>
+                        <GithubOutlined/></div>
+                    <div className={'cursor-pointer'}
+                         onClick={() => window.open('https://hub.docker.com/r/chris2s/tissue')}><DockerOutlined/></div>
+                </Space>
                 {responsive.md ? (
                     <Space align={"center"} wrap={true} className={'mt-4'}>
                         <img src="https://img.shields.io/github/license/chris-2s/tissue" alt=""/>
