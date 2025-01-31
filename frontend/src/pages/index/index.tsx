@@ -23,6 +23,7 @@ function Index() {
     useEffect(() => {
         if (userToken) {
             dispatch.getInfo()
+            dispatch.getVersions()
         }
     }, [])
 
