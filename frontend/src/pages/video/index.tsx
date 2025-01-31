@@ -1,4 +1,4 @@
-import {useRequest} from "ahooks";
+import {clearCache, useRequest} from "ahooks";
 import * as api from "../../apis/video";
 import {Button, Card, Col, Empty, FloatButton, Modal, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../components/VideoCover";
@@ -6,13 +6,16 @@ import React, {useMemo, useState} from "react";
 import VideoDetail from "./detail";
 import {Link} from "react-router-dom";
 import {createPortal} from "react-dom";
-import {FilterOutlined} from "@ant-design/icons";
+import {FilterOutlined, RedoOutlined} from "@ant-design/icons";
 import VideoFilterModal, {FilterParams} from "./filter.tsx";
 
 
 function Video() {
 
-    const {data = [], loading, refresh} = useRequest(api.getVideos, {})
+    const {data = [], loading, refresh} = useRequest(api.getVideos, {
+        staleTime: 5 * 60 * 1000,
+        cacheKey: 'videos-cached'
+    })
     const [selected, setSelected] = useState<string | undefined>()
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
@@ -57,6 +60,11 @@ function Video() {
         )
     }
 
+    function onRefresh() {
+        clearCache('videos-cached')
+        refresh()
+    }
+
     return (
         <Row gutter={[15, 15]}>
             {videos.length > 0 ? (
@@ -96,7 +104,7 @@ function Video() {
                          onCancel={() => setSelected(undefined)}
                          onOk={() => {
                              setSelected(undefined)
-                             refresh()
+                             onRefresh()
                          }}
             />
             <VideoFilterModal open={filterOpen}
@@ -109,9 +117,12 @@ function Video() {
                               }}/>
             <>
                 {createPortal((
-                        <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
-                                     onClick={() => setFilterOpen(true)}/>),
-                    document.getElementsByClassName('index-float-button-group')[0]
+                        <>
+                            <FloatButton icon={<RedoOutlined/>} onClick={onRefresh}/>
+                            <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
+                                         onClick={() => setFilterOpen(true)}/>
+                        </>
+                    ), document.getElementsByClassName('index-float-button-group')[0]
                 )}
             </>
         </Row>
