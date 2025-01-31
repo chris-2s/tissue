@@ -88,6 +88,7 @@ class SubscribeService(BaseService):
                     traceback.print_exc()
                     continue
 
+    @transaction
     def download_video(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
         response = qbittorent.add_magnet(link.magnet)
         if response.status_code != 200:
