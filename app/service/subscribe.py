@@ -47,6 +47,10 @@ class SubscribeService(BaseService):
     def get_videos(self, num: str):
         return spider.get_video(num)
 
+    @transaction
+    def download_video_manual(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
+        self.download_video(video, link)
+
     def do_subscribe(self):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
@@ -88,7 +92,6 @@ class SubscribeService(BaseService):
                     traceback.print_exc()
                     continue
 
-    @transaction
     def download_video(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
         response = qbittorent.add_magnet(link.magnet)
         if response.status_code != 200:
@@ -100,7 +103,7 @@ class SubscribeService(BaseService):
             torrent.num = video.num
             torrent.is_zh = link.is_zh
             torrent.is_uncensored = link.is_uncensored
-            torrent.add(self.db)
+            self.db.add(torrent)
 
         subscribe_notify = schema.SubscribeNotify.model_validate(video)
         subscribe_notify = subscribe_notify.model_copy(update=link.model_dump())
