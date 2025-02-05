@@ -42,7 +42,7 @@ function Menu() {
         )
     }
 
-    if (responsive.md || responsive.lg) {
+    if (responsive.md) {
         return <Navigate to={'/'}/>
     }
 

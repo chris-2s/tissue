@@ -47,6 +47,7 @@ export const auth = createModel<RootModel>()({
         },
         async logout() {
             Cookies.remove("userToken")
+            localStorage.removeItem("pin")
             dispatch.auth.setToken(undefined)
         },
         async getInfo() {

@@ -19,6 +19,7 @@
     "axios": "^1.7.9",
     "compare-versions": "^6.1.1",
     "js-cookie": "^3.0.5",
+    "js-sha256": "^0.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
