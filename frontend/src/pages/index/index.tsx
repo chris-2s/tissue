@@ -8,6 +8,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import {useResponsive} from "ahooks";
 import TabBar from "./tabBar.tsx";
+import useVisibility from "../../utils/useVisibility.ts";
+import PinView, {PinMode} from "../../components/PinView";
 
 const {useToken} = theme
 
@@ -20,12 +22,20 @@ function Index() {
     const {userToken, logging} = useSelector((state: RootState) => state.auth)
     const dispatch = useDispatch<Dispatch>().auth
 
+    const visible = useVisibility()
+
     useEffect(() => {
         if (userToken) {
             dispatch.getInfo()
             dispatch.getVersions()
         }
     }, [])
+
+    useEffect(() => {
+        if (!visible) {
+            PinView.show(PinMode.verify)
+        }
+    }, [visible])
 
     useEffect(() => {
         document.body.style.backgroundColor = token.colorBgLayout
@@ -80,7 +90,7 @@ function Index() {
                         <Layout.Content
                             style={{
                                 overflowY: "auto",
-                                paddingBottom: (!responsive.md && !responsive.lg) ? ('calc(50px + env(safe-area-inset-bottom, 0))') : 0
+                                paddingBottom: (!responsive.md) ? ('calc(50px + env(safe-area-inset-bottom, 0))') : 0
                             }}
                             className={Styles.content}>
                             <div style={{padding: responsive.md ? 16 : 12}}>
@@ -91,7 +101,7 @@ function Index() {
                             </div>
                         </Layout.Content>
                     </Layout>
-                    {(!responsive.md && !responsive.lg) && (
+                    {!responsive.md && (
                         <div className={Styles.footer} style={{
                             background: token.colorBgContainer + '99',
                             borderBlockStartColor: token.colorBorderSecondary

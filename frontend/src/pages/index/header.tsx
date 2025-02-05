@@ -3,7 +3,7 @@ import {Divider, Dropdown, Modal, Space, theme} from "antd";
 import {
     CodeOutlined,
     EyeInvisibleOutlined,
-    EyeOutlined,
+    EyeOutlined, LockOutlined,
     LogoutOutlined,
     MenuOutlined,
     UserOutlined
@@ -17,6 +17,7 @@ import Log from "./log";
 import {Link} from "react-router-dom";
 import Logo from "../../assets/logo.png";
 import {useResponsive} from "ahooks";
+import PinView, {PinMode} from "../../components/PinView";
 
 
 const {useToken} = theme
@@ -55,6 +56,11 @@ function Header(props: Props) {
     }
 
     const userItems = [
+        ...[!responsive.lg && {
+            key: 'pin',
+            label: '设置PIN',
+            icon: <LockOutlined/>
+        }],
         {
             key: 'logout',
             label: '退出登录',
@@ -64,6 +70,9 @@ function Header(props: Props) {
 
     function onUserClick(event: any) {
         switch (event.key) {
+            case 'pin':
+                PinView.show(PinMode.setting)
+                break
             case 'logout':
                 authDispatch.logout()
                 break
