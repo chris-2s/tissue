@@ -32,16 +32,3 @@ class SubscribeNotify(SubscribeCreate):
     size: Optional[str] = None
     magnet: Optional[str] = None
     publish_date: str = None
-
-
-class SubscribeScrape(BaseModel):
-    is_hd: bool = False
-    is_zh: bool = False
-    is_uncensored: bool = False
-
-    name: Optional[str] = None
-    website: Optional[str] = None
-    url: Optional[str] = None
-    size: Optional[str] = None
-    magnet: Optional[str] = None
-    publish_date: Optional[date] = None

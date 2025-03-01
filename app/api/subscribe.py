@@ -33,13 +33,13 @@ def delete_subscribe(subscribe_id: int, service=Depends(get_subscribe_service)):
     return R.ok()
 
 
-@router.get('/videos', response_model=R[List[schema.SubscribeScrape]])
-def get_videos(num: str, service=Depends(get_subscribe_service)):
-    videos = service.get_videos(num)
+@router.get('/search', response_model=R[schema.VideoDetail])
+def search_video(num: str, service=Depends(get_subscribe_service)):
+    videos = service.search_video(num)
     return R.list(videos)
 
 
 @router.post('/download')
-def download_video(video: schema.SubscribeCreate, link: schema.SubscribeScrape, service=Depends(get_subscribe_service)):
+def download_video(video: schema.SubscribeCreate, link: schema.VideoDownload, service=Depends(get_subscribe_service)):
     service.download_video_manual(video, link)
     return R.ok()

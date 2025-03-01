@@ -11,8 +11,9 @@ from app.utils.spider.spider_exception import SpiderException
 class Jav321Spider(Spider):
     host = "https://www.jav321.com/"
     name = 'Jav321'
+    downloadable = False
 
-    def get_info(self, num: str):
+    def get_info(self, num: str, include_downloads=False):
         response = self.session.post(urljoin(self.host, '/search'), data={'sn': num})
         html = etree.HTML(response.text)
 

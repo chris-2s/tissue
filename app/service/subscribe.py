@@ -44,11 +44,11 @@ class SubscribeService(BaseService):
         exist = Subscribe.get(self.db, subscribe_id)
         exist.delete(self.db)
 
-    def get_videos(self, num: str):
+    def search_video(self, num: str):
         return spider.get_video(num)
 
     @transaction
-    def download_video_manual(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
+    def download_video_manual(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
         self.download_video(video, link)
 
     def do_subscribe(self):
@@ -74,7 +74,7 @@ class SubscribeService(BaseService):
                     return False
                 return True
 
-            result = list(filter(get_matched, result))
+            result = list(filter(get_matched, result.downloads))
             result.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
             if not result:
                 logger.error(f"未匹配到符合条件的影片")
@@ -92,7 +92,7 @@ class SubscribeService(BaseService):
                     traceback.print_exc()
                     continue
 
-    def download_video(self, video: schema.SubscribeCreate, link: schema.SubscribeScrape):
+    def download_video(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
         response = qbittorent.add_magnet(link.magnet)
         if response.status_code != 200:
             raise BizException('下载创建失败')

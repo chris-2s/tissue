@@ -1,6 +1,8 @@
 import traceback
+from functools import reduce
 from urllib.parse import urlparse
 
+from app.schema import VideoDetail
 from app.utils import cache
 from app.utils.logger import logger
 from app.utils.spider.dmm import DmmSpider
@@ -31,6 +33,23 @@ def get_video_cover(url: str):
     return response
 
 
+def _merge_video_info(metas: list[VideoDetail]) -> VideoDetail:
+    meta = metas[0]
+    if len(metas) >= 2:
+        logger.info("合并多个刮削信息...")
+        for key in meta.__dict__:
+            if not getattr(meta, key):
+                for other_meta in metas[1:]:
+                    value = getattr(other_meta, key)
+                    if value:
+                        setattr(meta, key, value)
+                        break
+        meta.website = [m.website[0] for m in metas if m.website]
+        meta.downloads = sum(map(lambda x: x.downloads, metas),[])
+        logger.info("信息合并成功")
+    return meta
+
+
 def get_video_info(number: str):
     spiders = [JavbusSpider(), JavdbSpider(), Jav321Spider(), DmmSpider()]
     metas = []
@@ -50,37 +69,28 @@ def get_video_info(number: str):
     if len(metas) == 0:
         return
 
-    meta = metas[0]
-    if len(metas) >= 2:
-        logger.info("合并多个刮削信息...")
-        for key in meta.__dict__:
-            if not getattr(meta, key):
-                for other_meta in metas[1:]:
-                    value = getattr(other_meta, key)
-                    if value:
-                        setattr(meta, key, value)
-                        break
-        meta.website = [m.website[0] for m in metas if m.website]
-        logger.info("信息合并成功")
+    meta = _merge_video_info(metas)
+
     logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
     return meta
 
 
 def get_video(number: str):
     spiders = [JavbusSpider(), JavdbSpider()]
-    result = []
+    metas = []
     logger.info(f"开始刮削番号《{number}》")
     for spider in spiders:
         try:
-            logger.info(f"{spider.name} 开始刮削...")
-            meta = spider.get_info(number)
-            logger.info(f"{spider.name} 获取下载列表...")
-            if meta:
-                videos = spider.get_video(meta.website[0])
-                logger.info(f"获取到{len(videos)}部影片")
-                result += videos
+            if spider.downloadable:
+                logger.info(f"{spider.name} 获取下载列表...")
+                videos = spider.get_info(number, include_downloads=True)
+                logger.info(f"获取到{len(videos.downloads)}部影片")
+                metas.append(videos)
         except:
             logger.error(f"{spider.name} 获取下载列表失败")
             traceback.print_exc()
             continue
-    return result
+
+    meta = _merge_video_info(metas)
+
+    return meta

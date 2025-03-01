@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional, List
 
 from pydantic import BaseModel
@@ -17,6 +18,17 @@ class VideoList(BaseModel):
 
     actors: List[VideoActor] = []
 
+class VideoDownload(BaseModel):
+    is_hd: bool = False
+    is_zh: bool = False
+    is_uncensored: bool = False
+
+    name: Optional[str] = None
+    website: Optional[str] = None
+    url: Optional[str] = None
+    size: Optional[str] = None
+    magnet: Optional[str] = None
+    publish_date: Optional[date] = None
 
 class VideoDetail(BaseModel):
     # 标题
@@ -56,6 +68,9 @@ class VideoDetail(BaseModel):
     is_zh: bool = False
     # 是否无码
     is_uncensored: bool = False
+
+    #下载列表
+    downloads:Optional[List[VideoDownload]] = []
 
 
 class VideoNotify(VideoDetail):

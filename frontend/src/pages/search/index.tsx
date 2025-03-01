@@ -15,51 +15,32 @@ import VideoCover from "../../components/VideoCover";
 import React, {useMemo, useRef, useState} from "react";
 import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, SearchOutlined} from "@ant-design/icons";
 import Websites from "../../components/Websites";
-import * as api from "../../apis/video";
-import * as subscribeApi from "../../apis/subscribe";
+import * as api from "../../apis/subscribe";
 import {useLocalStorageState, useRequest, useResponsive} from "ahooks";
 import SubscribeModifyModal from "../subscribe/modifyModal.tsx";
 import {useFormModal} from "../../utils/useFormModal.ts";
-import dayjs from "dayjs";
 
 function Search() {
 
     const [video, setVideo] = useLocalStorageState<any>('search_video_information');
-    const [videoLinks, setVideoLinks] = useLocalStorageState<any[]>('search_video_links');
-    const linksRef = useRef<any>(null);
     const responsive = useResponsive()
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
-        service: subscribeApi.modifySubscribe,
+        service: api.modifySubscribe,
         onOk: () => {
             setSubscribeOpen(false)
             return message.success("订阅添加成功")
         }
     })
 
-    const {run: onSearchVideo, loading: videoSearching} = useRequest(api.scrapeVideo, {
+    const {run: onSearchVideo, loading: videoSearching} = useRequest(api.searchVideo, {
         manual: true,
         onSuccess: (response) => {
-            setVideo({...response.data.data, actors: response.data.data.actors.map((i: any) => i.name).join(", ")})
+            setVideo({...response, actors: response.actors.map((i: any) => i.name).join(", ")})
         }
     })
 
-    const {run: onSearchVideoLink, loading: linkSearching} = useRequest(subscribeApi.getVideos, {
-        manual: true,
-        onSuccess: (response) => {
-            setVideoLinks(response.sort((x: any, y: any) => -dayjs(x.publish_date).diff(dayjs(y.publish_date))))
-            setTimeout(() => {
-                const linksEle = linksRef.current
-                if (linksEle) {
-                    const top = linksEle.getBoundingClientRect().top
-                    window.scrollTo({top: top, behavior: "smooth"})
-                }
-            }, 500)
-            return message.success("搜索完成")
-        }
-    })
-
-    const {runAsync: onDownload} = useRequest(subscribeApi.downloadVideos, {
+    const {runAsync: onDownload} = useRequest(api.downloadVideos, {
         manual: true,
         onSuccess: () => {
             return message.success("下载任务创建成功")
@@ -195,7 +176,6 @@ function Search() {
                     <Input.Search placeholder={'请输入番号'} loading={videoSearching} enterButton
                                   onSearch={(num) => {
                                       setVideo(undefined)
-                                      setVideoLinks(undefined)
                                       onSearchVideo(num)
                                   }}/>
                     {videoItems ? (
@@ -209,15 +189,6 @@ function Search() {
                                             onClick={() => {
                                                 setSubscribeOpen(true, video)
                                             }}/>
-                                </Tooltip>
-                                <Tooltip title={'搜索资源'}>
-                                    <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
-                                            className={'ml-6'} loading={linkSearching}
-                                            onClick={() => {
-                                                setVideoLinks(undefined)
-                                                onSearchVideoLink(video.num)
-                                            }}
-                                    />
                                 </Tooltip>
                             </div>
                             <Descriptions className={'mt-4'}
@@ -239,10 +210,10 @@ function Search() {
                     )}
                 </Card>
             </Col>
-            <Col span={24} md={14} ref={linksRef}>
+            <Col span={24} md={14}>
                 <Card title={'资源列表'}>
-                    {videoLinks ? (
-                        <List dataSource={videoLinks} renderItem={(item: any) => (
+                    {video?.downloads ? (
+                        <List dataSource={video.downloads} renderItem={(item: any) => (
                             <List.Item actions={[
                                 <Tooltip title={'发送到下载器'}>
                                     <Button type={'primary'} icon={<CloudDownloadOutlined/>} shape={'circle'}
@@ -277,7 +248,7 @@ function Search() {
                             </List.Item>
                         )}/>
                     ) : (
-                        linkSearching ? (
+                        videoSearching ? (
                             <div className={'py-11'}>
                                 <Skeleton active/>
                             </div>
