@@ -1,4 +1,6 @@
 name: Tissue Builder Dev
+on:
+  workflow_dispatch:
 
 jobs:
   build:
