@@ -2,11 +2,10 @@ import random
 import re
 from datetime import datetime
 
-import requests
 from lxml import etree
 from urllib.parse import urljoin
 
-from app.schema import VideoDetail, VideoActor, SubscribeScrape
+from app.schema import VideoDetail, VideoActor, VideoDownload
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -14,8 +13,9 @@ from app.utils.spider.spider_exception import SpiderException
 class JavbusSpider(Spider):
     host = "https://www.javbus.com/"
     name = 'Javbus'
+    downloadable = True
 
-    def get_info(self, num: str):
+    def get_info(self, num: str, include_downloads=False):
 
         url = urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)
@@ -85,11 +85,12 @@ class JavbusSpider(Spider):
 
         meta.website.append(url)
 
+        if include_downloads:
+            meta.downloads = self.get_video(url, response.text)
+
         return meta
 
-    def get_video(self, url: str):
-        response = self.session.get(url, allow_redirects=False).text
-
+    def get_video(self, url: str, response: str):
         params = {'lang': 'zh', 'floor': random.Random().randint(100, 1000)}
 
         gid = re.search(r'var gid = (\w+);', response)
@@ -112,27 +113,27 @@ class JavbusSpider(Spider):
             if not parts:
                 continue
 
-            video = SubscribeScrape()
-            video.website = self.name
-            video.url = url
-            video.name = parts[0].text.strip()
-            video.magnet = parts[0].get('href')
+            download = VideoDownload()
+            download.website = self.name
+            download.url = url
+            download.name = parts[0].text.strip()
+            download.magnet = parts[0].get('href')
 
             title = parts[0].text.strip()
             if '无码' in title or '破解' in title:
-                video.is_uncensored = True
+                download.is_uncensored = True
 
             for tag in parts[1:]:
                 if tag.text == '高清':
-                    video.is_hd = True
+                    download.is_hd = True
                 if tag.text == '字幕':
-                    video.is_zh = True
+                    download.is_zh = True
 
             size_element = item.xpath("./td[2]/a")[0]
-            video.size = size_element.text.strip()
+            download.size = size_element.text.strip()
 
             publish_date_element = item.xpath("./td[3]/a")[0]
-            video.publish_date = datetime.strptime(publish_date_element.text.strip(), "%Y-%m-%d").date()
+            download.publish_date = datetime.strptime(publish_date_element.text.strip(), "%Y-%m-%d").date()
 
-            result.append(video)
+            result.append(download)
         return result

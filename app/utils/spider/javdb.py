@@ -4,7 +4,7 @@ from datetime import datetime
 from random import randint
 from urllib.parse import urljoin
 from lxml import etree
-from app.schema import VideoDetail, VideoActor, SubscribeScrape
+from app.schema import VideoDetail, VideoActor, VideoDownload
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -12,9 +12,10 @@ from app.utils.spider.spider_exception import SpiderException
 class JavdbSpider(Spider):
     host = "https://javdb.com"
     name = 'Javdb'
+    downloadable = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
 
-    def get_info(self, num: str):
+    def get_info(self, num: str, include_downloads=False):
 
         url = self.search(num)
         if not url:
@@ -93,6 +94,9 @@ class JavdbSpider(Spider):
 
         meta.website.append(url)
 
+        if include_downloads:
+            meta.downloads = self.get_downloads(url, html)
+
         return meta
 
     def search(self, num: str):
@@ -106,39 +110,36 @@ class JavdbSpider(Spider):
                 code = matched_element.xpath('./../..')[0].get('href')
                 return urljoin(self.host, code)
 
-    def get_video(self, url: str):
-        response = self.session.get(url)
-        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
-
+    def get_downloads(self, url: str, html: etree.HTML):
         result = []
         table = html.xpath("//div[@id='magnets-content']/div")
         for item in table:
-            video = SubscribeScrape()
+            download = VideoDownload()
 
             parts = item.xpath("./div[1]/a")[0]
-            video.website = self.name
-            video.url = url
-            video.name = parts[0].text.strip()
-            video.magnet = parts.get('href')
+            download.website = self.name
+            download.url = url
+            download.name = parts[0].text.strip()
+            download.magnet = parts.get('href')
 
             name = parts.xpath("./span[1]")
             if name:
                 if '无码' in name[0].text or '破解' in name[0].text:
-                    video.is_uncensored = True
+                    download.is_uncensored = True
 
             size = parts.xpath("./span[2]")
             if size:
-                video.size = size[0].text.split(',')[0].strip()
+                download.size = size[0].text.split(',')[0].strip()
 
             for tag in parts.xpath('./div[@class="tags"]/span'):
                 if tag.text == '高清':
-                    video.is_hd = True
+                    download.is_hd = True
                 if tag.text == '字幕':
-                    video.is_zh = True
+                    download.is_zh = True
 
             publish_date = item.xpath(".//span[@class='time']")
             if publish_date:
-                video.publish_date = datetime.strptime(publish_date[0].text.strip(), "%Y-%m-%d").date()
+                download.publish_date = datetime.strptime(publish_date[0].text.strip(), "%Y-%m-%d").date()
 
-            result.append(video)
+            result.append(download)
         return result

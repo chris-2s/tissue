@@ -24,9 +24,9 @@ export function deleteSubscribe(id: number) {
     })
 }
 
-export async function getVideos(num: string) {
+export async function searchVideo(num: string) {
     const response = await request.request({
-        url: '/subscribe/videos',
+        url: '/subscribe/search',
         method: 'get',
         params: {num}
     })

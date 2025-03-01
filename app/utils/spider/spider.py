@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import requests
 
 from app.schema import Setting
@@ -17,6 +19,7 @@ class Session(requests.Session):
 class Spider:
     name = None
     host = None
+    downloadable = False
 
     def __init__(self):
         self.setting = Setting().app
@@ -24,10 +27,8 @@ class Spider:
         self.session.headers = {'User-Agent': self.setting.user_agent, 'Referer': self.host}
         self.session.timeout = (5, self.session.timeout)
 
-    def get_info(self, num: str):
-        pass
-
-    def get_video(self, url: str):
+    @abstractmethod
+    def get_info(self, num: str, include_downloads: bool = False):
         pass
 
     @classmethod
