@@ -7,7 +7,7 @@ import {
     Input,
     List, message, Modal,
     Row,
-    Skeleton,
+    Skeleton, Space,
     Tag,
     Tooltip
 } from "antd";
@@ -17,7 +17,7 @@ import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, SearchOutlined} f
 import Websites from "../../components/Websites";
 import * as api from "../../apis/video";
 import * as subscribeApi from "../../apis/subscribe";
-import {useLocalStorageState, useRequest} from "ahooks";
+import {useLocalStorageState, useRequest, useResponsive} from "ahooks";
 import SubscribeModifyModal from "../subscribe/modifyModal.tsx";
 import {useFormModal} from "../../utils/useFormModal.ts";
 import dayjs from "dayjs";
@@ -27,6 +27,7 @@ function Search() {
     const [video, setVideo] = useLocalStorageState<any>('search_video_information');
     const [videoLinks, setVideoLinks] = useLocalStorageState<any[]>('search_video_links');
     const linksRef = useRef<any>(null);
+    const responsive = useResponsive()
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: subscribeApi.modifySubscribe,
@@ -255,17 +256,24 @@ function Search() {
                             ]}>
                                 <List.Item.Meta title={item.name}
                                                 description={(
-                                                    <div>
-                                                        <a href={item.url}><Tag>{item.website}</Tag></a>
-                                                        {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
-                                                        {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
-                                                        {item.is_uncensored &&
-                                                            <Tag color={'green'} bordered={false}>无码</Tag>}
-                                                        <span>{item.size}</span>
-                                                    </div>
+                                                    <Space direction={responsive.lg ? 'horizontal' : 'vertical'}
+                                                           size={responsive.lg ? 0 : 'small'}>
+                                                        <div>
+                                                            <a href={item.url}><Tag>{item.website}</Tag></a>
+                                                            <Tag>{item.size}</Tag>
+                                                        </div>
+                                                        <div>
+                                                            {item.is_hd &&
+                                                                <Tag color={'red'} bordered={false}>高清</Tag>}
+                                                            {item.is_zh &&
+                                                                <Tag color={'blue'} bordered={false}>中文</Tag>}
+                                                            {item.is_uncensored &&
+                                                                <Tag color={'green'} bordered={false}>无码</Tag>}
+                                                        </div>
+                                                        <div>{item.publish_date}</div>
+                                                    </Space>
                                                 )}
                                 />
-                                <div>{item.publish_date}</div>
                             </List.Item>
                         )}/>
                     ) : (
