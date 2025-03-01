@@ -28,6 +28,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: cd frontend && npm install && CI=false npm run build && cp -r ./dist ../dist
 
+      - name: Set Up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3 # v3.0.0
 
