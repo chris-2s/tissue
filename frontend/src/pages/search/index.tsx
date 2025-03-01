@@ -170,7 +170,7 @@ function Search() {
         })
     }
 
-    const downloads = video?.downloads.filter((item:any)=>(
+    const downloads = video?.downloads?.filter((item:any)=>(
         (!filter.isHd || item.is_hd) && (!filter.isZh || item.is_zh) && ((!filter.isUncensored || item.is_uncensored))
     ))
 
