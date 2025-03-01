@@ -32,9 +32,7 @@ function Index() {
     }, [])
 
     useEffect(() => {
-        if (!visible) {
-            PinView.show(PinMode.verify)
-        }
+        PinView.show(PinMode.verify)
     }, [visible])
 
     useEffect(() => {
