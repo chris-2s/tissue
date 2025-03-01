@@ -63,7 +63,7 @@ function ModifyModal(props: Props) {
                     <Col span={24} md={13} lg={13}>
                         <Row gutter={[15, 0]}>
                             <Col span={12}>
-                                <Form.Item label={'番号'} name={'num'}>
+                                <Form.Item label={'番号'} name={'num'} normalize={value => value.toUpperCase()}>
                                     <Input.Search disabled={false} placeholder={'请输入番号'} enterButton
                                                   onSearch={handleSearch} loading={onSearching}/>
                                 </Form.Item>

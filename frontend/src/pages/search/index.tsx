@@ -24,6 +24,7 @@ function Search() {
 
     const [video, setVideo] = useLocalStorageState<any>('search_video_information');
     const responsive = useResponsive()
+    const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: api.modifySubscribe,
@@ -169,6 +170,10 @@ function Search() {
         })
     }
 
+    const downloads = video?.downloads.filter((item:any)=>(
+        (!filter.isHd || item.is_hd) && (!filter.isZh || item.is_zh) && ((!filter.isUncensored || item.is_uncensored))
+    ))
+
     return (
         <Row gutter={[15, 15]}>
             <Col span={24} md={10}>
@@ -176,7 +181,7 @@ function Search() {
                     <Input.Search placeholder={'请输入番号'} loading={videoSearching} enterButton
                                   onSearch={(num) => {
                                       setVideo(undefined)
-                                      onSearchVideo(num)
+                                      onSearchVideo(num.toUpperCase())
                                   }}/>
                     {videoItems ? (
                         <>
@@ -211,9 +216,18 @@ function Search() {
                 </Card>
             </Col>
             <Col span={24} md={14}>
-                <Card title={'资源列表'}>
-                    {video?.downloads ? (
-                        <List dataSource={video.downloads} renderItem={(item: any) => (
+                <Card title={'资源列表'} extra={
+                    <>
+                        <Tag color={filter.isHd ? 'red' : 'default'} className={'cursor-pointer'}
+                             onClick={() => setFilter({...filter, isHd: !filter.isHd})}>高清</Tag>
+                        <Tag color={filter.isZh ? 'blue' : 'default'} className={'cursor-pointer'}
+                             onClick={() => setFilter({...filter, isZh: !filter.isZh})}>中文</Tag>
+                        <Tag color={filter.isUncensored ? 'green' : 'default'} className={'cursor-pointer'}
+                             onClick={() => setFilter({...filter, isUncensored: !filter.isUncensored})}>无码</Tag>
+                    </>
+                }>
+                    {downloads ? (
+                        <List dataSource={downloads} renderItem={(item: any) => (
                             <List.Item actions={[
                                 <Tooltip title={'发送到下载器'}>
                                     <Button type={'primary'} icon={<CloudDownloadOutlined/>} shape={'circle'}
