@@ -45,7 +45,10 @@ class SubscribeService(BaseService):
         exist.delete(self.db)
 
     def search_video(self, num: str):
-        return spider.get_video(num)
+        video = spider.get_video(num)
+        if not video:
+            raise BizException("未找到影片")
+        return video
 
     @transaction
     def download_video_manual(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
@@ -75,7 +78,6 @@ class SubscribeService(BaseService):
                 return True
 
             result = list(filter(get_matched, result.downloads))
-            result.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
             if not result:
                 logger.error(f"未匹配到符合条件的影片")
                 continue
