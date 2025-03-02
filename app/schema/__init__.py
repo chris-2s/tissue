@@ -5,5 +5,4 @@ from .file import *
 from .download import *
 from .setting import *
 from .schedule import *
-from .home import *
 from .subscribe import *
