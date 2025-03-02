@@ -29,7 +29,7 @@ function ModifyModal(props: Props) {
     })
 
     function handleSearch() {
-        const num = form?.getFieldValue('num')
+        const num = form?.getFieldValue('num').toUpperCase()
         if (!num) return message.error("请输入番号")
         onSearch(num)
     }
@@ -63,7 +63,7 @@ function ModifyModal(props: Props) {
                     <Col span={24} md={13} lg={13}>
                         <Row gutter={[15, 0]}>
                             <Col span={12}>
-                                <Form.Item label={'番号'} name={'num'} normalize={value => value.toUpperCase()}>
+                                <Form.Item label={'番号'} name={'num'}>
                                     <Input.Search disabled={false} placeholder={'请输入番号'} enterButton
                                                   onSearch={handleSearch} loading={onSearching}/>
                                 </Form.Item>

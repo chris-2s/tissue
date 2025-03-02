@@ -5,6 +5,7 @@ from random import randint
 from urllib.parse import urljoin
 from lxml import etree
 from app.schema import VideoDetail, VideoActor, VideoDownload
+from app.schema.home import JavDBRanking
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -142,4 +143,33 @@ class JavdbSpider(Spider):
                 download.publish_date = datetime.strptime(publish_date[0].text.strip(), "%Y-%m-%d").date()
 
             result.append(download)
+        return result
+
+    def get_ranking(self, video_type: str, cycle: str):
+        url = urljoin(self.host, f'/rankings/movies?p={cycle}&t={video_type}')
+        response = self.session.get(url)
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+
+        result = []
+
+        videos = html.xpath('//div[contains(@class, "movie-list")]/div[@class="item"]/a')
+        for video in videos:
+            ranking = JavDBRanking()
+            ranking.cover = video.xpath('./div[contains(@class, "cover")]/img')[0].get('src')
+            ranking.title = video.get('title')
+            ranking.num = video.xpath('./div[@class="video-title"]/strong')[0].text
+            ranking.publish_date = datetime.strptime(video.xpath('./div[@class="meta"]')[0].text.strip(),
+                                                     "%Y-%m-%d").date()
+
+            rank_str = video.xpath('./div[@class="score"]/span/text()')[0].strip()
+            rank_matched = re.match('(.+?)分, 由(.+?)人評價', rank_str)
+            ranking.rank = float(rank_matched.group(1))
+            ranking.rank_count = int(rank_matched.group(2))
+
+            ranking.url = urljoin(self.host, video.get('href'))
+
+            tag_str = video.xpath('./div[contains(@class, "tags")]/span/text()')[0]
+            ranking.isZh = ('中字' in tag_str)
+
+            result.append(ranking)
         return result

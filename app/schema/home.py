@@ -1,19 +1,15 @@
+from datetime import date
 from typing import Optional
 
 from pydantic import BaseModel
 
 
-class HomeMemory(BaseModel):
-    total: float
-    available: float
-
-
-class HomeDisk(BaseModel):
-    total: float
-    available: float
-    type: str
-
-
-class HomeDownload(BaseModel):
-    upload_speed: float
-    download_speed: float
+class JavDBRanking(BaseModel):
+    cover: Optional[str] = None
+    num: Optional[str] = None
+    title: Optional[str] = None
+    publish_date: Optional[date] = None
+    rank: Optional[float] = None
+    rank_count: Optional[int] = None
+    isZh: Optional[bool] = False
+    url: Optional[str] = None
