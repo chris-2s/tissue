@@ -12,7 +12,7 @@ function TabBar() {
 
     const menus = [
         {
-            link: '/',
+            link: '/home',
             icon: <HomeOutlined/>
         },
         {

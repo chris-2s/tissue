@@ -1,15 +1,11 @@
 import Filter, {FilterField} from "./-components/filter.tsx";
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {Col, Empty, Row, Skeleton} from "antd";
 import JavDBItem from "./-components/item.tsx";
-import {clearCache, useRequest, useSessionStorageState} from "ahooks";
 import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
 import * as api from "../../../apis/home.ts";
 import {Await, createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
-
-
-const cacheKey = 'javdb-rankings'
 
 export const Route = createFileRoute('/_index/home/')({
     component: JavDB,
@@ -18,15 +14,15 @@ export const Route = createFileRoute('/_index/home/')({
             throw redirect({search: {video_type: 'censored', cycle: 'daily', rank: 0} as any})
     },
     loaderDeps: ({search}) => ({...search, rank: 0}),
-    loader: async ({deps}) => {
-        return api.getJavdbRankings(deps)
-    },
+    loader: async ({deps}) => ({
+        data: api.getJavdbRankings(deps)
+    }),
     staleTime: Infinity
 })
 
 function JavDB() {
-    const data = Route.useLoaderData()
-    const filter = Route.useSearch()
+    const {data} = Route.useLoaderData()
+    const filter = Route.useSearch<any>()
     const navigate = useNavigate()
 
     const filterFields: FilterField[] = [
@@ -57,22 +53,27 @@ function JavDB() {
         },
     ]
 
-    const videos = data.filter((item: any) => item.rank >= filter.rank)
-
     return (
         <div>
             <Filter initialValues={filter} onChange={(values, field) => {
                 return navigate({search: values as any})
             }} fields={filterFields}/>
-            {videos ? (
-                <Row className={'mt-2'} gutter={[12, 12]}>
-                    {videos.map((item: any) => (
-                        <Col key={item.url} span={24} md={12} lg={6}><JavDBItem item={item}/></Col>
-                    ))}
-                </Row>
-            ) : (
-                <Empty/>
-            )}
+            <Await promise={data} fallback={(
+                <Skeleton active />
+            )}>
+                {(data) => {
+                    const videos = data.filter((item: any) => item.rank >= filter.rank)
+                    return videos.length > 0 ? (
+                        <Row className={'mt-2'} gutter={[12, 12]}>
+                            {videos.map((item: any) => (
+                                <Col key={item.url} span={24} md={12} lg={6}><JavDBItem item={item}/></Col>
+                            ))}
+                        </Row>
+                    ) : (
+                        <Empty className={'mt-10'} />
+                    )
+                }}
+            </Await>
         </div>
     )
 }
