@@ -3,13 +3,14 @@ import {RootModel} from "./index";
 import Cookies from 'js-cookie';
 import * as api from "../apis/auth";
 import {compare} from "compare-versions";
+import {router} from "../routes.tsx";
 
 
 interface State {
     userToken: string | undefined
     userInfo: any | undefined
     logging: boolean
-    versions?: { current: string, latest: string, hasNew: boolean }
+    versions?: { current: string, latest: string, hasNew: boolean },
 }
 
 export const auth = createModel<RootModel>()({
@@ -17,7 +18,7 @@ export const auth = createModel<RootModel>()({
         userToken: Cookies.get("userToken"),
         userInfo: undefined,
         logging: false,
-        version: undefined
+        version: undefined,
     } as State,
     reducers: {
         setLogging(state, payload: boolean) {
@@ -41,6 +42,7 @@ export const auth = createModel<RootModel>()({
                 const token = response.data.data
                 Cookies.set('userToken', token, params.remember ? {expires: 365} : {})
                 dispatch.auth.setToken(token)
+                await router.invalidate()
             } finally {
                 dispatch.auth.setLogging(false)
             }
@@ -49,6 +51,7 @@ export const auth = createModel<RootModel>()({
             Cookies.remove("userToken")
             localStorage.removeItem("pin")
             dispatch.auth.setToken(undefined)
+            await router.invalidate()
         },
         async getInfo() {
             const response = await api.getInfo()
