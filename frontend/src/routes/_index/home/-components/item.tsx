@@ -1,6 +1,6 @@
 import React from "react";
 import {Badge, Rate, Space, theme} from "antd";
-import VideoCover from "../../../../../components/VideoCover";
+import VideoCover from "../../../../components/VideoCover";
 
 const {useToken} = theme
 
