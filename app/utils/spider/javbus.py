@@ -12,10 +12,10 @@ from app.utils.spider.spider_exception import SpiderException
 
 class JavbusSpider(Spider):
     host = "https://www.javbus.com/"
-    name = 'Javbus'
+    name = 'JavBus'
     downloadable = True
 
-    def get_info(self, num: str, include_downloads=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False):
 
         url = urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)

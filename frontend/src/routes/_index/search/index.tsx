@@ -14,23 +14,29 @@ import {
     Tag,
     Tooltip
 } from "antd";
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined} from "@ant-design/icons";
 import * as api from "../../../apis/subscribe";
-import {useLocalStorageState, useRequest, useResponsive} from "ahooks";
+import {useRequest, useResponsive} from "ahooks";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import Websites from "../../../components/Websites";
 import VideoCover from "../../../components/VideoCover";
 import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
-import {createFileRoute} from "@tanstack/react-router";
+import {createFileRoute, useMatches, useSearch, useLoaderData} from "@tanstack/react-router";
 
 export const Route = createFileRoute('/_index/search/')({
     component: Search,
 })
 
-function Search() {
+const cacheKey = 'search_video_information'
 
-    const [video, setVideo] = useLocalStorageState<any>('search_video_information');
+export function Search() {
+
+    const matches = useMatches()
+    const matched = matches[matches.length - 1]
+    const search: any = useSearch({from: matched.routeId})
+
+    const [video, setVideo] = useState<any>();
     const responsive = useResponsive()
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
 
@@ -42,10 +48,25 @@ function Search() {
         }
     })
 
+    useEffect(() => {
+        if (search.source) {
+            onSearchVideo(search)
+        } else {
+            const cached = localStorage.getItem(cacheKey)
+            if (cached) {
+                setVideo(JSON.parse(cached))
+            }
+        }
+    }, [])
+
     const {run: onSearchVideo, loading: videoSearching} = useRequest(api.searchVideo, {
         manual: true,
         onSuccess: (response) => {
-            setVideo({...response, actors: response.actors.map((i: any) => i.name).join(", ")})
+            const video = {...response, actors: response.actors.map((i: any) => i.name).join(", ")}
+            setVideo(video)
+            if (!search.source) {
+                localStorage.setItem(cacheKey, JSON.stringify(video))
+            }
         }
     })
 
@@ -184,13 +205,15 @@ function Search() {
 
     return (
         <Row gutter={[15, 15]}>
-            <Col span={24} md={12}>
+            <Col span={24} lg={8} md={12}>
                 <Card>
-                    <Input.Search placeholder={'请输入番号'} loading={videoSearching} enterButton
-                                  onSearch={(num) => {
-                                      setVideo(undefined)
-                                      onSearchVideo(num.toUpperCase())
-                                  }}/>
+                    {!search.num && (
+                        <Input.Search placeholder={'请输入番号'} loading={videoSearching} enterButton
+                                      onSearch={(num) => {
+                                          setVideo(undefined)
+                                          onSearchVideo({num: num.toUpperCase()})
+                                      }}/>
+                    )}
                     {videoItems ? (
                         <>
                             <div className={'my-4 rounded-lg overflow-hidden'}>
@@ -223,7 +246,7 @@ function Search() {
                     )}
                 </Card>
             </Col>
-            <Col span={24} md={12}>
+            <Col span={24} lg={16} md={12}>
                 <Card title={'资源列表'} extra={
                     <>
                         <Tag color={filter.isHd ? 'red' : 'default'} className={'cursor-pointer'}

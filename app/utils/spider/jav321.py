@@ -13,7 +13,7 @@ class Jav321Spider(Spider):
     name = 'Jav321'
     downloadable = False
 
-    def get_info(self, num: str, include_downloads=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False):
         response = self.session.post(urljoin(self.host, '/search'), data={'sn': num})
         html = etree.HTML(response.text)
 

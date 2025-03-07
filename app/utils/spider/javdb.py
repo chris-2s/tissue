@@ -12,13 +12,15 @@ from app.utils.spider.spider_exception import SpiderException
 
 class JavdbSpider(Spider):
     host = "https://javdb.com"
-    name = 'Javdb'
+    name = 'JavDB'
     downloadable = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
 
-    def get_info(self, num: str, include_downloads=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False):
 
-        url = self.search(num)
+        if url is None:
+            url = self.search(num)
+
         if not url:
             raise SpiderException('未找到番号')
         else:

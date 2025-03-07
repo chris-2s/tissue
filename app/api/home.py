@@ -10,9 +10,10 @@ from app.utils import spider
 router = APIRouter()
 
 
-@router.get('/javdb')
-def get_javdb_rankings(video_type: str, cycle: str):
-    return spider.JavdbSpider().get_ranking(video_type, cycle)
+@router.get('/ranking')
+def get_rankings(source: str, video_type: str, cycle: str):
+    if source == 'JavDB':
+        return spider.JavdbSpider().get_ranking(video_type, cycle)
 
 
 @router.get('/log')

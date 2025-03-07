@@ -22,3 +22,7 @@ body {
 .ant-float-btn-group {
     bottom: calc(64px + env(safe-area-inset-top)) !important;
 }
+
+.ant-ribbon {
+    z-index: 1 !important;
+}

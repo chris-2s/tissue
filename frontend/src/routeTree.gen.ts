@@ -31,6 +31,7 @@ import { Route as IndexSettingNotifyImport } from './routes/_index/setting/notif
 import { Route as IndexSettingFileImport } from './routes/_index/setting/file'
 import { Route as IndexSettingDownloadImport } from './routes/_index/setting/download'
 import { Route as IndexSettingAppImport } from './routes/_index/setting/app'
+import { Route as IndexHomeDetailImport } from './routes/_index/home/detail'
 
 // Create/Update Routes
 
@@ -153,6 +154,12 @@ const IndexSettingAppRoute = IndexSettingAppImport.update({
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
 
+const IndexHomeDetailRoute = IndexHomeDetailImport.update({
+  id: '/home/detail',
+  path: '/home/detail',
+  getParentRoute: () => IndexRouteRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -184,6 +191,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof LoginIndexImport
       parentRoute: typeof rootRoute
+    }
+    '/_index/home/detail': {
+      id: '/_index/home/detail'
+      path: '/home/detail'
+      fullPath: '/home/detail'
+      preLoaderRoute: typeof IndexHomeDetailImport
+      parentRoute: typeof IndexRouteImport
     }
     '/_index/setting/app': {
       id: '/_index/setting/app'
@@ -324,6 +338,7 @@ const IndexSettingRouteRouteWithChildren =
 interface IndexRouteRouteChildren {
   IndexSettingRouteRoute: typeof IndexSettingRouteRouteWithChildren
   IndexIndexRoute: typeof IndexIndexRoute
+  IndexHomeDetailRoute: typeof IndexHomeDetailRoute
   IndexAboutIndexRoute: typeof IndexAboutIndexRoute
   IndexDownloadIndexRoute: typeof IndexDownloadIndexRoute
   IndexFileIndexRoute: typeof IndexFileIndexRoute
@@ -340,6 +355,7 @@ interface IndexRouteRouteChildren {
 const IndexRouteRouteChildren: IndexRouteRouteChildren = {
   IndexSettingRouteRoute: IndexSettingRouteRouteWithChildren,
   IndexIndexRoute: IndexIndexRoute,
+  IndexHomeDetailRoute: IndexHomeDetailRoute,
   IndexAboutIndexRoute: IndexAboutIndexRoute,
   IndexDownloadIndexRoute: IndexDownloadIndexRoute,
   IndexFileIndexRoute: IndexFileIndexRoute,
@@ -362,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/setting': typeof IndexSettingRouteRouteWithChildren
   '/': typeof IndexIndexRoute
   '/login': typeof LoginIndexRoute
+  '/home/detail': typeof IndexHomeDetailRoute
   '/setting/app': typeof IndexSettingAppRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
@@ -383,6 +400,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexIndexRoute
   '/login': typeof LoginIndexRoute
+  '/home/detail': typeof IndexHomeDetailRoute
   '/setting/app': typeof IndexSettingAppRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
@@ -407,6 +425,7 @@ export interface FileRoutesById {
   '/_index/setting': typeof IndexSettingRouteRouteWithChildren
   '/_index/': typeof IndexIndexRoute
   '/login/': typeof LoginIndexRoute
+  '/_index/home/detail': typeof IndexHomeDetailRoute
   '/_index/setting/app': typeof IndexSettingAppRoute
   '/_index/setting/download': typeof IndexSettingDownloadRoute
   '/_index/setting/file': typeof IndexSettingFileRoute
@@ -432,6 +451,7 @@ export interface FileRouteTypes {
     | '/setting'
     | '/'
     | '/login'
+    | '/home/detail'
     | '/setting/app'
     | '/setting/download'
     | '/setting/file'
@@ -452,6 +472,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/home/detail'
     | '/setting/app'
     | '/setting/download'
     | '/setting/file'
@@ -474,6 +495,7 @@ export interface FileRouteTypes {
     | '/_index/setting'
     | '/_index/'
     | '/login/'
+    | '/_index/home/detail'
     | '/_index/setting/app'
     | '/_index/setting/download'
     | '/_index/setting/file'
@@ -522,6 +544,7 @@ export const routeTree = rootRoute
       "children": [
         "/_index/setting",
         "/_index/",
+        "/_index/home/detail",
         "/_index/about/",
         "/_index/download/",
         "/_index/file/",
@@ -552,6 +575,10 @@ export const routeTree = rootRoute
     },
     "/login/": {
       "filePath": "login/index.tsx"
+    },
+    "/_index/home/detail": {
+      "filePath": "_index/home/detail.tsx",
+      "parent": "/_index"
     },
     "/_index/setting/app": {
       "filePath": "_index/setting/app.tsx",
