@@ -15,7 +15,7 @@ import {
     Tooltip
 } from "antd";
 import React, {useEffect, useMemo, useState} from "react";
-import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined} from "@ant-design/icons";
+import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, RedoOutlined} from "@ant-design/icons";
 import * as api from "../../../apis/subscribe";
 import {useRequest, useResponsive} from "ahooks";
 import {useFormModal} from "../../../utils/useFormModal.ts";
@@ -224,6 +224,17 @@ export function Search() {
                                     <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
                                             onClick={() => {
                                                 setSubscribeOpen(true, video)
+                                            }}/>
+                                </Tooltip>
+                                <Tooltip title={'刷新'}>
+                                    <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'} className={'ml-4'}
+                                            onClick={() => {
+                                                setVideo(undefined)
+                                                if (search.source) {
+                                                    onSearchVideo(search)
+                                                } else {
+                                                    onSearchVideo({num: video.num})
+                                                }
                                             }}/>
                                 </Tooltip>
                             </div>
