@@ -1,8 +1,8 @@
 import {request} from "../utils/requests";
 
-export async function getJavdbRankings(params: any) {
+export async function getRankings(params: any) {
     const response = await request.request({
-        url: '/home/javdb',
+        url: '/home/ranking',
         method: 'get',
         params: params
     })

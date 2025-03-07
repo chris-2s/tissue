@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_index/home/')({
     },
     loaderDeps: ({search}) => ({...search, rank: 0}),
     loader: async ({deps}) => ({
-        data: api.getJavdbRankings(deps)
+        data: api.getRankings({...deps, source: 'JavDB'})
     }),
     staleTime: Infinity
 })
@@ -59,18 +59,23 @@ function JavDB() {
                 return navigate({search: values as any})
             }} fields={filterFields}/>
             <Await promise={data} fallback={(
-                <Skeleton active />
+                <Skeleton active/>
             )}>
                 {(data) => {
                     const videos = data.filter((item: any) => item.rank >= filter.rank)
                     return videos.length > 0 ? (
-                        <Row className={'mt-2'} gutter={[12, 12]}>
+                        <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
                             {videos.map((item: any) => (
-                                <Col key={item.url} span={24} md={12} lg={6}><JavDBItem item={item}/></Col>
+                                <Col key={item.url} span={24} md={12} lg={6}
+                                     onClick={() => navigate({
+                                         to: '/home/detail',
+                                         search: {source: 'JavDB', num: item.num, url: item.url}
+                                     })}><JavDBItem
+                                    item={item}/></Col>
                             ))}
                         </Row>
                     ) : (
-                        <Empty className={'mt-10'} />
+                        <Empty className={'mt-10'}/>
                     )
                 }}
             </Await>

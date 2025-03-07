@@ -11,7 +11,8 @@ function JavDBItem(props: { item: any }) {
 
     function render() {
         return (
-            <div className="overflow-hidden rounded-lg hover:shadow-md" style={{background: token.colorBorderBg}}>
+            <div className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0"
+                 style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}>
                 <div>
                     <VideoCover src={item.cover}/>
                 </div>
