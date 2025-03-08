@@ -1,6 +1,7 @@
 import {Divider, Dropdown, Modal, Space, theme} from "antd";
 
 import {
+    ArrowLeftOutlined,
     CodeOutlined,
     EyeInvisibleOutlined,
     EyeOutlined, LockOutlined,
@@ -17,7 +18,7 @@ import Log from "./log";
 import Logo from "../../../assets/logo.png";
 import {useResponsive} from "ahooks";
 import PinView, {PinMode} from "../../../components/PinView";
-import {Link} from "@tanstack/react-router";
+import {Link, useRouter} from "@tanstack/react-router";
 
 
 const {useToken} = theme
@@ -30,9 +31,11 @@ interface Props {
 function Header(props: Props) {
 
     const responsive = useResponsive()
+    const {history} = useRouter()
 
     const {token} = useToken()
     const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
+    const canBack = useSelector((state: RootState) => state.app?.canBack)
     const appDispatch = useDispatch<Dispatch>().app
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
@@ -106,9 +109,16 @@ function Header(props: Props) {
                     </IconButton>
                 )}
                 {!props.collapsible && (
-                    <Link to={'/'} className={'flex items-center'}>
-                        <img className={responsive.lg ? 'ml-4 mr-4 h-12' : 'mr-1 h-10'} src={Logo} alt=""/>
-                    </Link>
+                    canBack ? (
+                        <IconButton onClick={() => history.go(-1)}>
+                            <ArrowLeftOutlined style={{fontSize: token.sizeLG}}/>
+                        </IconButton>
+                    ) : (
+                        <Link to={'/'}
+                              className={'flex items-center'}>
+                            <img className={responsive.lg ? 'ml-4 mr-4 h-12' : 'mr-1 h-10'} src={Logo} alt=""/>
+                        </Link>
+                    )
                 )}
             </div>
             <div className={'flex-1 flex flex-row-reverse items-center'}>

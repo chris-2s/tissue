@@ -1,10 +1,11 @@
 import {request} from "../utils/requests";
 import configs from "../configs";
 
-export async function getVideos() {
+export async function getVideos(force: boolean = false) {
     const response = await request.request({
         url: '/video/',
-        method: 'get'
+        method: 'get',
+        params: {force}
     })
     return response.data.data
 }

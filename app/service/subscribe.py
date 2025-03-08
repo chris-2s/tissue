@@ -25,7 +25,7 @@ def get_subscribe_service(db: Session = Depends(get_db)):
 class SubscribeService(BaseService):
 
     def get_subscribes(self):
-        return self.db.query(Subscribe).all()
+        return self.db.query(Subscribe).order_by(Subscribe.id.desc()).all()
 
     @transaction
     def add_subscribe(self, param: schema.SubscribeCreate):
@@ -49,12 +49,6 @@ class SubscribeService(BaseService):
         video = spider.get_video(num)
         if not video:
             raise BizException("未找到影片")
-        return video
-
-    def search_video_by_url(self, source: str, num: str, url: str):
-        video = None
-        if source == 'JavDB':
-            video = JavdbSpider().get_info(num, url, include_downloads=True)
         return video
 
     @transaction

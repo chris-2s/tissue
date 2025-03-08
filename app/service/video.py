@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import List, Optional
 
+from cachetools import cached, LRUCache
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -20,8 +21,12 @@ def get_video_service(db: Session = Depends(get_db)):
     return VideoService(db=db)
 
 
+video_cache = LRUCache(maxsize=1)
+
+
 class VideoService(BaseService):
 
+    @cached(cache=video_cache, key=lambda self: 'videos')
     def get_videos(self) -> List[VideoList]:
         setting = Setting().app
         video_paths = []
@@ -41,6 +46,10 @@ class VideoService(BaseService):
                 video = VideoList(title=path.split("/")[-1], path=path)
             videos.append(video)
         return videos
+
+    def get_videos_force(self) -> List[VideoList]:
+        video_cache.pop('videos')
+        return self.get_videos()
 
     def get_video(self, path: str) -> VideoDetail:
         nfo_path = nfo.get_nfo_path_by_video(path)
@@ -92,6 +101,8 @@ class VideoService(BaseService):
 
             video_notify.is_success = True
             notify.send_video(video_notify)
+
+        video_cache.pop('videos', None)
 
     def trans(self, video: VideoDetail, video_path: str, trans_mode: str):
         if not os.path.exists(video.path):
@@ -147,6 +158,8 @@ class VideoService(BaseService):
         self.delete_video_meta(path)
         os.remove(path)
         utils.remove_empty_directory(path)
+
+        video_cache.pop('videos', None)
 
     def delete_video_meta(self, path):
         nfo_path = nfo.get_nfo_path_by_video(path)

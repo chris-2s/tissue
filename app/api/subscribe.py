@@ -34,12 +34,8 @@ def delete_subscribe(subscribe_id: int, service=Depends(get_subscribe_service)):
 
 
 @router.get('/search', response_model=R[schema.VideoDetail])
-def search_video(num: str, source: Optional[str] = None, url: Optional[str] = None,
-                 service=Depends(get_subscribe_service)):
-    if source:
-        videos = service.search_video_by_url(source, num, url)
-    else:
-        videos = service.search_video(num)
+def search_video(num: str, service=Depends(get_subscribe_service)):
+    videos = service.search_video(num)
     return R.list(videos)
 
 

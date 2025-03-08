@@ -1,4 +1,4 @@
-import {clearCache, useRequest} from "ahooks";
+import {useRequest} from "ahooks";
 import * as api from "../../../apis/video";
 import {Card, Col, Empty, FloatButton, Row, Skeleton, Space, Tag} from "antd";
 import VideoCover from "../../../components/VideoCover";
@@ -15,10 +15,7 @@ export const Route = createFileRoute('/_index/video/')({
 
 function Video() {
 
-    const {data = [], loading, refresh} = useRequest(api.getVideos, {
-        staleTime: 5 * 60 * 1000,
-        cacheKey: 'videos-cached',
-    })
+    const {data = [], loading, run ,refresh} = useRequest(api.getVideos)
     const [selected, setSelected] = useState<string | undefined>()
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
@@ -63,11 +60,6 @@ function Video() {
         )
     }
 
-    function onRefresh() {
-        clearCache('videos-cached')
-        refresh()
-    }
-
     return (
         <Row gutter={[15, 15]}>
             {videos.length > 0 ? (
@@ -95,7 +87,8 @@ function Video() {
             ) : (
                 <Col span={24}>
                     <Card title={'视频'}>
-                        <Empty description={(<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
+                        <Empty
+                            description={(<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
                     </Card>
                 </Col>
             )}
@@ -107,7 +100,7 @@ function Video() {
                          onCancel={() => setSelected(undefined)}
                          onOk={() => {
                              setSelected(undefined)
-                             onRefresh()
+                             refresh()
                          }}
             />
             <VideoFilterModal open={filterOpen}
@@ -121,7 +114,7 @@ function Video() {
             <>
                 {createPortal((
                         <>
-                            <FloatButton icon={<RedoOutlined/>} onClick={onRefresh}/>
+                            <FloatButton icon={<RedoOutlined/>} onClick={() => run(true)}/>
                             <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
                                          onClick={() => setFilterOpen(true)}/>
                         </>

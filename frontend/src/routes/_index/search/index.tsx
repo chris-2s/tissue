@@ -13,10 +13,10 @@ import {
     Tag,
     Tooltip
 } from "antd";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, RedoOutlined} from "@ant-design/icons";
 import * as api from "../../../apis/subscribe";
-import {useLocalStorageState, useRequest, useResponsive} from "ahooks";
+import {useRequest, useResponsive} from "ahooks";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import Websites from "../../../components/Websites";
 import VideoCover from "../../../components/VideoCover";
@@ -28,6 +28,8 @@ import {
     useRouter, useMatch
 } from "@tanstack/react-router";
 import Await from "../../../components/Await";
+import {useDispatch} from "react-redux";
+import {Dispatch} from "../../../models";
 
 const cacheSearchKey = 'search_video_num'
 const cacheKey = 'search_video_information'
@@ -41,6 +43,8 @@ export const Route = createFileRoute('/_index/search/')({
                 const res = {...data, actors: data.actors.map((i: any) => i.name).join(", ")}
                 localStorage.setItem(cacheKey, JSON.stringify(res))
                 return res
+            }).catch(()=>{
+
             })
         ) : (
             new Promise((resolve) => {
@@ -65,9 +69,20 @@ export function Search() {
     const search: any = useSearch({from: routeId})
     const {data: loaderData} = useLoaderData<any>({from: routeId})
 
+    const appDispatch = useDispatch<Dispatch>().app
     const responsive = useResponsive()
-    const [searchInput, setSearchInput] = useState<string>(localStorage.getItem(cacheSearchKey))
+    const [searchInput, setSearchInput] = useState(localStorage.getItem(cacheSearchKey) || '')
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
+
+
+    useEffect(() => {
+        if (detailMatch) {
+            appDispatch.setCanBack(true)
+        }
+        return () => {
+            appDispatch.setCanBack(false)
+        }
+    }, [])
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: api.modifySubscribe,
@@ -218,7 +233,6 @@ export function Search() {
                                               onChange={e => setSearchInput(e.target.value)}
                                               onSearch={(num) => {
                                                   localStorage.setItem(cacheSearchKey, num)
-                                                  router.invalidate({filter: d => d.routeId === routeId})
                                                   return router.navigate({search: {num: num} as any, replace: true})
                                               }}/>
                             )}
