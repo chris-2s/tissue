@@ -16,6 +16,12 @@ def get_rankings(source: str, video_type: str, cycle: str):
         return spider.JavdbSpider().get_ranking(video_type, cycle)
 
 
+@router.get('/ranking/detail')
+def get_ranking_detail(source: str, num: str, url: str):
+    if source == 'JavDB':
+        return spider.JavdbSpider().get_info(num, url=url, include_downloads=True)
+
+
 @router.get('/log')
 async def get_logs():
     log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
