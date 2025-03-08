@@ -7,7 +7,8 @@ import {themes} from "../utils/constants";
 export const app = createModel<RootModel>()({
     state: {
         themeMode: Cookies.get('themeMode') || themes[0].name,
-        goodBoy: Cookies.get('goodBoy') == '1' || false
+        goodBoy: Cookies.get('goodBoy') == '1' || false,
+        canBack: false
     },
     reducers: {
         setThemeMode(state, payload: string) {
@@ -17,6 +18,9 @@ export const app = createModel<RootModel>()({
         setGoodBoy(state, payload: boolean) {
             Cookies.set('goodBoy', payload ? '1' : '0', {expires: 365})
             return {...state, goodBoy: payload}
+        },
+        setCanBack(state, payload: boolean) {
+            return {...state, canBack: payload}
         },
     },
 });

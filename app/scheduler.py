@@ -44,7 +44,7 @@ class Scheduler:
         'clean_cache': Job(key='clean_cache',
                            name='清理缓存',
                            job=clean_cache,
-                           interval=24 * 60),
+                           interval=7 * 24 * 60),
     }
 
     def __init__(self):

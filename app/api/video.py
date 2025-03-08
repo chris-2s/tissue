@@ -10,8 +10,11 @@ router = APIRouter()
 
 
 @router.get('/')
-def get_videos(service=Depends(get_video_service)):
-    video = service.get_videos()
+def get_videos(force: Optional[bool] = False, service=Depends(get_video_service)):
+    if force:
+        video = service.get_videos_force()
+    else:
+        video = service.get_videos()
     return R.list(video)
 
 
