@@ -4,7 +4,7 @@ from datetime import datetime
 from random import randint
 from urllib.parse import urljoin
 from lxml import etree
-from app.schema import VideoDetail, VideoActor, VideoDownload
+from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview
 from app.schema.home import JavDBRanking
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
@@ -16,7 +16,7 @@ class JavdbSpider(Spider):
     downloadable = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
 
-    def get_info(self, num: str, url: str = None, include_downloads=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False):
 
         if url is None:
             url = self.search(num)
@@ -100,6 +100,9 @@ class JavdbSpider(Spider):
         if include_downloads:
             meta.downloads = self.get_downloads(url, html)
 
+        if include_previews:
+            meta.previews = self.get_previews(html)
+
         return meta
 
     def search(self, num: str):
@@ -112,6 +115,24 @@ class JavdbSpider(Spider):
             if matched_element.text.lower() == num.lower():
                 code = matched_element.xpath('./../..')[0].get('href')
                 return urljoin(self.host, code)
+
+    def get_previews(self, html: etree.HTML):
+        result = []
+
+        videos = html.xpath("//div[contains(@class,'preview-images')]/a[@class='preview-video-container']")
+        for video in videos:
+            thumb = video.xpath('./img')[0]
+            video = html.xpath(f"//video[@id='{video.get('href')[1:]}']/source")[0]
+            preview = VideoPreviewItem(type='video', thumb=thumb.get('src'), url=video.get('src'))
+            result.append(preview)
+
+        images = html.xpath("//div[contains(@class,'preview-images')]/a[@class='tile-item']")
+        for image in images:
+            thumb = image.xpath('./img')[0]
+            preview = VideoPreviewItem(type='image', thumb=thumb.get('src'), url=image.get('href'))
+            result.append(preview)
+
+        return [VideoPreview(website=self.name, items=result)]
 
     def get_downloads(self, url: str, html: etree.HTML):
         result = []

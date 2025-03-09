@@ -5,7 +5,7 @@ from datetime import datetime
 from lxml import etree
 from urllib.parse import urljoin
 
-from app.schema import VideoDetail, VideoActor, VideoDownload
+from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -15,7 +15,7 @@ class JavbusSpider(Spider):
     name = 'JavBus'
     downloadable = True
 
-    def get_info(self, num: str, url: str = None, include_downloads=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False):
 
         url = urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)
@@ -86,11 +86,25 @@ class JavbusSpider(Spider):
         meta.website.append(url)
 
         if include_downloads:
-            meta.downloads = self.get_video(url, response.text)
+            meta.downloads = self.get_downloads(url, response.text)
+
+        if include_downloads:
+            meta.previews = self.get_previews(html)
 
         return meta
 
-    def get_video(self, url: str, response: str):
+    def get_previews(self, html: etree.HTML):
+        result = []
+
+        images = html.xpath("//a[@class='sample-box']")
+        for image in images:
+            thumb = image.xpath("./div/img")[0]
+            preview = VideoPreviewItem(type='image', thumb=urljoin(self.host, thumb.get('src')), url=image.get('href'))
+            result.append(preview)
+
+        return [VideoPreview(website=self.name, items=result)]
+
+    def get_downloads(self, url: str, response: str):
         params = {'lang': 'zh', 'floor': random.Random().randint(100, 1000)}
 
         gid = re.search(r'var gid = (\w+);', response)

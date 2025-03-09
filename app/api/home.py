@@ -19,7 +19,7 @@ def get_rankings(source: str, video_type: str, cycle: str):
 @router.get('/ranking/detail')
 def get_ranking_detail(source: str, num: str, url: str):
     if source == 'JavDB':
-        return spider.JavdbSpider().get_info(num, url=url, include_downloads=True)
+        return spider.JavdbSpider().get_info(num, url=url, include_downloads=True, include_previews=True)
 
 
 @router.get('/log')

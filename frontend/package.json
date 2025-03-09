@@ -24,7 +24,8 @@
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
     "react-lazy-load-image-component": "^1.6.3",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "yet-another-react-lightbox": "^3.21.7"
   },
   "devDependencies": {
     "@tanstack/router-devtools": "^1.112.7",

@@ -35,8 +35,8 @@ function About() {
                 {responsive.md ? (
                     <Space align={"center"} wrap={true} className={'mt-4'}>
                         <img src="https://img.shields.io/github/license/chris-2s/tissue" alt=""/>
-                        <img src="https://img.shields.io/docker/v/chris2s/tissue" alt=""/>
-                        <img src="https://img.shields.io/docker/image-size/chris2s/tissue" alt=""/>
+                        <img src="https://img.shields.io/docker/v/chris2s/tissue/latest" alt=""/>
+                        <img src="https://img.shields.io/docker/image-size/chris2s/tissue/latest" alt=""/>
                         <img src="https://img.shields.io/github/actions/workflow/status/chris-2s/tissue/build.yml"
                              alt=""/>
                     </Space>

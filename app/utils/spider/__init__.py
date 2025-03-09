@@ -1,6 +1,5 @@
 import traceback
 from datetime import datetime
-from functools import reduce
 from urllib.parse import urlparse
 
 from app.schema import VideoDetail
@@ -46,7 +45,8 @@ def _merge_video_info(metas: list[VideoDetail]) -> VideoDetail:
                         setattr(meta, key, value)
                         break
         meta.website = [m.website[0] for m in metas if m.website]
-        meta.downloads = sum(map(lambda x: x.downloads, metas),[])
+        meta.previews = [m.previews[0] for m in metas if m.previews]
+        meta.downloads = sum(map(lambda x: x.downloads, metas), [])
         if meta.downloads:
             meta.downloads.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
         logger.info("信息合并成功")
@@ -86,7 +86,7 @@ def get_video(number: str):
         try:
             if spider.downloadable:
                 logger.info(f"{spider.name} 获取下载列表...")
-                videos = spider.get_info(number, include_downloads=True)
+                videos = spider.get_info(number, include_downloads=True, include_previews=True)
                 logger.info(f"获取到{len(videos.downloads)}部影片")
                 metas.append(videos)
         except:

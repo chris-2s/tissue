@@ -28,7 +28,7 @@ class Spider:
         self.session.timeout = (5, self.session.timeout)
 
     @abstractmethod
-    def get_info(self, num: str, url: str = None, include_downloads: bool = False):
+    def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False):
         pass
 
     @classmethod

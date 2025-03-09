@@ -18,6 +18,7 @@ class VideoList(BaseModel):
 
     actors: List[VideoActor] = []
 
+
 class VideoDownload(BaseModel):
     is_hd: bool = False
     is_zh: bool = False
@@ -29,6 +30,18 @@ class VideoDownload(BaseModel):
     size: Optional[str] = None
     magnet: Optional[str] = None
     publish_date: Optional[date] = None
+
+
+class VideoPreviewItem(BaseModel):
+    type: Optional[str] = None
+    thumb: Optional[str] = None
+    url: Optional[str] = None
+
+
+class VideoPreview(BaseModel):
+    website: Optional[str] = None
+    items: List[VideoPreviewItem] = []
+
 
 class VideoDetail(BaseModel):
     # 标题
@@ -69,8 +82,10 @@ class VideoDetail(BaseModel):
     # 是否无码
     is_uncensored: bool = False
 
-    #下载列表
-    downloads:Optional[List[VideoDownload]] = []
+    # 下载列表
+    downloads: Optional[List[VideoDownload]] = []
+    # 预览列表
+    previews: Optional[List[VideoPreview]] = []
 
 
 class VideoNotify(VideoDetail):
