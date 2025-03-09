@@ -5,7 +5,7 @@ import Lightbox from "yet-another-react-lightbox";
 import * as api from "../../../../apis/video.ts";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/counter.css";
-import {Counter} from "yet-another-react-lightbox/plugins";
+import {Counter, Zoom} from "yet-another-react-lightbox/plugins";
 import Video from "yet-another-react-lightbox/plugins/video";
 
 function Preview(props: { data: any }) {
@@ -45,9 +45,13 @@ function Preview(props: { data: any }) {
             <Lightbox open={openPreview}
                       index={previewIndex}
                       close={() => setOpenPreview(false)}
-                      plugins={[Counter, Video]}
+                      plugins={[Counter, Video, Zoom]}
                       video={{
                           muted: true,
+                          playsInline: false
+                      }}
+                      controller={{
+                          closeOnPullDown: true
                       }}
                       slides={slides}/>
         </Row>
