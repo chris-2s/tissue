@@ -26,3 +26,7 @@ body {
 .ant-ribbon {
     z-index: 1 !important;
 }
+
+.yarl__toolbar{
+    padding-top: env(safe-area-inset-top) !important;
+}
