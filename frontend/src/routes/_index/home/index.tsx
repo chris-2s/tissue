@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_index/home/')({
     },
     loaderDeps: ({search}) => ({...search, rank: 0}),
     loader: async ({deps}) => ({
-        data: api.getRankings({...deps, source: 'JavDB'})
+        data: api.getRankings({...deps, source: 'JavDB'}).catch()
     }),
     staleTime: Infinity
 })
