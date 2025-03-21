@@ -82,9 +82,6 @@ function VideoDetail(props: Props) {
     }
 
     function handleSave(value: any) {
-        if (value.actors.length === 0) {
-            return message.error("请至少添加一名演员")
-        }
         value.path = path
         return onSave(value, mode, transMode)
     }

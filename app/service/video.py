@@ -113,7 +113,8 @@ class VideoService(BaseService):
         if trans_mode == 'move':
             self.delete_video_meta(video.path)
 
-        actor_folder = ",".join(map(lambda i: i.name, video.actors[0:3])) + ("等" if len(video.actors) > 3 else "")
+        actor_folder = (",".join(map(lambda i: i.name, video.actors[0:3])) + (
+            "等" if len(video.actors) > 3 else "")) if len(video.actors) > 0 else "未知演员"
         video_folder = video.title[0:80]
         save_path = os.path.join(video_path, actor_folder, video_folder)
         if not os.path.exists(save_path):
