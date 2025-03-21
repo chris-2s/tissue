@@ -20,7 +20,7 @@ function Preview(props: { data: any }) {
                 poster: api.getVideoCover(item.thumb),
                 sources: [
                     {
-                        src: item.url,
+                        src: api.getVideoTrailer(item.url),
                     },
                 ],
             }
