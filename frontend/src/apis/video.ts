@@ -32,6 +32,10 @@ export function getVideoCover(url: string) {
     return configs.BASE_API + '/common/cover?url=' + encodeURIComponent(url)
 }
 
+export function getVideoTrailer(url: string) {
+    return configs.BASE_API + '/common/trailer?url=' + encodeURIComponent(url)
+}
+
 export function scrapeVideo(num: string) {
     return request.request({
         url: '/video/scrape',

@@ -1,9 +1,11 @@
 import hashlib
 import re
 
+import httpx
 import requests
 from cachetools import cached, TTLCache
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Request
+from fastapi.responses import StreamingResponse
 
 from app.schema.r import R
 from app.utils import spider
@@ -20,6 +22,28 @@ def proxy_video_cover(url: str):
         'ETag': hashlib.md5(url.encode()).hexdigest(),
     }
     return Response(content=cover, media_type="image", headers=headers)
+
+
+@router.get("/trailer")
+async def proxy_video_trailer(url: str, request: Request):
+    headers = {
+        "Range": request.headers.get("Range", ""),
+        "User-Agent": request.headers.get("User-Agent")
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        response.raise_for_status()
+
+        async def video_stream():
+            async for chunk in response.aiter_bytes(1024 * 1024):
+                yield chunk
+
+        return StreamingResponse(
+            video_stream(),
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
 
 
 @router.get("/version")
