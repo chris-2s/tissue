@@ -90,6 +90,7 @@ class SubscribeService(BaseService):
                     self.download_video(schema.SubscribeCreate.model_validate(subscribe), matched)
                     logger.info(f"订阅《{subscribe.num}》已完成")
                     self.db.delete(subscribe)
+                    self.db.commit()
                 except Exception as e:
                     logger.error("下载任务创建失败")
                     traceback.print_exc()

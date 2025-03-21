@@ -65,6 +65,11 @@ function Header(props: Props) {
             icon: <LockOutlined/>
         }],
         {
+            key: 'log',
+            label: '日志',
+            icon: <CodeOutlined />
+        },
+        {
             key: 'logout',
             label: '退出登录',
             icon: <LogoutOutlined/>
@@ -75,6 +80,9 @@ function Header(props: Props) {
         switch (event.key) {
             case 'pin':
                 PinView.show(PinMode.setting)
+                break
+            case 'log':
+                setLogOpen(true)
                 break
             case 'logout':
                 authDispatch.logout()
@@ -123,9 +131,6 @@ function Header(props: Props) {
             </div>
             <div className={'flex-1 flex flex-row-reverse items-center'}>
                 <Space>
-                    <IconButton onClick={() => setLogOpen(true)}>
-                        <CodeOutlined style={{fontSize: token.sizeLG}}/>
-                    </IconButton>
                     <IconButton onClick={() => onGoodBoyChange()}>
                         {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
                             <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
