@@ -32,7 +32,7 @@ async def proxy_video_trailer(url: str, request: Request):
     }
 
     async with httpx.AsyncClient() as client:
-        if url.strip("//"):
+        if url.startswith("//"):
             url = 'http:' + url
         response = await client.get(url, headers=headers)
         response.raise_for_status()
