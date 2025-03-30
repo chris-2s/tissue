@@ -57,6 +57,9 @@ function RouteLayout() {
                     Menu: {
                         activeBarBorderWidth: 0,
                         itemBg: undefined,
+                    },
+                    Rate: {
+                        starSize: 15
                     }
                 }
             }}>

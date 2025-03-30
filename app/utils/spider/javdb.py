@@ -18,13 +18,17 @@ class JavdbSpider(Spider):
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False):
 
+        searched = False
+
         if url is None:
             url = self.search(num)
+            searched = True
 
         if not url:
             raise SpiderException('未找到番号')
         else:
-            time.sleep(randint(1, 3))
+            if searched:
+                time.sleep(randint(1, 3))
 
         meta = VideoDetail()
         meta.num = num

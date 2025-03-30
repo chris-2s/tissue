@@ -17,14 +17,14 @@ function JavDBItem(props: { item: any }) {
                     <VideoCover src={item.cover}/>
                 </div>
                 <div className={'p-3'}>
-                    <div className={'text-nowrap overflow-y-scroll text-lg'} style={{scrollbarWidth: 'none'}}>
+                    <div className={'text-nowrap overflow-y-scroll'} style={{scrollbarWidth: 'none',fontSize:token.fontSizeHeading5,fontWeight:token.fontWeightStrong}}>
                         {item.num} {item.title}
                     </div>
-                    <Space className={'my-2'}>
+                    <div className={'flex items-center my-2'}>
                         <Rate disabled allowHalf value={item.rank}></Rate>
-                        <div>{item.rank}分</div>
-                        <div>由 {item.rank_count} 人评价</div>
-                    </Space>
+                        <div className={'mx-1'}>{item.rank}分</div>
+                        <div>由{item.rank_count}人评价</div>
+                    </div>
                     <div>{item.publish_date}</div>
                 </div>
             </div>

@@ -1,19 +1,21 @@
-import {Card, Col, Empty, FloatButton, Input, message, Row, Skeleton, Space, Tag} from "antd";
+import {Card, Col, Empty, FloatButton, Input, message, Row, Skeleton, Space, Tag, Tooltip} from "antd";
 import React, {useState} from "react";
 import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./-components/modifyModal.tsx";
 import {createPortal} from "react-dom";
-import {PlusOutlined} from "@ant-design/icons";
+import {PlusOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoCover from "../../../components/VideoCover";
 import {useFormModal} from "../../../utils/useFormModal.ts";
-import {createFileRoute} from "@tanstack/react-router";
+import {createFileRoute, useNavigate} from "@tanstack/react-router";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
 })
 
 function Subscribe() {
+
+    const navigate = useNavigate()
 
     const {data = [], loading, refresh} = useRequest(api.getSubscribes, {})
     const [filter, setFilter] = useState<string>()
@@ -62,22 +64,32 @@ function Subscribe() {
                     subscribes.map((subscribe: any) => (
                         <Col key={subscribe.id} span={24} md={12} lg={6}>
                             <Card hoverable
+                                  size={"small"}
                                   cover={(<VideoCover src={subscribe.cover}/>)}
                                   onClick={() => setOpen(true, subscribe)}
                             >
                                 <Card.Meta title={subscribe.title || subscribe.num}
                                            description={(
-                                               <Space size={[0, 'small']} wrap>
-                                                   {subscribe.premiered && (
-                                                       <Tag bordered={false}>{subscribe.premiered}</Tag>
-                                                   )}
-                                                   {subscribe.is_hd && (
-                                                       <Tag color={'red'} bordered={false}>高清</Tag>)}
-                                                   {subscribe.is_zh && (
-                                                       <Tag color={'blue'} bordered={false}>中文</Tag>)}
-                                                   {subscribe.is_uncensored && (
-                                                       <Tag color={'green'} bordered={false}>无码</Tag>)}
-                                               </Space>
+                                               <div className={'flex'}>
+                                                   <Space size={[0, 'small']} wrap className={'flex-1'}>
+                                                       {subscribe.premiered && (
+                                                           <Tag bordered={false}>{subscribe.premiered}</Tag>
+                                                       )}
+                                                       {subscribe.is_hd && (
+                                                           <Tag color={'red'} bordered={false}>高清</Tag>)}
+                                                       {subscribe.is_zh && (
+                                                           <Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                                       {subscribe.is_uncensored && (
+                                                           <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                                   </Space>
+                                                   <Tooltip title={'搜索'}>
+                                                       <div className={'px-2'} onClick={() => {
+                                                           return navigate({to: '/search', search: {num: subscribe.num}})
+                                                       }}>
+                                                           <SearchOutlined/>
+                                                       </div>
+                                                   </Tooltip>
+                                               </div>
                                            )}
                                 />
                             </Card>
