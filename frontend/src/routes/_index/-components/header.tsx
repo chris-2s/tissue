@@ -4,7 +4,8 @@ import {
     ArrowLeftOutlined,
     CodeOutlined,
     EyeInvisibleOutlined,
-    EyeOutlined, LockOutlined,
+    EyeOutlined,
+    LockOutlined,
     LogoutOutlined,
     MenuOutlined,
     UserOutlined
@@ -40,6 +41,7 @@ function Header(props: Props) {
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
     const [logOpen, setLogOpen] = useState(false)
+    const [pinVisible, setPinVisible] = useState(false)
 
     const themeMode = useSelector((state: RootState) => state.app?.themeMode)
     const CurrentTheme = themes.find(i => i.name === themeMode) || themes[0]
@@ -67,7 +69,7 @@ function Header(props: Props) {
         {
             key: 'log',
             label: '日志',
-            icon: <CodeOutlined />
+            icon: <CodeOutlined/>
         },
         {
             key: 'logout',
@@ -79,7 +81,7 @@ function Header(props: Props) {
     function onUserClick(event: any) {
         switch (event.key) {
             case 'pin':
-                PinView.show(PinMode.setting)
+                setPinVisible(true)
                 break
             case 'log':
                 setLogOpen(true)
@@ -157,6 +159,9 @@ function Header(props: Props) {
             >
                 <Log/>
             </Modal>
+            {pinVisible && (
+                <PinView pin={null} onClose={() => setPinVisible(false)} mode={PinMode.setting}/>
+            )}
         </div>
     )
 }

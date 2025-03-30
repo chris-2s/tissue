@@ -1,14 +1,13 @@
-import ReactDOM from "react-dom/client";
 import {Button, Col, message, Row, Space, theme} from "antd";
 import Logo from "../../assets/logo.png";
 import PinPad from "./pad.tsx";
-import {useState} from "react";
+import React, {useState} from "react";
 import {useResponsive} from "ahooks";
-import {CloseOutlined} from "@ant-design/icons";
+import {CloseOutlined, EyeInvisibleOutlined, EyeOutlined} from "@ant-design/icons";
 import {sha256} from "js-sha256";
-
-
-const containerId = 'pin-view-O5QcQ'
+import {createPortal} from "react-dom";
+import {useDispatch, useSelector} from "react-redux";
+import {Dispatch, RootState} from "../../models";
 
 const {useToken} = theme
 
@@ -31,6 +30,9 @@ function PinView(props: Props) {
     const [repeatNumbers, setRepeatNumbers] = useState<string[]>([])
     const [errorMessage, setErrorMessage] = useState<string>()
     const responsive = useResponsive()
+
+    const goodBoy = useSelector((state: RootState) => state.app?.goodBoy)
+    const dispatch = useDispatch<Dispatch>().app
 
     function onEnter(num: string) {
         const newNumbers = [...numbers, num]
@@ -59,7 +61,7 @@ function PinView(props: Props) {
                     } else {
                         const hash = sha256.create()
                         hash.update(newNumbers.join(''))
-                        localStorage.setItem('pin', hash.hex())
+                        dispatch.setPin(hash.hex())
                         message.success('密码设置成功')
                         onClose()
                     }
@@ -88,14 +90,14 @@ function PinView(props: Props) {
         )
     }
 
-    return (
+    return createPortal(
         <div className={'fixed top-0 right-0 bottom-0 left-0 z-[1000]'} style={{background: token.colorBgContainer}}>
             <div className={'h-full w-full flex justify-center items-center'}>
                 <Row gutter={[80, 0]}>
                     <Col span={24} md={12}>
                         <div className={'h-full flex flex-col items-center justify-center'}>
                             <img className={'h-20'} src={Logo} alt=""/>
-                            <div>
+                            <div style={{color: token.colorText}}>
                                 {repeatNumbers.length > 0 ? (
                                     '请再次输入密码 '
                                 ) : (
@@ -126,48 +128,22 @@ function PinView(props: Props) {
                     </Col>
                 </Row>
             </div>
-            {mode === PinMode.setting && (
-                <div className={'fixed'} style={{
-                    top: 'calc(10px + env(safe-area-inset-top, 0))',
-                    right: 'calc(20px + env(safe-area-inset-right, 0))'
-                }}
-                     onClick={() => onClose()}
-                >
-                    <Button shape={'circle'} icon={<CloseOutlined/>}/>
-                </div>
-            )}
-        </div>
+            <div className={'fixed'} style={{
+                top: 'calc(10px + env(safe-area-inset-top, 0))',
+                right: 'calc(20px + env(safe-area-inset-right, 0))'
+            }}>
+                {mode === PinMode.setting ? (
+                    <Button shape={'circle'} icon={<CloseOutlined/>} onClick={() => onClose()}/>
+                ) : (
+                    <div className={'mr-2'} style={{fontSize: token.sizeLG, color: token.colorText}}
+                         onClick={() => dispatch.setGoodBoy(!goodBoy)}>
+                        {goodBoy ? (<EyeInvisibleOutlined/>) : (<EyeOutlined/>)}
+                    </div>
+                )}
+            </div>
+        </div>, document.body
     )
 }
 
-PinView.show = function (mode: PinMode) {
-    return new Promise(resolve => {
-        if (document.getElementById(containerId)) {
-            return
-        }
-
-        const pin = localStorage.getItem('pin')
-
-        if (mode === PinMode.verify && !pin) {
-            return
-        }
-
-        const container = document.createElement('div');
-        container.id = containerId;
-        document.body.appendChild(container);
-
-        const root = ReactDOM.createRoot(container)
-
-        function onClose() {
-            root.unmount()
-            document.body.removeChild(container)
-            resolve(undefined)
-        }
-
-        root.render((
-            <PinView onClose={onClose} mode={mode} pin={pin}/>
-        ))
-    })
-}
 
 export default PinView;
