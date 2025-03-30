@@ -8,8 +8,9 @@ import TabBar from "./-components/tabBar.tsx";
 import useVisibility from "../../utils/useVisibility.ts";
 import PinView, {PinMode} from "../../components/PinView";
 import {createFileRoute, Outlet, redirect} from "@tanstack/react-router";
-import {useDispatch} from "react-redux";
-import {Dispatch} from "../../models";
+import {useDispatch, useSelector} from "react-redux";
+import {Dispatch, RootState} from "../../models";
+import pinView from "../../components/PinView";
 
 const {useToken} = theme
 
@@ -33,6 +34,8 @@ function RouteLayout() {
     const dispatch = useDispatch<Dispatch>().auth
 
     const visible = useVisibility()
+    const pin = useSelector((state: RootState) => state.app?.pin)
+    const [pinVisible, setPinVisible] = useState(false)
 
     useEffect(() => {
         dispatch.getInfo()
@@ -40,7 +43,9 @@ function RouteLayout() {
     }, [])
 
     useEffect(() => {
-        PinView.show(PinMode.verify)
+        if (pin) {
+            setPinVisible(true)
+        }
     }, [visible])
 
     useEffect(() => {
@@ -114,6 +119,9 @@ function RouteLayout() {
                         </div>
                     )}
                 </Layout>
+                {pinVisible && (
+                    <PinView pin={pin} mode={PinMode.verify} onClose={() => setPinVisible(false)}/>
+                )}
             </ConfigProvider>
         </div>
     )

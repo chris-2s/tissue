@@ -8,7 +8,8 @@ export const app = createModel<RootModel>()({
     state: {
         themeMode: Cookies.get('themeMode') || themes[0].name,
         goodBoy: Cookies.get('goodBoy') == '1' || false,
-        canBack: false
+        canBack: false,
+        pin: localStorage.getItem('pin'),
     },
     reducers: {
         setThemeMode(state, payload: string) {
@@ -21,6 +22,10 @@ export const app = createModel<RootModel>()({
         },
         setCanBack(state, payload: boolean) {
             return {...state, canBack: payload}
+        },
+        setPin(state, payload: string) {
+            localStorage.setItem('pin', payload)
+            return {...state, pin: payload}
         },
     },
 });

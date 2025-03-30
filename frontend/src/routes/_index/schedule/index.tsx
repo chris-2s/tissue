@@ -51,7 +51,7 @@ function Schedule() {
 
     return (
         <Card title={'任务列表'}>
-            <Table rowKey={'key'} columns={columns} dataSource={data} loading={loading}/>
+            <Table rowKey={'key'} columns={columns} dataSource={data} loading={loading} pagination={false}/>
         </Card>
     )
 }
