@@ -117,7 +117,7 @@ function Header(props: Props) {
                     </IconButton>
                 )}
                 {!props.collapsible && (
-                    canBack ? (
+                    (canBack && !responsive.lg) ? (
                         <IconButton onClick={() => history.go(-1)}>
                             <ArrowLeftOutlined style={{fontSize: token.sizeLG}}/>
                         </IconButton>

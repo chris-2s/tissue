@@ -43,6 +43,7 @@ export const Route = createFileRoute('/_index/search/')({
             api.searchVideo(deps).then(data => {
                 const res = {...data, actors: data.actors.map((i: any) => i.name).join(", ")}
                 localStorage.setItem(cacheKey, JSON.stringify(res))
+                localStorage.setItem(cacheSearchKey, deps.num)
                 return res
             }).catch(() => {
 
@@ -72,7 +73,7 @@ export function Search() {
 
     const appDispatch = useDispatch<Dispatch>().app
     const responsive = useResponsive()
-    const [searchInput, setSearchInput] = useState(localStorage.getItem(cacheSearchKey) || '')
+    const [searchInput, setSearchInput] = useState(search?.num || localStorage.getItem(cacheSearchKey) || '')
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<string>()
 
@@ -231,7 +232,6 @@ export function Search() {
                                       value={searchInput}
                                       onChange={e => setSearchInput(e.target.value)}
                                       onSearch={(num) => {
-                                          localStorage.setItem(cacheSearchKey, num)
                                           return router.navigate({search: {num: num} as any, replace: true})
                                       }}/>
                     )}

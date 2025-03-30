@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_index/video/')({
 
 function Video() {
 
-    const {data = [], loading, run ,refresh} = useRequest(api.getVideos)
+    const {data = [], loading, run, refresh} = useRequest(api.getVideos)
     const [selected, setSelected] = useState<string | undefined>()
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
@@ -66,19 +66,23 @@ function Video() {
                 videos.map((video: any) => (
                     <Col key={video.path} span={24} md={12} lg={6}>
                         <Card hoverable
+                              size={"small"}
                               cover={(<VideoCover src={video.cover}/>)}
                               onClick={() => setSelected(video.path)}
                         >
                             <Card.Meta title={video.title}
                                        description={(
-                                           <Space size={[0, 'small']} wrap>
-                                               {video.is_zh && (<Tag color={'blue'} bordered={false}>中文</Tag>)}
-                                               {video.is_uncensored && (
-                                                   <Tag color={'green'} bordered={false}>无码</Tag>)}
-                                               {video.actors.map((actor: any) => (
-                                                   <Tag key={actor} color={'purple'} bordered={false}>{actor.name}</Tag>
-                                               ))}
-                                           </Space>
+                                           <div className={'overflow-x-scroll'} style={{scrollbarWidth: 'none'}}>
+                                               <Space size={[0, 'small']}>
+                                                   {video.is_zh && (<Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                                   {video.is_uncensored && (
+                                                       <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                                   {video.actors.map((actor: any) => (
+                                                       <Tag key={actor} color={'purple'}
+                                                            bordered={false}>{actor.name}</Tag>
+                                                   ))}
+                                               </Space>
+                                           </div>
                                        )}
                             />
                         </Card>
