@@ -5,16 +5,36 @@
     <link rel="icon" href="/favicon.ico"/>
     <link rel="manifest" href="/manifest.json"/>
     <link rel="apple-touch-icon" href="/logo.png"/>
+    <link rel="stylesheet" type="text/css" href="/loading.css"/>
     <meta name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover, minimum-scale=1.0, maximum-scale=1.0"/>
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)"/>
+    <meta name="theme-color" content="#F5F5F5" media="(prefers-color-scheme: light)"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
     <title>Tissue</title>
+    <script>
+        let theme = localStorage.getItem('themeMode') || 'system';
+        if (theme === 'system') {
+            if (window.matchMedia("(prefers-color-scheme: light)").matches){
+                theme = 'light';
+            }else{
+                theme = 'dark';
+            }
+        }
+        let loadingBackgroundColor = theme === 'dark' ? '#000000' : '#F5F5F5';
+        document.documentElement.style.setProperty('--loading-background-color', loadingBackgroundColor)
+    </script>
 </head>
-<body>
-<div id="root"></div>
+<body style="margin: 0">
+<div id="root">
+    <div class="loading-container">
+        <div class="loading-logo">
+            <img src="/logo.png" alt="">
+        </div>
+        <div class="loading-indicator"></div>
+    </div>
+</div>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
