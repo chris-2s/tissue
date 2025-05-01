@@ -61,7 +61,7 @@ function History() {
             title: '路径',
             dataIndex: 'path',
             render: (_, record: any) => (
-                <div style={{fontSize: 6, maxWidth: 680}}>
+                <div style={{WebkitTextSizeAdjust: '100%', fontSize: 14, maxWidth: 680}}>
                     <div>{record.source_path}</div>
                     <div>{'==>'}</div>
                     <div>{record.dest_path}</div>
