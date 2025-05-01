@@ -31,6 +31,7 @@ import Await from "../../../components/Await";
 import {useDispatch} from "react-redux";
 import {Dispatch} from "../../../models";
 import Preview from "./-components/preview.tsx";
+import DownloadModal from "./-components/downloadModal.tsx";
 
 const cacheSearchKey = 'search_video_num'
 const cacheKey = 'search_video_information'
@@ -77,6 +78,9 @@ export function Search() {
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<string>()
 
+    const [selectedVideo, setSelectedVideo] = useState<any>()
+    const [selectedDownload, setSelectedDownload] = useState<any>()
+
     useEffect(() => {
         if (detailMatch) {
             appDispatch.setCanBack(true)
@@ -94,9 +98,11 @@ export function Search() {
         }
     })
 
-    const {runAsync: onDownload} = useRequest(api.downloadVideos, {
+    const {run: onDownload, loading: onDownloading} = useRequest(api.downloadVideos, {
         manual: true,
         onSuccess: () => {
+            setSelectedVideo(undefined)
+            setSelectedDownload(undefined)
             return message.success("下载任务创建成功")
         }
     })
@@ -203,26 +209,6 @@ export function Search() {
         return message.success("磁力链接已复制")
     }
 
-    function onDownloadClick(video: any, item: any) {
-        Modal.confirm({
-            title: '是否确认下载：' + item.name,
-            content: (
-                <div>
-                    <Tag>{item.size}</Tag>
-                    <Tag>{item.publish_date}</Tag>
-                    {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
-                    {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
-                    {item.is_uncensored &&
-                        <Tag color={'green'} bordered={false}>无码</Tag>}
-                </div>
-            ),
-            onOk: () => {
-                return onDownload(video, item)
-            }
-        })
-    }
-
-
     return (
         <Row gutter={[15, 15]}>
             <Col span={24} lg={8} md={12}>
@@ -290,10 +276,10 @@ export function Search() {
                                     <Segmented onChange={(value: string) => setPreviewSelected(value)}
                                                options={video.previews.map((i: any) => i.website)}/>
                                 )}>
-                                    <Preview data={previews.items} />
+                                    <Preview data={previews.items}/>
                                 </Card>
                             )
-                        }else {
+                        } else {
                             return <div></div>
                         }
                     }}
@@ -322,7 +308,10 @@ export function Search() {
                                         <Tooltip title={'发送到下载器'}>
                                             <Button type={'primary'} icon={<CloudDownloadOutlined/>}
                                                     shape={'circle'}
-                                                    onClick={() => onDownloadClick(video, item)}
+                                                    onClick={() => {
+                                                        setSelectedVideo(video)
+                                                        setSelectedDownload(item)
+                                                    }}
                                             />
                                         </Tooltip>,
                                         <Tooltip title={'复制磁力链接'}>
@@ -371,6 +360,12 @@ export function Search() {
             </Col>
             <SubscribeModifyModal width={1100}
                                   {...subscribeModalProps} />
+            <DownloadModal open={!!selectedDownload}
+                           download={selectedDownload}
+                           onCancel={() => setSelectedDownload(undefined)}
+                           onDownload={item => onDownload(selectedVideo, item)}
+                           confirmLoading={onDownloading}
+            />
         </Row>
     )
 }

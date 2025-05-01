@@ -1,6 +1,6 @@
 import Filter, {FilterField} from "./-components/filter.tsx";
 import React from "react";
-import {Col, Empty, Row, Skeleton} from "antd";
+import {Col, Empty, message, Row, Skeleton} from "antd";
 import JavDBItem from "./-components/item.tsx";
 import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
@@ -15,7 +15,8 @@ export const Route = createFileRoute('/_index/home/')({
     },
     loaderDeps: ({search}) => ({...search, rank: 0}),
     loader: async ({deps}) => ({
-        data: api.getRankings({...deps, source: 'JavDB'}).catch()
+        data: api.getRankings({...deps, source: 'JavDB'}).catch(() => {
+        })
     }),
     staleTime: Infinity
 })
@@ -61,7 +62,7 @@ function JavDB() {
             <Await promise={data} fallback={(
                 <Skeleton active/>
             )}>
-                {(data) => {
+                {(data = []) => {
                     const videos = data.filter((item: any) => item.rank >= filter.rank)
                     return videos.length > 0 ? (
                         <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
