@@ -7,14 +7,13 @@ import {
     Input,
     List,
     message,
-    Modal,
     Row, Segmented, Skeleton,
     Space,
     Tag,
     Tooltip
 } from "antd";
 import React, {useEffect, useState} from "react";
-import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, RedoOutlined} from "@ant-design/icons";
+import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, HistoryOutlined, RedoOutlined} from "@ant-design/icons";
 import * as api from "../../../apis/subscribe";
 import {useRequest, useResponsive} from "ahooks";
 import {useFormModal} from "../../../utils/useFormModal.ts";
@@ -32,34 +31,32 @@ import {useDispatch} from "react-redux";
 import {Dispatch} from "../../../models";
 import Preview from "./-components/preview.tsx";
 import DownloadModal from "./-components/downloadModal.tsx";
+import HistoryModal from "./-components/historyModal.tsx";
 
-const cacheSearchKey = 'search_video_num'
-const cacheKey = 'search_video_information'
+const cacheHistoryKey = 'search_video_histories'
 
 export const Route = createFileRoute('/_index/search/')({
     component: Search,
     loaderDeps: ({search}) => search as any,
-    loader: ({deps}) => ({
-        data: deps.num ? (
-            api.searchVideo(deps).then(data => {
-                const res = {...data, actors: data.actors.map((i: any) => i.name).join(", ")}
-                localStorage.setItem(cacheKey, JSON.stringify(res))
-                localStorage.setItem(cacheSearchKey, deps.num)
-                return res
-            }).catch(() => {
+    loader: ({deps}) => {
+        return {
+            data: deps.num ? (
+                api.searchVideo(deps).then(data => {
+                    const res = {...data, actors: data.actors.map((i: any) => i.name).join(", ")}
+                    const histories: any[] = JSON.parse(localStorage.getItem(cacheHistoryKey) || '[]')
+                        .filter((i: any) => i.num.toUpperCase() !== res.num.toUpperCase())
+                    const history = {num: res.num, actors: res.actors, title: res.title, cover: res.cover}
+                    localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 9)]))
+                    return res
+                }).catch(() => {
 
-            })
-        ) : (
-            new Promise((resolve) => {
-                const cached = localStorage.getItem(cacheKey);
-                if (cached) {
-                    resolve(JSON.parse(cached));
-                } else {
-                    resolve(undefined)
-                }
-            })
-        )
-    })
+                })
+            ) : (
+                Promise.resolve()
+            )
+        }
+    },
+    staleTime: Infinity
 })
 
 
@@ -74,12 +71,13 @@ export function Search() {
 
     const appDispatch = useDispatch<Dispatch>().app
     const responsive = useResponsive()
-    const [searchInput, setSearchInput] = useState(search?.num || localStorage.getItem(cacheSearchKey) || '')
+    const [searchInput, setSearchInput] = useState(search?.num)
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<string>()
 
     const [selectedVideo, setSelectedVideo] = useState<any>()
     const [selectedDownload, setSelectedDownload] = useState<any>()
+    const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
     useEffect(() => {
         if (detailMatch) {
@@ -214,12 +212,18 @@ export function Search() {
             <Col span={24} lg={8} md={12}>
                 <Card>
                     {!detailMatch && (
-                        <Input.Search placeholder={'请输入番号'} enterButton
-                                      value={searchInput}
-                                      onChange={e => setSearchInput(e.target.value)}
-                                      onSearch={(num) => {
-                                          return router.navigate({search: {num: num} as any, replace: true})
-                                      }}/>
+                        <div className={'flex'}>
+                            <Input.Search placeholder={'请输入番号'} enterButton
+                                          value={searchInput} allowClear
+                                          onChange={e => setSearchInput(e.target.value)}
+                                          onSearch={(num) => {
+                                              return router.navigate({search: {num: num} as any, replace: true})
+                                          }}/>
+                            <div className={'ml-1'}>
+                                <Button type={"primary"} icon={<HistoryOutlined/>}
+                                        onClick={() => setHistoryModalOpen(true)}/>
+                            </div>
+                        </div>
                     )}
                     <Await promise={loaderData}>
                         {(video, loading) => (
@@ -365,6 +369,14 @@ export function Search() {
                            onCancel={() => setSelectedDownload(undefined)}
                            onDownload={item => onDownload(selectedVideo, item)}
                            confirmLoading={onDownloading}
+            />
+            <HistoryModal open={historyModalOpen}
+                          onCancel={() => setHistoryModalOpen(false)}
+                          onClick={history => {
+                              setHistoryModalOpen(false)
+                              setSearchInput(history.num)
+                              return router.navigate({search: {num: history.num} as any, replace: true})
+                          }}
             />
         </Row>
     )
