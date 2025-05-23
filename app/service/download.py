@@ -77,7 +77,9 @@ class DownloadService(BaseService):
             num = None
             video = VideoNotify(path=file.path)
             try:
-                matched_torrent = self.db.query(DBTorrent).filter_by(hash=torrent.hash).one_or_none()
+                matched_torrent = self.db.query(DBTorrent).filter_by(hash=torrent.hash).order_by(
+                    DBTorrent.id.desc()).limit(1).one_or_none()
+
                 if matched_torrent is not None:
                     match_num = VideoDetail(**matched_torrent.__dict__)
                 else:
@@ -93,7 +95,8 @@ class DownloadService(BaseService):
                 video_service.save_video(video, mode='download')
 
                 if matched_torrent is not None:
-                    matched_torrent.delete(self.db)
+                    self.db.query(DBTorrent).filter_by(hash=torrent.hash).delete()
+
             except BizException as e:
                 has_error = True
 
