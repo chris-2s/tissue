@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_index/search/')({
                     const histories: any[] = JSON.parse(localStorage.getItem(cacheHistoryKey) || '[]')
                         .filter((i: any) => i.num.toUpperCase() !== res.num.toUpperCase())
                     const history = {num: res.num, actors: res.actors, title: res.title, cover: res.cover}
-                    localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 9)]))
+                    localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 19)]))
                     return res
                 }).catch(() => {
 
