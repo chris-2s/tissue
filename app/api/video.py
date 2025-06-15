@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.schema import VideoDetail
 from app.schema.r import R
@@ -27,6 +27,12 @@ def get_video(path: str, service=Depends(get_video_service)):
 @router.get('/parse')
 def parse_video(path: str, service=Depends(get_video_service)):
     video = service.parse_video(path)
+    return R.ok(video)
+
+
+@router.get('/batch/parse')
+def batch_parse_videos(paths: List[str] = Query(None), service=Depends(get_video_service)):
+    video = service.batch_parse_video(paths)
     return R.ok(video)
 
 
