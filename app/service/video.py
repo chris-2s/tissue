@@ -63,6 +63,14 @@ class VideoService(BaseService):
             raise BizException("视频不存在")
         return num_parser.parse(path)
 
+    def batch_parse_video(self, paths: List[str]):
+        result = []
+        for path in paths:
+            if not os.path.exists(path):
+                raise BizException(f"视频${path}不存在")
+            result.append(num_parser.parse(path))
+        return result
+
     def scrape_video(self, num: str):
         video = spider.get_video_info(num)
         if not video:
