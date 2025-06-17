@@ -11,6 +11,7 @@ from app.db import get_db, SessionFactory
 from app.db.models import Subscribe, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.schema import Setting
 from app.service.base import BaseService
 from app.utils import spider, notify
 from app.utils.logger import logger
@@ -97,7 +98,7 @@ class SubscribeService(BaseService):
                     continue
 
     def download_video(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
-        response = qbittorent.add_magnet(link.magnet)
+        response = qbittorent.add_magnet(link.magnet, Setting().download.download_path)
         if response.status_code != 200:
             raise BizException('下载创建失败')
         logger.info(f"下载创建成功")
