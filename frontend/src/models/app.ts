@@ -22,8 +22,12 @@ export const app = createModel<RootModel>()({
         setCanBack(state, payload: boolean) {
             return {...state, canBack: payload}
         },
-        setPin(state, payload: string) {
-            localStorage.setItem('pin', payload)
+        setPin(state, payload: string | null) {
+            if (payload) {
+                localStorage.setItem('pin', payload)
+            } else {
+                localStorage.removeItem('pin')
+            }
             return {...state, pin: payload}
         },
     },

@@ -49,7 +49,7 @@ export const auth = createModel<RootModel>()({
         },
         async logout() {
             Cookies.remove("userToken")
-            localStorage.removeItem("pin")
+            dispatch.app.setPin('')
             dispatch.auth.setToken(undefined)
             await router.invalidate()
         },
