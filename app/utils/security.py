@@ -21,7 +21,7 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(subject: str | Any) -> str:
-    expire = datetime.now() + timedelta(minutes=60 * 24 * 8)
+    expire = datetime.now() + timedelta(days=365)
     payload = {"exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(payload, secret_key, algorithm=algorithm)
     return encoded_jwt
