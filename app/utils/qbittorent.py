@@ -91,11 +91,12 @@ class QBittorent:
         return self.session.get(urljoin(self.host, '/api/v2/transfer/info')).json()
 
     @auth
-    def add_magnet(self, magnet: str):
+    def add_magnet(self, magnet: str, path: str):
         nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 5))
         response = self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
             'urls': magnet,
-            'tags': nonce
+            'tags': nonce,
+            'savepath': path,
         })
         if response.status_code != 200:
             return response
