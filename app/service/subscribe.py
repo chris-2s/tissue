@@ -1,3 +1,4 @@
+import re
 import time
 import traceback
 from datetime import datetime
@@ -93,6 +94,15 @@ class SubscribeService(BaseService):
                 if subscribe.is_uncensored and not item.is_uncensored:
                     logger.error(f"{item.name} 不匹配无码，已跳过")
                     return False
+
+                if subscribe.include_keyword and not re.search(subscribe.include_keyword, item.name, re.IGNORECASE):
+                    logger.error(f"{item.name} 不匹配包含关键字，已跳过")
+                    return False
+
+                if subscribe.exclude_keyword and re.search(subscribe.exclude_keyword, item.name, re.IGNORECASE):
+                    logger.error(f"{item.name} 匹配排除关键字，已跳过")
+                    return False
+
                 return True
 
             result = list(filter(get_matched, result.downloads))

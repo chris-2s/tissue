@@ -17,3 +17,6 @@ class Subscribe(Base):
     is_zh = Column(Boolean, nullable=False, default=False)
     is_uncensored = Column(Boolean, nullable=False, default=False)
     status = Column(Integer, nullable=False, default=1)
+
+    include_keyword = Column(String, nullable=True)
+    exclude_keyword = Column(String, nullable=True)
