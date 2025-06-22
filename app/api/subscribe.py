@@ -15,6 +15,12 @@ def get_subscribes(service=Depends(get_subscribe_service)):
     return R.list(subscribes)
 
 
+@router.get('/history', response_model=R[List[schema.Subscribe]])
+def get_subscribe_history(service=Depends(get_subscribe_service)):
+    subscribes = service.get_subscribe_histories()
+    return R.list(subscribes)
+
+
 @router.post('/')
 def add_subscribe(subscribe: schema.SubscribeCreate, service=Depends(get_subscribe_service)):
     service.add_subscribe(subscribe)
@@ -24,6 +30,12 @@ def add_subscribe(subscribe: schema.SubscribeCreate, service=Depends(get_subscri
 @router.put('/')
 def update_subscribe(subscribe: schema.SubscribeUpdate, service=Depends(get_subscribe_service)):
     service.update_subscribe(subscribe)
+    return R.ok()
+
+
+@router.post('/resubscribe')
+def re_subscribe(subscribe_id: int, service=Depends(get_subscribe_service)):
+    service.re_subscribe(subscribe_id)
     return R.ok()
 
 

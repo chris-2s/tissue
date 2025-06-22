@@ -8,11 +8,27 @@ export async function getSubscribes() {
     return response.data.data
 }
 
+export async function getSubscribeHistories() {
+    const response = await request.request({
+        url: '/subscribe/history',
+        method: 'get'
+    })
+    return response.data.data
+}
+
 export function modifySubscribe(data: any) {
     return request.request({
         url: '/subscribe/',
         method: data.id ? 'put' : 'post',
         data: data
+    })
+}
+
+export function resubscribe(id: any) {
+    return request.request({
+        url: '/subscribe/resubscribe',
+        method: 'post',
+        params: {subscribe_id: id},
     })
 }
 

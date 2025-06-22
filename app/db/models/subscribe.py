@@ -16,3 +16,4 @@ class Subscribe(Base):
     is_hd = Column(Boolean, nullable=False, default=True)
     is_zh = Column(Boolean, nullable=False, default=False)
     is_uncensored = Column(Boolean, nullable=False, default=False)
+    status = Column(Integer, nullable=False, default=1)
