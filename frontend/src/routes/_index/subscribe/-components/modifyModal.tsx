@@ -83,6 +83,16 @@ function ModifyModal(props: Props) {
                                     <Input/>
                                 </Form.Item>
                             </Col>
+                            <Col span={12}>
+                                <Form.Item label={'包含关键字'} name={'include_keyword'} tooltip={'支持正则表达式'}>
+                                    <Input disabled={false}/>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item label={'排除关键字'} name={'exclude_keyword'} tooltip={'支持正则表达式'}>
+                                    <Input disabled={false}/>
+                                </Form.Item>
+                            </Col>
                             <Col span={8}>
                                 <Form.Item label={'高清'} name={'is_hd'} valuePropName={'checked'} initialValue={true}>
                                     <Checkbox disabled={false}/>
