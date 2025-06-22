@@ -4,10 +4,11 @@ import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./-components/modifyModal.tsx";
 import {createPortal} from "react-dom";
-import {PlusOutlined, SearchOutlined} from "@ant-design/icons";
+import {HistoryOutlined, PlusOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoCover from "../../../components/VideoCover";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
+import HistoryModal from "./-components/historyModal.tsx";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -26,6 +27,8 @@ function Subscribe() {
             refresh()
         }
     })
+
+    const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
     const {run: onDelete} = useRequest(api.deleteSubscribe, {
         manual: true,
@@ -84,7 +87,10 @@ function Subscribe() {
                                                    </Space>
                                                    <Tooltip title={'搜索'}>
                                                        <div className={'px-2'} onClick={() => {
-                                                           return navigate({to: '/search', search: {num: subscribe.num}})
+                                                           return navigate({
+                                                               to: '/search',
+                                                               search: {num: subscribe.num}
+                                                           })
                                                        }}>
                                                            <SearchOutlined/>
                                                        </div>
@@ -106,10 +112,18 @@ function Subscribe() {
             <ModifyModal width={1100}
                          onDelete={onDelete}
                          {...modalProps} />
+            <HistoryModal open={historyModalOpen}
+                          onCancel={() => setHistoryModalOpen(false)}
+                          onResubscribe={() => {
+                              refresh()
+                              setHistoryModalOpen(false)
+                          }}
+            />
             <>
-                {createPortal((
-                        <FloatButton icon={<PlusOutlined/>} type={'primary'} onClick={() => setOpen(true)}/>),
-                    document.getElementsByClassName('index-float-button-group')[0]
+                {createPortal((<>
+                        <FloatButton icon={<PlusOutlined/>} type={'primary'} onClick={() => setOpen(true)}/>
+                        <FloatButton icon={<HistoryOutlined/>} onClick={() => setHistoryModalOpen(true)}/>
+                    </>), document.getElementsByClassName('index-float-button-group')[0]
                 )}
             </>
         </div>

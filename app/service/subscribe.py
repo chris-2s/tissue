@@ -26,10 +26,19 @@ def get_subscribe_service(db: Session = Depends(get_db)):
 class SubscribeService(BaseService):
 
     def get_subscribes(self):
-        return self.db.query(Subscribe).order_by(Subscribe.id.desc()).all()
+        return self.db.query(Subscribe).filter(Subscribe.status != 2).order_by(Subscribe.id.desc()).all()
+
+    def get_subscribe_histories(self):
+        return self.db.query(Subscribe).filter(Subscribe.status == 2).order_by(Subscribe.update_time.desc()).all()
 
     @transaction
     def add_subscribe(self, param: schema.SubscribeCreate):
+        exists = self.get_subscribes()
+
+        if [exist for exist in exists if
+            exist.num.upper() == param.num.upper() and exist.is_hd == param.is_hd and exist.is_zh == param.is_zh and exist.is_uncensored == param.is_uncensored]:
+            raise BizException('存在相同订阅，无需重复添加')
+
         subscribe = Subscribe(**param.model_dump())
         subscribe.add(self.db)
 
@@ -40,6 +49,13 @@ class SubscribeService(BaseService):
             raise BizException("该订阅不存在")
 
         exist.update(self.db, param.model_dump())
+
+    @transaction
+    def re_subscribe(self, subscribe_id: int):
+        exist = Subscribe.get(self.db, subscribe_id)
+        param = schema.SubscribeCreate(**exist.__dict__)
+        param.status = 1
+        self.add_subscribe(param)
 
     @transaction
     def delete_subscribe(self, subscribe_id: int):
@@ -90,7 +106,7 @@ class SubscribeService(BaseService):
                 try:
                     self.download_video(schema.SubscribeCreate.model_validate(subscribe), matched)
                     logger.info(f"订阅《{subscribe.num}》已完成")
-                    self.db.delete(subscribe)
+                    subscribe.update(self.db, {'status': 2})
                     self.db.commit()
                 except Exception as e:
                     logger.error("下载任务创建失败")
