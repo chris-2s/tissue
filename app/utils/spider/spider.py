@@ -28,7 +28,8 @@ class Spider:
         self.session.timeout = (5, self.session.timeout)
 
     @abstractmethod
-    def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False):
+    def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False,
+                 include_comments=False):
         pass
 
     @classmethod
@@ -36,3 +37,4 @@ class Spider:
         response = requests.get(url, headers={'Referer': cls.host})
         if response.ok:
             return response.content
+        return None

@@ -79,7 +79,7 @@ class SubscribeService(BaseService):
         for subscribe in subscribes:
             time.sleep(randint(30, 60))
 
-            result = spider.get_video(subscribe.num)
+            result = spider.get_video(subscribe.num, include_comments=False)
             if not result:
                 logger.error("所有站点均未获取到影片")
                 continue

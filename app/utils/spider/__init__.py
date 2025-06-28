@@ -38,7 +38,7 @@ def _merge_video_info(metas: list[VideoDetail]) -> VideoDetail:
     if len(metas) >= 2:
         logger.info("合并多个刮削信息...")
         for key in meta.__dict__:
-            if not getattr(meta, key):
+            if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads']:
                 for other_meta in metas[1:]:
                     value = getattr(other_meta, key)
                     if value:
@@ -46,6 +46,7 @@ def _merge_video_info(metas: list[VideoDetail]) -> VideoDetail:
                         break
         meta.website = [m.website[0] for m in metas if m.website]
         meta.previews = [m.previews[0] for m in metas if m.previews]
+        meta.comments = [m.comments[0] for m in metas if m.comments]
         meta.downloads = sum(map(lambda x: x.downloads, metas), [])
         if meta.downloads:
             meta.downloads.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
@@ -78,7 +79,7 @@ def get_video_info(number: str):
     return meta
 
 
-def get_video(number: str):
+def get_video(number: str, include_downloads=True, include_previews=True, include_comments=True):
     spiders = [JavbusSpider(), JavdbSpider()]
     metas = []
     logger.info(f"开始刮削番号《{number}》")
@@ -86,7 +87,8 @@ def get_video(number: str):
         try:
             if spider.downloadable:
                 logger.info(f"{spider.name} 获取下载列表...")
-                videos = spider.get_info(number, include_downloads=True, include_previews=True)
+                videos = spider.get_info(number, include_downloads=include_downloads, include_previews=include_previews,
+                                         include_comments=include_comments)
                 logger.info(f"获取到{len(videos.downloads)}部影片")
                 metas.append(videos)
         except:

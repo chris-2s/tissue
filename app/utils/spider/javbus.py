@@ -15,7 +15,8 @@ class JavbusSpider(Spider):
     name = 'JavBus'
     downloadable = True
 
-    def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False):
+    def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
+                 include_comments=False):
 
         url = urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)

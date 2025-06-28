@@ -32,6 +32,7 @@ import {Dispatch} from "../../../models";
 import Preview from "./-components/preview.tsx";
 import DownloadModal from "./-components/downloadModal.tsx";
 import HistoryModal from "./-components/historyModal.tsx";
+import Comment from "./-components/comment.tsx";
 
 const cacheHistoryKey = 'search_video_histories'
 
@@ -74,6 +75,7 @@ export function Search() {
     const [searchInput, setSearchInput] = useState(search?.num)
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<string>()
+    const [commentSelected, setCommentSelected] = useState<string>()
 
     const [selectedVideo, setSelectedVideo] = useState<any>()
     const [selectedDownload, setSelectedDownload] = useState<any>()
@@ -361,6 +363,23 @@ export function Search() {
                         }}
                     </Await>
                 </Card>
+                <Await promise={loaderData}>
+                    {(video) => {
+                        if (video?.comments) {
+                            const comments = video.comments.find((i: any) => i.website === commentSelected) || video.comments[0]
+                            return (
+                                <Card title={'评论'} className={'mt-4'} extra={(
+                                    <Segmented onChange={(value: string) => setCommentSelected(value)}
+                                               options={video.comments.map((i: any) => i.website)}/>
+                                )}>
+                                    <Comment data={comments.items}/>
+                                </Card>
+                            )
+                        } else {
+                            return <div></div>
+                        }
+                    }}
+                </Await>
             </Col>
             <SubscribeModifyModal width={1100}
                                   {...subscribeModalProps} />
