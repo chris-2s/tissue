@@ -154,7 +154,7 @@ function VideoDetail(props: Props) {
                                     </Form.Item>
                                 </Col>
                                 <Col span={24}>
-                                    <Form.Item name={'outline'} label={'大纲'}>
+                                    <Form.Item name={'outline-solid'} label={'大纲'}>
                                         <Input.TextArea/>
                                     </Form.Item>
                                 </Col>

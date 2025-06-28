@@ -8,373 +8,135 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteRouteImport } from './routes/_index/route'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as IndexIndexRouteImport } from './routes/_index/index'
+import { Route as IndexSettingRouteRouteImport } from './routes/_index/setting/route'
+import { Route as IndexVideoIndexRouteImport } from './routes/_index/video/index'
+import { Route as IndexUserIndexRouteImport } from './routes/_index/user/index'
+import { Route as IndexSubscribeIndexRouteImport } from './routes/_index/subscribe/index'
+import { Route as IndexSettingIndexRouteImport } from './routes/_index/setting/index'
+import { Route as IndexSearchIndexRouteImport } from './routes/_index/search/index'
+import { Route as IndexScheduleIndexRouteImport } from './routes/_index/schedule/index'
+import { Route as IndexMenuIndexRouteImport } from './routes/_index/menu/index'
+import { Route as IndexHomeIndexRouteImport } from './routes/_index/home/index'
+import { Route as IndexHistoryIndexRouteImport } from './routes/_index/history/index'
+import { Route as IndexFileIndexRouteImport } from './routes/_index/file/index'
+import { Route as IndexDownloadIndexRouteImport } from './routes/_index/download/index'
+import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index'
+import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
+import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
+import { Route as IndexSettingDownloadRouteImport } from './routes/_index/setting/download'
+import { Route as IndexSettingAppRouteImport } from './routes/_index/setting/app'
+import { Route as IndexHomeDetailRouteImport } from './routes/_index/home/detail'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/_index/route'
-import { Route as LoginIndexImport } from './routes/login/index'
-import { Route as IndexIndexImport } from './routes/_index/index'
-import { Route as IndexSettingRouteImport } from './routes/_index/setting/route'
-import { Route as IndexVideoIndexImport } from './routes/_index/video/index'
-import { Route as IndexUserIndexImport } from './routes/_index/user/index'
-import { Route as IndexSubscribeIndexImport } from './routes/_index/subscribe/index'
-import { Route as IndexSettingIndexImport } from './routes/_index/setting/index'
-import { Route as IndexSearchIndexImport } from './routes/_index/search/index'
-import { Route as IndexScheduleIndexImport } from './routes/_index/schedule/index'
-import { Route as IndexMenuIndexImport } from './routes/_index/menu/index'
-import { Route as IndexHomeIndexImport } from './routes/_index/home/index'
-import { Route as IndexHistoryIndexImport } from './routes/_index/history/index'
-import { Route as IndexFileIndexImport } from './routes/_index/file/index'
-import { Route as IndexDownloadIndexImport } from './routes/_index/download/index'
-import { Route as IndexAboutIndexImport } from './routes/_index/about/index'
-import { Route as IndexSettingNotifyImport } from './routes/_index/setting/notify'
-import { Route as IndexSettingFileImport } from './routes/_index/setting/file'
-import { Route as IndexSettingDownloadImport } from './routes/_index/setting/download'
-import { Route as IndexSettingAppImport } from './routes/_index/setting/app'
-import { Route as IndexHomeDetailImport } from './routes/_index/home/detail'
-
-// Create/Update Routes
-
-const IndexRouteRoute = IndexRouteImport.update({
+const IndexRouteRoute = IndexRouteRouteImport.update({
   id: '/_index',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const LoginIndexRoute = LoginIndexImport.update({
+const LoginIndexRoute = LoginIndexRouteImport.update({
   id: '/login/',
   path: '/login/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexIndexRoute = IndexIndexImport.update({
+const IndexIndexRoute = IndexIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexSettingRouteRoute = IndexSettingRouteImport.update({
+const IndexSettingRouteRoute = IndexSettingRouteRouteImport.update({
   id: '/setting',
   path: '/setting',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexVideoIndexRoute = IndexVideoIndexImport.update({
+const IndexVideoIndexRoute = IndexVideoIndexRouteImport.update({
   id: '/video/',
   path: '/video/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexUserIndexRoute = IndexUserIndexImport.update({
+const IndexUserIndexRoute = IndexUserIndexRouteImport.update({
   id: '/user/',
   path: '/user/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexSubscribeIndexRoute = IndexSubscribeIndexImport.update({
+const IndexSubscribeIndexRoute = IndexSubscribeIndexRouteImport.update({
   id: '/subscribe/',
   path: '/subscribe/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexSettingIndexRoute = IndexSettingIndexImport.update({
+const IndexSettingIndexRoute = IndexSettingIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
-
-const IndexSearchIndexRoute = IndexSearchIndexImport.update({
+const IndexSearchIndexRoute = IndexSearchIndexRouteImport.update({
   id: '/search/',
   path: '/search/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexScheduleIndexRoute = IndexScheduleIndexImport.update({
+const IndexScheduleIndexRoute = IndexScheduleIndexRouteImport.update({
   id: '/schedule/',
   path: '/schedule/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexMenuIndexRoute = IndexMenuIndexImport.update({
+const IndexMenuIndexRoute = IndexMenuIndexRouteImport.update({
   id: '/menu/',
   path: '/menu/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexHomeIndexRoute = IndexHomeIndexImport.update({
+const IndexHomeIndexRoute = IndexHomeIndexRouteImport.update({
   id: '/home/',
   path: '/home/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexHistoryIndexRoute = IndexHistoryIndexImport.update({
+const IndexHistoryIndexRoute = IndexHistoryIndexRouteImport.update({
   id: '/history/',
   path: '/history/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexFileIndexRoute = IndexFileIndexImport.update({
+const IndexFileIndexRoute = IndexFileIndexRouteImport.update({
   id: '/file/',
   path: '/file/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexDownloadIndexRoute = IndexDownloadIndexImport.update({
+const IndexDownloadIndexRoute = IndexDownloadIndexRouteImport.update({
   id: '/download/',
   path: '/download/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexAboutIndexRoute = IndexAboutIndexImport.update({
+const IndexAboutIndexRoute = IndexAboutIndexRouteImport.update({
   id: '/about/',
   path: '/about/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
-
-const IndexSettingNotifyRoute = IndexSettingNotifyImport.update({
+const IndexSettingNotifyRoute = IndexSettingNotifyRouteImport.update({
   id: '/notify',
   path: '/notify',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
-
-const IndexSettingFileRoute = IndexSettingFileImport.update({
+const IndexSettingFileRoute = IndexSettingFileRouteImport.update({
   id: '/file',
   path: '/file',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
-
-const IndexSettingDownloadRoute = IndexSettingDownloadImport.update({
+const IndexSettingDownloadRoute = IndexSettingDownloadRouteImport.update({
   id: '/download',
   path: '/download',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
-
-const IndexSettingAppRoute = IndexSettingAppImport.update({
+const IndexSettingAppRoute = IndexSettingAppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
-
-const IndexHomeDetailRoute = IndexHomeDetailImport.update({
+const IndexHomeDetailRoute = IndexHomeDetailRouteImport.update({
   id: '/home/detail',
   path: '/home/detail',
   getParentRoute: () => IndexRouteRoute,
 } as any)
 
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/_index': {
-      id: '/_index'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRoute
-    }
-    '/_index/setting': {
-      id: '/_index/setting'
-      path: '/setting'
-      fullPath: '/setting'
-      preLoaderRoute: typeof IndexSettingRouteImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/': {
-      id: '/_index/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/login/': {
-      id: '/login/'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/_index/home/detail': {
-      id: '/_index/home/detail'
-      path: '/home/detail'
-      fullPath: '/home/detail'
-      preLoaderRoute: typeof IndexHomeDetailImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/setting/app': {
-      id: '/_index/setting/app'
-      path: '/app'
-      fullPath: '/setting/app'
-      preLoaderRoute: typeof IndexSettingAppImport
-      parentRoute: typeof IndexSettingRouteImport
-    }
-    '/_index/setting/download': {
-      id: '/_index/setting/download'
-      path: '/download'
-      fullPath: '/setting/download'
-      preLoaderRoute: typeof IndexSettingDownloadImport
-      parentRoute: typeof IndexSettingRouteImport
-    }
-    '/_index/setting/file': {
-      id: '/_index/setting/file'
-      path: '/file'
-      fullPath: '/setting/file'
-      preLoaderRoute: typeof IndexSettingFileImport
-      parentRoute: typeof IndexSettingRouteImport
-    }
-    '/_index/setting/notify': {
-      id: '/_index/setting/notify'
-      path: '/notify'
-      fullPath: '/setting/notify'
-      preLoaderRoute: typeof IndexSettingNotifyImport
-      parentRoute: typeof IndexSettingRouteImport
-    }
-    '/_index/about/': {
-      id: '/_index/about/'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof IndexAboutIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/download/': {
-      id: '/_index/download/'
-      path: '/download'
-      fullPath: '/download'
-      preLoaderRoute: typeof IndexDownloadIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/file/': {
-      id: '/_index/file/'
-      path: '/file'
-      fullPath: '/file'
-      preLoaderRoute: typeof IndexFileIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/history/': {
-      id: '/_index/history/'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof IndexHistoryIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/home/': {
-      id: '/_index/home/'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof IndexHomeIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/menu/': {
-      id: '/_index/menu/'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof IndexMenuIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/schedule/': {
-      id: '/_index/schedule/'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof IndexScheduleIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/search/': {
-      id: '/_index/search/'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof IndexSearchIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/setting/': {
-      id: '/_index/setting/'
-      path: '/'
-      fullPath: '/setting/'
-      preLoaderRoute: typeof IndexSettingIndexImport
-      parentRoute: typeof IndexSettingRouteImport
-    }
-    '/_index/subscribe/': {
-      id: '/_index/subscribe/'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof IndexSubscribeIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/user/': {
-      id: '/_index/user/'
-      path: '/user'
-      fullPath: '/user'
-      preLoaderRoute: typeof IndexUserIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-    '/_index/video/': {
-      id: '/_index/video/'
-      path: '/video'
-      fullPath: '/video'
-      preLoaderRoute: typeof IndexVideoIndexImport
-      parentRoute: typeof IndexRouteImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface IndexSettingRouteRouteChildren {
-  IndexSettingAppRoute: typeof IndexSettingAppRoute
-  IndexSettingDownloadRoute: typeof IndexSettingDownloadRoute
-  IndexSettingFileRoute: typeof IndexSettingFileRoute
-  IndexSettingNotifyRoute: typeof IndexSettingNotifyRoute
-  IndexSettingIndexRoute: typeof IndexSettingIndexRoute
-}
-
-const IndexSettingRouteRouteChildren: IndexSettingRouteRouteChildren = {
-  IndexSettingAppRoute: IndexSettingAppRoute,
-  IndexSettingDownloadRoute: IndexSettingDownloadRoute,
-  IndexSettingFileRoute: IndexSettingFileRoute,
-  IndexSettingNotifyRoute: IndexSettingNotifyRoute,
-  IndexSettingIndexRoute: IndexSettingIndexRoute,
-}
-
-const IndexSettingRouteRouteWithChildren =
-  IndexSettingRouteRoute._addFileChildren(IndexSettingRouteRouteChildren)
-
-interface IndexRouteRouteChildren {
-  IndexSettingRouteRoute: typeof IndexSettingRouteRouteWithChildren
-  IndexIndexRoute: typeof IndexIndexRoute
-  IndexHomeDetailRoute: typeof IndexHomeDetailRoute
-  IndexAboutIndexRoute: typeof IndexAboutIndexRoute
-  IndexDownloadIndexRoute: typeof IndexDownloadIndexRoute
-  IndexFileIndexRoute: typeof IndexFileIndexRoute
-  IndexHistoryIndexRoute: typeof IndexHistoryIndexRoute
-  IndexHomeIndexRoute: typeof IndexHomeIndexRoute
-  IndexMenuIndexRoute: typeof IndexMenuIndexRoute
-  IndexScheduleIndexRoute: typeof IndexScheduleIndexRoute
-  IndexSearchIndexRoute: typeof IndexSearchIndexRoute
-  IndexSubscribeIndexRoute: typeof IndexSubscribeIndexRoute
-  IndexUserIndexRoute: typeof IndexUserIndexRoute
-  IndexVideoIndexRoute: typeof IndexVideoIndexRoute
-}
-
-const IndexRouteRouteChildren: IndexRouteRouteChildren = {
-  IndexSettingRouteRoute: IndexSettingRouteRouteWithChildren,
-  IndexIndexRoute: IndexIndexRoute,
-  IndexHomeDetailRoute: IndexHomeDetailRoute,
-  IndexAboutIndexRoute: IndexAboutIndexRoute,
-  IndexDownloadIndexRoute: IndexDownloadIndexRoute,
-  IndexFileIndexRoute: IndexFileIndexRoute,
-  IndexHistoryIndexRoute: IndexHistoryIndexRoute,
-  IndexHomeIndexRoute: IndexHomeIndexRoute,
-  IndexMenuIndexRoute: IndexMenuIndexRoute,
-  IndexScheduleIndexRoute: IndexScheduleIndexRoute,
-  IndexSearchIndexRoute: IndexSearchIndexRoute,
-  IndexSubscribeIndexRoute: IndexSubscribeIndexRoute,
-  IndexUserIndexRoute: IndexUserIndexRoute,
-  IndexVideoIndexRoute: IndexVideoIndexRoute,
-}
-
-const IndexRouteRouteWithChildren = IndexRouteRoute._addFileChildren(
-  IndexRouteRouteChildren,
-)
-
 export interface FileRoutesByFullPath {
-  '': typeof IndexRouteRouteWithChildren
   '/setting': typeof IndexSettingRouteRouteWithChildren
   '/': typeof IndexIndexRoute
   '/login': typeof LoginIndexRoute
@@ -396,7 +158,6 @@ export interface FileRoutesByFullPath {
   '/user': typeof IndexUserIndexRoute
   '/video': typeof IndexVideoIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexIndexRoute
   '/login': typeof LoginIndexRoute
@@ -418,9 +179,8 @@ export interface FileRoutesByTo {
   '/user': typeof IndexUserIndexRoute
   '/video': typeof IndexVideoIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/_index': typeof IndexRouteRouteWithChildren
   '/_index/setting': typeof IndexSettingRouteRouteWithChildren
   '/_index/': typeof IndexIndexRoute
@@ -443,11 +203,9 @@ export interface FileRoutesById {
   '/_index/user/': typeof IndexUserIndexRoute
   '/_index/video/': typeof IndexVideoIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | ''
     | '/setting'
     | '/'
     | '/login'
@@ -514,136 +272,224 @@ export interface FileRouteTypes {
     | '/_index/video/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRouteRoute: typeof IndexRouteRouteWithChildren
   LoginIndexRoute: typeof LoginIndexRoute
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_index': {
+      id: '/_index'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof IndexRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_index/': {
+      id: '/_index/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/setting': {
+      id: '/_index/setting'
+      path: '/setting'
+      fullPath: '/setting'
+      preLoaderRoute: typeof IndexSettingRouteRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/video/': {
+      id: '/_index/video/'
+      path: '/video'
+      fullPath: '/video'
+      preLoaderRoute: typeof IndexVideoIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/user/': {
+      id: '/_index/user/'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof IndexUserIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/subscribe/': {
+      id: '/_index/subscribe/'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof IndexSubscribeIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/setting/': {
+      id: '/_index/setting/'
+      path: '/'
+      fullPath: '/setting/'
+      preLoaderRoute: typeof IndexSettingIndexRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
+    '/_index/search/': {
+      id: '/_index/search/'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof IndexSearchIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/schedule/': {
+      id: '/_index/schedule/'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof IndexScheduleIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/menu/': {
+      id: '/_index/menu/'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof IndexMenuIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/home/': {
+      id: '/_index/home/'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof IndexHomeIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/history/': {
+      id: '/_index/history/'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof IndexHistoryIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/file/': {
+      id: '/_index/file/'
+      path: '/file'
+      fullPath: '/file'
+      preLoaderRoute: typeof IndexFileIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/download/': {
+      id: '/_index/download/'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof IndexDownloadIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/about/': {
+      id: '/_index/about/'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof IndexAboutIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/setting/notify': {
+      id: '/_index/setting/notify'
+      path: '/notify'
+      fullPath: '/setting/notify'
+      preLoaderRoute: typeof IndexSettingNotifyRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
+    '/_index/setting/file': {
+      id: '/_index/setting/file'
+      path: '/file'
+      fullPath: '/setting/file'
+      preLoaderRoute: typeof IndexSettingFileRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
+    '/_index/setting/download': {
+      id: '/_index/setting/download'
+      path: '/download'
+      fullPath: '/setting/download'
+      preLoaderRoute: typeof IndexSettingDownloadRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
+    '/_index/setting/app': {
+      id: '/_index/setting/app'
+      path: '/app'
+      fullPath: '/setting/app'
+      preLoaderRoute: typeof IndexSettingAppRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
+    '/_index/home/detail': {
+      id: '/_index/home/detail'
+      path: '/home/detail'
+      fullPath: '/home/detail'
+      preLoaderRoute: typeof IndexHomeDetailRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+  }
+}
+
+interface IndexSettingRouteRouteChildren {
+  IndexSettingAppRoute: typeof IndexSettingAppRoute
+  IndexSettingDownloadRoute: typeof IndexSettingDownloadRoute
+  IndexSettingFileRoute: typeof IndexSettingFileRoute
+  IndexSettingNotifyRoute: typeof IndexSettingNotifyRoute
+  IndexSettingIndexRoute: typeof IndexSettingIndexRoute
+}
+
+const IndexSettingRouteRouteChildren: IndexSettingRouteRouteChildren = {
+  IndexSettingAppRoute: IndexSettingAppRoute,
+  IndexSettingDownloadRoute: IndexSettingDownloadRoute,
+  IndexSettingFileRoute: IndexSettingFileRoute,
+  IndexSettingNotifyRoute: IndexSettingNotifyRoute,
+  IndexSettingIndexRoute: IndexSettingIndexRoute,
+}
+
+const IndexSettingRouteRouteWithChildren =
+  IndexSettingRouteRoute._addFileChildren(IndexSettingRouteRouteChildren)
+
+interface IndexRouteRouteChildren {
+  IndexSettingRouteRoute: typeof IndexSettingRouteRouteWithChildren
+  IndexIndexRoute: typeof IndexIndexRoute
+  IndexHomeDetailRoute: typeof IndexHomeDetailRoute
+  IndexAboutIndexRoute: typeof IndexAboutIndexRoute
+  IndexDownloadIndexRoute: typeof IndexDownloadIndexRoute
+  IndexFileIndexRoute: typeof IndexFileIndexRoute
+  IndexHistoryIndexRoute: typeof IndexHistoryIndexRoute
+  IndexHomeIndexRoute: typeof IndexHomeIndexRoute
+  IndexMenuIndexRoute: typeof IndexMenuIndexRoute
+  IndexScheduleIndexRoute: typeof IndexScheduleIndexRoute
+  IndexSearchIndexRoute: typeof IndexSearchIndexRoute
+  IndexSubscribeIndexRoute: typeof IndexSubscribeIndexRoute
+  IndexUserIndexRoute: typeof IndexUserIndexRoute
+  IndexVideoIndexRoute: typeof IndexVideoIndexRoute
+}
+
+const IndexRouteRouteChildren: IndexRouteRouteChildren = {
+  IndexSettingRouteRoute: IndexSettingRouteRouteWithChildren,
+  IndexIndexRoute: IndexIndexRoute,
+  IndexHomeDetailRoute: IndexHomeDetailRoute,
+  IndexAboutIndexRoute: IndexAboutIndexRoute,
+  IndexDownloadIndexRoute: IndexDownloadIndexRoute,
+  IndexFileIndexRoute: IndexFileIndexRoute,
+  IndexHistoryIndexRoute: IndexHistoryIndexRoute,
+  IndexHomeIndexRoute: IndexHomeIndexRoute,
+  IndexMenuIndexRoute: IndexMenuIndexRoute,
+  IndexScheduleIndexRoute: IndexScheduleIndexRoute,
+  IndexSearchIndexRoute: IndexSearchIndexRoute,
+  IndexSubscribeIndexRoute: IndexSubscribeIndexRoute,
+  IndexUserIndexRoute: IndexUserIndexRoute,
+  IndexVideoIndexRoute: IndexVideoIndexRoute,
+}
+
+const IndexRouteRouteWithChildren = IndexRouteRoute._addFileChildren(
+  IndexRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRouteRoute: IndexRouteRouteWithChildren,
   LoginIndexRoute: LoginIndexRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/_index",
-        "/login/"
-      ]
-    },
-    "/_index": {
-      "filePath": "_index/route.tsx",
-      "children": [
-        "/_index/setting",
-        "/_index/",
-        "/_index/home/detail",
-        "/_index/about/",
-        "/_index/download/",
-        "/_index/file/",
-        "/_index/history/",
-        "/_index/home/",
-        "/_index/menu/",
-        "/_index/schedule/",
-        "/_index/search/",
-        "/_index/subscribe/",
-        "/_index/user/",
-        "/_index/video/"
-      ]
-    },
-    "/_index/setting": {
-      "filePath": "_index/setting/route.tsx",
-      "parent": "/_index",
-      "children": [
-        "/_index/setting/app",
-        "/_index/setting/download",
-        "/_index/setting/file",
-        "/_index/setting/notify",
-        "/_index/setting/"
-      ]
-    },
-    "/_index/": {
-      "filePath": "_index/index.tsx",
-      "parent": "/_index"
-    },
-    "/login/": {
-      "filePath": "login/index.tsx"
-    },
-    "/_index/home/detail": {
-      "filePath": "_index/home/detail.tsx",
-      "parent": "/_index"
-    },
-    "/_index/setting/app": {
-      "filePath": "_index/setting/app.tsx",
-      "parent": "/_index/setting"
-    },
-    "/_index/setting/download": {
-      "filePath": "_index/setting/download.tsx",
-      "parent": "/_index/setting"
-    },
-    "/_index/setting/file": {
-      "filePath": "_index/setting/file.tsx",
-      "parent": "/_index/setting"
-    },
-    "/_index/setting/notify": {
-      "filePath": "_index/setting/notify.tsx",
-      "parent": "/_index/setting"
-    },
-    "/_index/about/": {
-      "filePath": "_index/about/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/download/": {
-      "filePath": "_index/download/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/file/": {
-      "filePath": "_index/file/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/history/": {
-      "filePath": "_index/history/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/home/": {
-      "filePath": "_index/home/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/menu/": {
-      "filePath": "_index/menu/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/schedule/": {
-      "filePath": "_index/schedule/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/search/": {
-      "filePath": "_index/search/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/setting/": {
-      "filePath": "_index/setting/index.tsx",
-      "parent": "/_index/setting"
-    },
-    "/_index/subscribe/": {
-      "filePath": "_index/subscribe/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/user/": {
-      "filePath": "_index/user/index.tsx",
-      "parent": "/_index"
-    },
-    "/_index/video/": {
-      "filePath": "_index/video/index.tsx",
-      "parent": "/_index"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
