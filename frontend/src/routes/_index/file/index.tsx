@@ -55,7 +55,7 @@ function File() {
                       {selected.length > 0 ? (
                           <Button type={'primary'} onClick={() => setBatchModalOpen(true)}>批量整理</Button>
                       ) : (
-                          <Input.Search value={keyword} onChange={e => setKeyword(e.target.value)}
+                          <Input.Search className={'w-48'} value={keyword} onChange={e => setKeyword(e.target.value)}
                                         placeholder={'搜索'}/>
                       )}
                   </Space>

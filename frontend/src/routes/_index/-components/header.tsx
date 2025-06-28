@@ -37,6 +37,7 @@ function Header(props: Props) {
     const {token} = useToken()
     const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
     const canBack = useSelector((state: RootState) => state.app?.canBack)
+    const pin = useSelector((state: RootState) => state.app?.pin)
     const appDispatch = useDispatch<Dispatch>().app
     const {userInfo} = useSelector((state: RootState) => state.auth)
     const authDispatch = useDispatch<Dispatch>().auth
@@ -144,7 +145,8 @@ function Header(props: Props) {
                     </Dropdown>
                     <Dropdown arrow menu={{items: userItems, onClick: onUserClick}} dropdownRender={renderDropdown}>
                         <IconButton>
-                            <UserOutlined style={{fontSize: token.sizeLG}}/>
+                            <UserOutlined
+                                style={{fontSize: token.sizeLG, color: pin ? token.colorPrimary : undefined}}/>
                         </IconButton>
                     </Dropdown>
                 </Space>
@@ -160,7 +162,7 @@ function Header(props: Props) {
                 <Log/>
             </Modal>
             {pinVisible && (
-                <PinView pin={null} onClose={() => setPinVisible(false)} mode={PinMode.setting}/>
+                <PinView pin={pin} onClose={() => setPinVisible(false)} mode={PinMode.setting}/>
             )}
         </div>
     )

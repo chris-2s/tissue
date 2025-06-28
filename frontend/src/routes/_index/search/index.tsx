@@ -258,13 +258,13 @@ export function Search() {
                                                   size={'small'}/>
                                 </>
                             ) : (
-                                loading ? (
-                                    <Skeleton active/>
-                                ) : (
-                                    <div className={'py-11'}>
+                                <div className={'py-6'}>
+                                    {loading ? (
+                                        <Skeleton active/>
+                                    ) : (
                                         <Empty/>
-                                    </div>
-                                )
+                                    )}
+                                </div>
                             )
                         )}
                     </Await>

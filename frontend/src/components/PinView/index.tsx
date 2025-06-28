@@ -81,9 +81,6 @@ function PinView(props: Props) {
         return (mode === PinMode.setting) && (
             <div className={'flex flex-col items-center mt-8 font-light text-xs'}>
                 <div>
-                    密码仅当前设备有效，退出登录即可清空密码
-                </div>
-                <div>
                     由于系统及兼容性限制，可靠性无法保证
                 </div>
             </div>
@@ -110,6 +107,13 @@ function PinView(props: Props) {
                                             type={numbers.length > i ? 'primary' : 'default'}/>
                                 ))}
                             </Space>
+                            {(pin && mode === PinMode.setting) && (
+                                <Button type={'link'} className={'mt-4'} onClick={() => {
+                                    dispatch.setPin(null)
+                                    message.success('密码取消成功')
+                                    onClose()
+                                }}>清空密码</Button>
+                            )}
                             <div className={'h-14 flex items-center'} style={{color: token.colorError}}>
                                 {errorMessage}
                             </div>

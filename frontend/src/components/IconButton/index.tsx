@@ -1,19 +1,16 @@
-import {ComponentProps} from "react";
-import Styles from "./index.module.css";
-import {useSelector} from "react-redux";
-import {RootState} from "../../models";
-
+import {ComponentProps, ReactNode} from "react";
+import {theme} from "antd";
 
 function IconButton(props: ComponentProps<any>) {
 
-    const {children, ...otherProps} = props
-    const currentTheme = useSelector((state: RootState) => state.app?.themeMode)
-
+    const {children, badge, ...otherProps} = props
+    const {token} = theme.useToken()
 
     return (
         <span {...otherProps}>
-            <span
-                className={[Styles.container, currentTheme === 'dark' ? Styles.triggerDark : Styles.triggerLight].join(" ")}>
+            <span style={{'--hover-bg': token.colorInfoBgHover} as any}
+                  className={'relative flex justify-center items-center p-2 rounded-3xl cursor-pointer ' +
+                      'active:bg-[var(--hover-bg)] hover:bg-[var(--hover-bg)]'}>
                 {children}
             </span>
         </span>
