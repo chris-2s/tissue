@@ -10,7 +10,6 @@ import PinView, {PinMode} from "../../components/PinView";
 import {createFileRoute, Outlet, redirect} from "@tanstack/react-router";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
-import pinView from "../../components/PinView";
 
 const {useToken} = theme
 
