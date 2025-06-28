@@ -365,7 +365,7 @@ export function Search() {
                 </Card>
                 <Await promise={loaderData}>
                     {(video) => {
-                        if (video?.comments) {
+                        if (video?.comments && video.comments.length > 0) {
                             const comments = video.comments.find((i: any) => i.website === commentSelected) || video.comments[0]
                             return (
                                 <Card title={'评论'} className={'mt-4'} extra={(
