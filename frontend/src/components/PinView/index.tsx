@@ -91,7 +91,7 @@ function PinView(props: Props) {
     }
 
     return createPortal(
-        <div className={'fixed top-0 right-0 bottom-0 left-0 z-[1000]'} style={{background: token.colorBgContainer}}>
+        <div className={'fixed top-0 right-0 bottom-0 left-0 z-1000'} style={{background: token.colorBgContainer}}>
             <div className={'h-full w-full flex justify-center items-center'}>
                 <Row gutter={[80, 0]}>
                     <Col span={24} md={12}>

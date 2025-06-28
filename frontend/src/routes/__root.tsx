@@ -8,6 +8,7 @@ import {useTheme} from "ahooks";
 import {useSelector} from "react-redux";
 
 import {ConfigProvider, theme} from "antd";
+import {StyleProvider} from '@ant-design/cssinjs';
 import {RootState} from "../models";
 import {createRootRouteWithContext, Outlet} from "@tanstack/react-router";
 
@@ -41,12 +42,14 @@ function App() {
     }
 
     return (
-        <ConfigProvider
-            locale={zhCN}
-            theme={{
-                algorithm: handleThemeChange(),
-            }}>
-            <Outlet/>
-        </ConfigProvider>
+        <StyleProvider layer>
+            <ConfigProvider
+                locale={zhCN}
+                theme={{
+                    algorithm: handleThemeChange(),
+                }}>
+                <Outlet/>
+            </ConfigProvider>
+        </StyleProvider>
     );
 }

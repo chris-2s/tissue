@@ -138,7 +138,7 @@ export function Search() {
                 children: video.title,
             },
             {
-                key: 'outline',
+                key: 'outline-solid',
                 label: '大纲',
                 span: 24,
                 children: video.outline,

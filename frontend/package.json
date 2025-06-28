@@ -10,13 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.6.0",
+    "@ant-design/icons": "^5.6.1",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rematch/core": "^2.2.0",
-    "@tanstack/react-router": "^1.112.7",
-    "ahooks": "^3.8.4",
+    "@tanstack/react-router": "^1.122.0",
+    "ahooks": "^3.8.5",
     "antd": "^5.23.3",
-    "axios": "^1.7.9",
+    "axios": "^1.10.0",
     "compare-versions": "^6.1.1",
     "js-cookie": "^3.0.5",
     "js-sha256": "^0.11.0",
@@ -28,8 +28,9 @@
     "yet-another-react-lightbox": "^3.21.7"
   },
   "devDependencies": {
-    "@tanstack/router-devtools": "^1.112.7",
-    "@tanstack/router-plugin": "^1.112.7",
+    "@tailwindcss/vite": "^4.1.11",
+    "@tanstack/router-devtools": "^1.122.0",
+    "@tanstack/router-plugin": "^1.122.0",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -38,13 +39,12 @@
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
     "eslint": "^9.19.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "postcss": "^8.5.1",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.11",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11"
+    "vite": "^6.3.5"
   }
 }
