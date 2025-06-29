@@ -2,6 +2,8 @@
 
 @import 'tailwindcss';
 
+@custom-variant hover (&:hover);
+
 html {
     height: calc(100% + env(safe-area-inset-top));
 }

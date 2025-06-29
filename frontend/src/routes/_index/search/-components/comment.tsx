@@ -23,7 +23,7 @@ function Comment(props: { data: any }) {
                               </div>
                           )}
                           description={(
-                              <div className={'whitespace-pre-wrap'}
+                              <div className={'whitespace-pre-wrap wrap-anywhere'}
                                    style={{color: token.colorTextSecondary}}>{item.content}</div>
                           )}
                       />

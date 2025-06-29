@@ -190,7 +190,10 @@ class JavdbSpider(Spider):
 
             name = parts.xpath("./span[1]")
             if name:
-                if '无码' in name[0].text or '破解' in name[0].text:
+                if '-U.无码破解' in name[0].text:
+                    download.is_uncensored = True
+                if '-UC.无码破解' in name[0].text:
+                    download.is_zh = True
                     download.is_uncensored = True
 
             size = parts.xpath("./span[2]")
