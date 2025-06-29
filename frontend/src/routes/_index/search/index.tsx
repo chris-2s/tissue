@@ -221,7 +221,7 @@ export function Search() {
                                           onSearch={(num) => {
                                               return router.navigate({search: {num: num} as any, replace: true})
                                           }}/>
-                            <div className={'ml-1'}>
+                            <div className={'ml-2'}>
                                 <Button type={"primary"} icon={<HistoryOutlined/>}
                                         onClick={() => setHistoryModalOpen(true)}/>
                             </div>
@@ -260,7 +260,7 @@ export function Search() {
                                                   size={'small'}/>
                                 </>
                             ) : (
-                                <div className={'py-6'}>
+                                <div className={'py-11'}>
                                     {loading ? (
                                         <Skeleton active/>
                                     ) : (
@@ -352,13 +352,13 @@ export function Search() {
                                     </List.Item>
                                 )}/>
                             ) : (
-                                loading ? (
-                                    <Skeleton active/>
-                                ) : (
-                                    <div className={'py-8'}>
+                                <div className={'py-8'}>
+                                    {loading ? (
+                                        <Skeleton active/>
+                                    ) : (
                                         <Empty/>
-                                    </div>
-                                )
+                                    )}
+                                </div>
                             )
                         }}
                     </Await>

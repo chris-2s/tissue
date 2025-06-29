@@ -65,8 +65,9 @@ function HistoryModal(props: Props) {
                                   )}
                               />
                           </List.Item>
-                          <div className={'absolute inset-0 opacity-0 pointer-events-none group-hover:opacity-100 ' +
-                              'group-hover:pointer-events-auto transition-opacity duration-500 flex justify-center items-center'}>
+                          <div className={'absolute inset-0 opacity-0 pointer-events-none ' +
+                              'group-hover:opacity-100 group-hover:pointer-events-auto ' +
+                              'transition-opacity duration-500 flex justify-center items-center'}>
                               <Space size="large">
                                   <Tooltip title={'重新订阅'}>
                                       <Button size={"large"} icon={<RollbackOutlined/>} type={'primary'}

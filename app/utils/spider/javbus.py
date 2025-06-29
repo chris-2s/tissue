@@ -135,7 +135,7 @@ class JavbusSpider(Spider):
             download.magnet = parts[0].get('href')
 
             title = parts[0].text.strip()
-            if '无码' in title or '破解' in title:
+            if '无码' in title or '破解' in title or 'uncensored' in title:
                 download.is_uncensored = True
 
             for tag in parts[1:]:
