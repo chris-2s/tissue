@@ -16,9 +16,8 @@ idna==3.10
 lxml==5.3.0
 Mako==1.3.8
 MarkupSafe==2.1.5
-numpy==1.26.4
-opencv-python-headless==4.11.0.86
 passlib==1.7.4
+pillow==11.2.1
 pip-install==1.3.5
 pydantic==2.10.6
 pydantic_core==2.27.2

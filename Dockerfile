@@ -1,5 +1,5 @@
 FROM python:3.11.4-slim-bullseye
-LABEL authors="Chris Chen"
+LABEL authors="Chris"
 
 ENV LANG="C.UTF-8" \
     TZ="Asia/Shanghai" \
