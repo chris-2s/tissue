@@ -16,6 +16,7 @@ import { Route as IndexSettingRouteRouteImport } from './routes/_index/setting/r
 import { Route as IndexVideoIndexRouteImport } from './routes/_index/video/index'
 import { Route as IndexUserIndexRouteImport } from './routes/_index/user/index'
 import { Route as IndexSubscribeIndexRouteImport } from './routes/_index/subscribe/index'
+import { Route as IndexSiteIndexRouteImport } from './routes/_index/site/index'
 import { Route as IndexSettingIndexRouteImport } from './routes/_index/setting/index'
 import { Route as IndexSearchIndexRouteImport } from './routes/_index/search/index'
 import { Route as IndexScheduleIndexRouteImport } from './routes/_index/schedule/index'
@@ -63,6 +64,11 @@ const IndexUserIndexRoute = IndexUserIndexRouteImport.update({
 const IndexSubscribeIndexRoute = IndexSubscribeIndexRouteImport.update({
   id: '/subscribe/',
   path: '/subscribe/',
+  getParentRoute: () => IndexRouteRoute,
+} as any)
+const IndexSiteIndexRoute = IndexSiteIndexRouteImport.update({
+  id: '/site/',
+  path: '/site/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
 const IndexSettingIndexRoute = IndexSettingIndexRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof IndexScheduleIndexRoute
   '/search': typeof IndexSearchIndexRoute
   '/setting/': typeof IndexSettingIndexRoute
+  '/site': typeof IndexSiteIndexRoute
   '/subscribe': typeof IndexSubscribeIndexRoute
   '/user': typeof IndexUserIndexRoute
   '/video': typeof IndexVideoIndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof IndexScheduleIndexRoute
   '/search': typeof IndexSearchIndexRoute
   '/setting': typeof IndexSettingIndexRoute
+  '/site': typeof IndexSiteIndexRoute
   '/subscribe': typeof IndexSubscribeIndexRoute
   '/user': typeof IndexUserIndexRoute
   '/video': typeof IndexVideoIndexRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_index/schedule/': typeof IndexScheduleIndexRoute
   '/_index/search/': typeof IndexSearchIndexRoute
   '/_index/setting/': typeof IndexSettingIndexRoute
+  '/_index/site/': typeof IndexSiteIndexRoute
   '/_index/subscribe/': typeof IndexSubscribeIndexRoute
   '/_index/user/': typeof IndexUserIndexRoute
   '/_index/video/': typeof IndexVideoIndexRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/search'
     | '/setting/'
+    | '/site'
     | '/subscribe'
     | '/user'
     | '/video'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/search'
     | '/setting'
+    | '/site'
     | '/subscribe'
     | '/user'
     | '/video'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/_index/schedule/'
     | '/_index/search/'
     | '/_index/setting/'
+    | '/_index/site/'
     | '/_index/subscribe/'
     | '/_index/user/'
     | '/_index/video/'
@@ -326,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/subscribe'
       fullPath: '/subscribe'
       preLoaderRoute: typeof IndexSubscribeIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
+    '/_index/site/': {
+      id: '/_index/site/'
+      path: '/site'
+      fullPath: '/site'
+      preLoaderRoute: typeof IndexSiteIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/setting/': {
@@ -460,6 +479,7 @@ interface IndexRouteRouteChildren {
   IndexMenuIndexRoute: typeof IndexMenuIndexRoute
   IndexScheduleIndexRoute: typeof IndexScheduleIndexRoute
   IndexSearchIndexRoute: typeof IndexSearchIndexRoute
+  IndexSiteIndexRoute: typeof IndexSiteIndexRoute
   IndexSubscribeIndexRoute: typeof IndexSubscribeIndexRoute
   IndexUserIndexRoute: typeof IndexUserIndexRoute
   IndexVideoIndexRoute: typeof IndexVideoIndexRoute
@@ -477,6 +497,7 @@ const IndexRouteRouteChildren: IndexRouteRouteChildren = {
   IndexMenuIndexRoute: IndexMenuIndexRoute,
   IndexScheduleIndexRoute: IndexScheduleIndexRoute,
   IndexSearchIndexRoute: IndexSearchIndexRoute,
+  IndexSiteIndexRoute: IndexSiteIndexRoute,
   IndexSubscribeIndexRoute: IndexSubscribeIndexRoute,
   IndexUserIndexRoute: IndexUserIndexRoute,
   IndexVideoIndexRoute: IndexVideoIndexRoute,

@@ -1,3 +1,4 @@
+import importlib
 import traceback
 from datetime import datetime
 from urllib.parse import urlparse
@@ -7,10 +8,19 @@ from app.utils import cache
 from app.utils.logger import logger
 from app.utils.spider.dmm import DmmSpider
 from app.utils.spider.jav321 import Jav321Spider
-from app.utils.spider.javbus import JavbusSpider
-from app.utils.spider.javdb import JavdbSpider
+from app.utils.spider.javbus import JavBusSpider
+from app.utils.spider.javdb import JavDBSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
+
+
+def get_spider_by_name(class_str: str):
+    try:
+        module_path = 'app.utils.spider'
+        module = importlib.import_module(module_path)
+        return getattr(module, class_str)
+    except (ImportError, AttributeError) as e:
+        return None
 
 
 def get_video_cover(url: str):
@@ -22,9 +32,9 @@ def get_video_cover(url: str):
 
     match component.hostname:
         case 'www.javbus.com':
-            response = JavbusSpider.get_cover(url)
+            response = JavBusSpider.get_cover(url)
         case 'c0.jdbstatic.com':
-            response = JavdbSpider.get_cover(url)
+            response = JavDBSpider.get_cover(url)
         case _:
             response = Spider.get_cover(url)
 
@@ -55,7 +65,7 @@ def _merge_video_info(metas: list[VideoDetail]) -> VideoDetail:
 
 
 def get_video_info(number: str):
-    spiders = [JavbusSpider(), JavdbSpider(), Jav321Spider(), DmmSpider()]
+    spiders = [JavBusSpider(), JavDBSpider(), Jav321Spider(), DmmSpider()]
     metas = []
     logger.info(f"开始刮削番号《{number}》")
     for spider in spiders:
@@ -80,7 +90,7 @@ def get_video_info(number: str):
 
 
 def get_video(number: str, include_downloads=True, include_previews=True, include_comments=True):
-    spiders = [JavbusSpider(), JavdbSpider()]
+    spiders = [JavBusSpider(), JavDBSpider()]
     metas = []
     logger.info(f"开始刮削番号《{number}》")
     for spider in spiders:

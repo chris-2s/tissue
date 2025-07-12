@@ -17,7 +17,6 @@ from app.service.base import BaseService
 from app.utils import spider, notify
 from app.utils.logger import logger
 from app.utils.qbittorent import qbittorent
-from app.utils.spider import JavdbSpider
 
 
 def get_subscribe_service(db: Session = Depends(get_db)):

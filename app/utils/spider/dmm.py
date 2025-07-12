@@ -1,7 +1,5 @@
 import re
 from urllib.parse import urljoin
-
-import requests
 from lxml import etree
 
 from app.schema import VideoDetail

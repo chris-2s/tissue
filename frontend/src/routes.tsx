@@ -10,7 +10,8 @@ import {
     SearchOutlined,
     SettingOutlined,
     UserOutlined,
-    VideoCameraOutlined
+    VideoCameraOutlined,
+    GlobalOutlined,
 } from "@ant-design/icons";
 import {createRouter} from "@tanstack/react-router";
 import {routeTree} from "./routeTree.gen.ts";
@@ -77,6 +78,11 @@ export default [
                 title: '搜索',
                 path: '/search',
                 icon: (<SearchOutlined/>),
+            },
+            {
+                title: '站点',
+                path: '/site',
+                icon: (<GlobalOutlined />),
             },
         ]
     },

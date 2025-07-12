@@ -10,7 +10,7 @@ from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
 
-class JavbusSpider(Spider):
+class JavBusSpider(Spider):
     host = "https://www.javbus.com/"
     name = 'JavBus'
     downloadable = True
