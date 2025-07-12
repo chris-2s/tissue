@@ -11,7 +11,7 @@ from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
 
-class JavdbSpider(Spider):
+class JavDBSpider(Spider):
     host = "https://javdb.com"
     name = 'JavDB'
     downloadable = True

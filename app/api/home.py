@@ -13,14 +13,14 @@ router = APIRouter()
 @router.get('/ranking')
 def get_rankings(source: str, video_type: str, cycle: str):
     if source == 'JavDB':
-        return spider.JavdbSpider().get_ranking(video_type, cycle)
+        return spider.JavDBSpider().get_ranking(video_type, cycle)
     return None
 
 
 @router.get('/ranking/detail')
 def get_ranking_detail(source: str, num: str, url: str):
     if source == 'JavDB':
-        return spider.JavdbSpider().get_info(num, url=url, include_downloads=True, include_previews=True, include_comments=True)
+        return spider.JavDBSpider().get_info(num, url=url, include_downloads=True, include_previews=True, include_comments=True)
     return None
 
 
