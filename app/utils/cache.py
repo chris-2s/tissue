@@ -27,6 +27,7 @@ def get_cache_file(parent: str, path: str):
     if os.path.exists(cache_file_path):
         with open(cache_file_path, 'rb') as file:
             return file.read()
+    return None
 
 
 def clean_cache_file(parent: str, path: str):

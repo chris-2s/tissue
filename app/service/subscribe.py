@@ -14,6 +14,7 @@ from app.db.transaction import transaction
 from app.exception import BizException
 from app.schema import Setting
 from app.service.base import BaseService
+from app.service.spider import SpiderService
 from app.utils import spider, notify
 from app.utils.logger import logger
 from app.utils.qbittorent import qbittorent
@@ -63,7 +64,7 @@ class SubscribeService(BaseService):
         exist.delete(self.db)
 
     def search_video(self, num: str):
-        video = spider.get_video(num)
+        video = SpiderService(self.db).get_video(num)
         if not video:
             raise BizException("未找到影片")
         return video
@@ -78,7 +79,7 @@ class SubscribeService(BaseService):
         for subscribe in subscribes:
             time.sleep(randint(30, 60))
 
-            result = spider.get_video(subscribe.num, include_comments=False)
+            result = SpiderService(self.db).get_video(subscribe.num, include_comments=False)
             if not result:
                 logger.error("所有站点均未获取到影片")
                 continue
@@ -143,7 +144,7 @@ class SubscribeService(BaseService):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
         for subscribe in subscribes:
-            info = spider.get_video_info(subscribe.num)
+            info = SpiderService(self.db).get_video_info(subscribe.num)
             if info:
                 subscribe.cover = info.cover or subscribe.cover
                 subscribe.title = info.title or subscribe.title

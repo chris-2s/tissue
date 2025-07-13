@@ -8,6 +8,7 @@ from fastapi import APIRouter, Response, Request
 from fastapi.responses import StreamingResponse
 
 from app.schema.r import R
+from app.service.spider import SpiderService
 from app.utils import spider
 from version import APP_VERSION
 
@@ -16,11 +17,16 @@ router = APIRouter()
 
 @router.get("/cover")
 def proxy_video_cover(url: str):
-    cover = spider.get_video_cover(url)
-    headers = {
-        'Cache-Control': 'public, max-age=31536000',
-        'ETag': hashlib.md5(url.encode()).hexdigest(),
-    }
+    cover = SpiderService.get_video_cover(url)
+    if cover:
+        headers = {
+            'Cache-Control': 'public, max-age=31536000',
+            'ETag': hashlib.md5(url.encode()).hexdigest(),
+        }
+    else:
+        headers = {
+            'Cache-Control': 'no-cache',
+        }
     return Response(content=cover, media_type="image", headers=headers)
 
 
