@@ -7,7 +7,7 @@ from app.db import get_db
 from app.db.models import Site
 from app.db.transaction import transaction
 from app.service.base import BaseService
-from app.utils.spider import get_spider_by_name
+from app.service.spider import SpiderService
 
 
 def get_site_service(db: Session = Depends(get_db)):
@@ -21,15 +21,16 @@ class SiteService(BaseService):
         return [self.get_site(site) for site in sites]
 
     def get_site(self, db_site: Site):
-        spider = get_spider_by_name(db_site.class_str)
+        spider = SpiderService.get_spider_by_name(db_site.class_str)
 
         return schema.Site(
-            name=spider.name,
             id=db_site.id,
             priority=db_site.priority,
             host=db_site.alternate_host or spider.host,
             alternate_host=db_site.alternate_host,
             status=db_site.status,
+            name=spider.name,
+            downloadable=spider.downloadable,
         )
 
     @transaction

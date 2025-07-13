@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 import requests
+import urllib3.util
 
 from app.schema import Setting
 
@@ -34,7 +35,11 @@ class Spider:
 
     @classmethod
     def get_cover(cls, url):
-        response = requests.get(url, headers={'Referer': cls.host})
+        if cls.host:
+            referer = cls.host
+        else:
+            referer = urllib3.util.parse_url(url).hostname
+        response = requests.get(url, headers={'Referer': referer})
         if response.ok:
             return response.content
         return None

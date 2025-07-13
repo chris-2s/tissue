@@ -40,7 +40,7 @@ function Site() {
                             </div>
                             <div>
                                 <Tag color={'blue'}>元数据</Tag>
-                                <Tag color={'green'}>下载</Tag>
+                                {item.downloadable && <Tag color={'green'}>下载</Tag>}
                             </div>
                         </Space>
                     </Card>

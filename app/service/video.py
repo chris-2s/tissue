@@ -12,6 +12,7 @@ from app.db.models import History
 from app.exception import BizException
 from app.schema import VideoList, VideoDetail, Setting, VideoNotify
 from app.service.base import BaseService
+from app.service.spider import SpiderService
 from app.utils import nfo, spider, num_parser, cache, notify
 from app.utils.image import save_images
 from app.utils.logger import logger
@@ -72,7 +73,7 @@ class VideoService(BaseService):
         return result
 
     def scrape_video(self, num: str):
-        video = spider.get_video_info(num)
+        video = SpiderService(self.db).get_video_info(num)
         if not video:
             raise BizException("未找到该番号")
 
@@ -153,7 +154,8 @@ class VideoService(BaseService):
 
         if video.cover:
             logger.info(f"生成封面及水印图片")
-            save_images(video, video_path)
+            cover_data = SpiderService.get_video_cover(video.cover)
+            save_images(video, video_path, cover_data)
 
         logger.info(f"生成NFO文件")
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)

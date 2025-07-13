@@ -11,6 +11,8 @@ class Site(BaseModel):
     alternate_host: Optional[str]
     status: Optional[bool]
 
+    downloadable: bool
+
 class SiteUpdate(BaseModel):
     id: int
     priority: int
