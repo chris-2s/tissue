@@ -19,10 +19,12 @@ class Session(requests.Session):
 
 class Spider:
     name = None
-    host = None
+    origin_host = None
     downloadable = False
 
-    def __init__(self):
+    def __init__(self, alternate_host: str | None = None):
+        self.host = alternate_host or self.origin_host
+
         self.setting = Setting().app
         self.session = Session()
         self.session.headers = {'User-Agent': self.setting.user_agent, 'Referer': self.host}
@@ -35,10 +37,11 @@ class Spider:
 
     @classmethod
     def get_cover(cls, url):
-        if cls.host:
-            referer = cls.host
+        if cls.origin_host:
+            referer = cls.origin_host
         else:
-            referer = urllib3.util.parse_url(url).hostname
+            uri = urllib3.util.parse_url(url)
+            referer = f'{uri.scheme}://{uri.host}/'
         response = requests.get(url, headers={'Referer': referer})
         if response.ok:
             return response.content

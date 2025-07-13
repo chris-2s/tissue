@@ -2,26 +2,21 @@ import time
 from pathlib import Path
 
 import tailer
-from fastapi import APIRouter
-
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from app.utils import spider
+from app.service.spider import get_spider_service
 
 router = APIRouter()
 
 
 @router.get('/ranking')
-def get_rankings(source: str, video_type: str, cycle: str):
-    if source == 'JavDB':
-        return spider.JavDBSpider().get_ranking(video_type, cycle)
-    return None
+def get_rankings(source: str, video_type: str, cycle: str, service=Depends(get_spider_service)):
+    return service.get_ranking(source, video_type, cycle)
 
 
 @router.get('/ranking/detail')
-def get_ranking_detail(source: str, num: str, url: str):
-    if source == 'JavDB':
-        return spider.JavDBSpider().get_info(num, url=url, include_downloads=True, include_previews=True, include_comments=True)
-    return None
+def get_ranking_detail(source: str, num: str, url: str, service=Depends(get_spider_service)):
+    return service.get_ranking_detail(source, num, url)
 
 
 @router.get('/log')

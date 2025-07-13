@@ -11,8 +11,8 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class JavBusSpider(Spider):
-    host = "https://www.javbus.com/"
     name = 'JavBus'
+    origin_host = "https://www.javbus.com/"
     downloadable = True
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,

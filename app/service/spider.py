@@ -3,6 +3,11 @@ import traceback
 from datetime import datetime
 from urllib.parse import urlparse
 
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from app.db import get_db
+from app.db.models import Site
 from app.schema import VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
@@ -10,6 +15,10 @@ from app.utils.logger import logger
 from app.utils.spider import JavBusSpider, JavDBSpider, Jav321Spider, DmmSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
+
+
+def get_spider_service(db: Session = Depends(get_db)):
+    return SpiderService(db=db)
 
 
 class SpiderService(BaseService):
@@ -60,8 +69,17 @@ class SpiderService(BaseService):
             logger.info("信息合并成功")
         return meta
 
+    def _get_spiders(self):
+        sites = self.db.query(Site).filter(Site.status == 1).order_by(Site.priority).all()
+        spiders = []
+        for site in sites:
+            spider_class = self.get_spider_by_name(site.class_str)
+            spider = spider_class(alternate_host=site.alternate_host)
+            spiders.append(spider)
+        return spiders
+
     def get_video_info(self, number: str):
-        spiders = [JavBusSpider(), JavDBSpider(), Jav321Spider(), DmmSpider()]
+        spiders = self._get_spiders()
         metas = []
         logger.info(f"开始刮削番号《{number}》")
         for spider in spiders:
@@ -85,7 +103,7 @@ class SpiderService(BaseService):
         return meta
 
     def get_video(self, number: str, include_downloads=True, include_previews=True, include_comments=True):
-        spiders = [JavBusSpider(), JavDBSpider()]
+        spiders = filter(lambda i: i.downloadable, self._get_spiders())
         metas = []
         logger.info(f"开始刮削番号《{number}》")
         for spider in spiders:
@@ -108,3 +126,17 @@ class SpiderService(BaseService):
         meta = self._merge_video_info(metas)
 
         return meta
+
+    def get_ranking(self, source: str, video_type: str, cycle: str):
+        if source == 'JavDB':
+            site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
+            return JavDBSpider(alternate_host=site.alternate_host).get_ranking(video_type, cycle)
+        return None
+
+    def get_ranking_detail(self, source: str, num: str, url: str):
+        if source == 'JavDB':
+            site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
+            return JavDBSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
+                                                                            include_previews=True,
+                                                                            include_comments=True)
+        return None
