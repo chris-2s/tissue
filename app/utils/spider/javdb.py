@@ -12,8 +12,8 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class JavDBSpider(Spider):
-    host = "https://javdb.com"
     name = 'JavDB'
+    origin_host = "https://javdb.com"
     downloadable = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
 
@@ -164,7 +164,7 @@ class JavDBSpider(Spider):
             if publish_date:
                 comment.publish_date = datetime.strptime(publish_date[0].text.strip(), "%Y-%m-%d").date()
 
-            comment.likes = item.xpath('.//span[@class="likes-count"]')[0].text
+            comment.likes = int(item.xpath('.//span[@class="likes-count"]')[0].text)
 
             content_list = []
             contents = item.xpath('./div[@class="content"]/p')

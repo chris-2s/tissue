@@ -26,7 +26,7 @@ class SiteService(BaseService):
         return schema.Site(
             id=db_site.id,
             priority=db_site.priority,
-            host=db_site.alternate_host or spider.host,
+            host=db_site.alternate_host or spider.origin_host,
             alternate_host=db_site.alternate_host,
             status=db_site.status,
             name=spider.name,
