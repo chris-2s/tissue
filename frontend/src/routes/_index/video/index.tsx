@@ -78,7 +78,7 @@ function Video() {
                                                    {video.is_uncensored && (
                                                        <Tag color={'green'} bordered={false}>无码</Tag>)}
                                                    {video.actors.map((actor: any) => (
-                                                       <Tag key={actor} color={'purple'}
+                                                       <Tag key={actor.name} color={'purple'}
                                                             bordered={false}>{actor.name}</Tag>
                                                    ))}
                                                </Space>

@@ -6,7 +6,6 @@ from pydantic import BaseModel
 class Site(BaseModel):
     id: int
     name: str
-    host: str
     priority: int
     alternate_host: Optional[str]
     status: Optional[bool]

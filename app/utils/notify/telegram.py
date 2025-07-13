@@ -65,11 +65,11 @@ class Telegram(Base):
                 'has_spoiler': True
             }, files={
                 'photo': (picture_name, picture)
-            })
+            }, timeout=10)
         else:
             url = f'https://api.telegram.org/bot{token}/sendMessage'
             requests.post(url=url, data={
                 'chat_id': chat_id,
                 'parse_mode': 'HTML',
                 'text': content,
-            })
+            }, timeout=10)

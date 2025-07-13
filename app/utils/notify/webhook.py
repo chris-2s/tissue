@@ -16,4 +16,4 @@ class Webhook(Base):
         requests.post(self.setting.webhook_url, json={
             event: event,
             payload: payload
-        })
+        }, timeout=10)

@@ -49,8 +49,6 @@ export const Route = createFileRoute('/_index/search/')({
                     const history = {num: res.num, actors: res.actors, title: res.title, cover: res.cover}
                     localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 19)]))
                     return res
-                }).catch(() => {
-
                 })
             ) : (
                 Promise.resolve()
@@ -72,7 +70,7 @@ export function Search() {
 
     const appDispatch = useDispatch<Dispatch>().app
     const responsive = useResponsive()
-    const [searchInput, setSearchInput] = useState(search?.num)
+    const [searchInput, setSearchInput] = useState(!detailMatch ? search?.num : null)
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<string>()
     const [commentSelected, setCommentSelected] = useState<string>()
@@ -82,13 +80,11 @@ export function Search() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false)
 
     useEffect(() => {
-        if (detailMatch) {
-            appDispatch.setCanBack(true)
-        }
+        appDispatch.setCanBack(!!detailMatch)
         return () => {
             appDispatch.setCanBack(false)
         }
-    }, [])
+    }, [detailMatch])
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: api.modifySubscribe,

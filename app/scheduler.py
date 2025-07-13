@@ -1,5 +1,3 @@
-import logging
-
 from datetime import datetime
 from typing import Callable
 
@@ -10,6 +8,7 @@ from pydantic import BaseModel
 from app.schema import Setting
 from app.service.download import DownloadService
 from app.service.job import clean_cache
+from app.service.site import SiteService
 from app.service.subscribe import SubscribeService
 from app.utils.logger import logger
 
@@ -21,6 +20,7 @@ class Job(BaseModel):
     interval: int
     running: int = 0
     jitter: int = 0
+    immediate: bool = False
 
 
 class Scheduler:
@@ -45,6 +45,10 @@ class Scheduler:
                            name='清理缓存',
                            job=clean_cache,
                            interval=7 * 24 * 60),
+        'refresh_available_sites': Job(key='refresh_available_sites',
+                                       name='刷新可用站点',
+                                       job=SiteService.job_testing_sites,
+                                       interval=1 * 24 * 60, jitter=2 * 60 * 60, immediate=True),
     }
 
     def __init__(self):
@@ -56,6 +60,7 @@ class Scheduler:
         self.add('subscribe')
         self.add('subscribe_meta_update')
         self.add('clean_cache')
+        self.add('refresh_available_sites')
 
         setting = Setting()
         if setting.download.trans_auto:
@@ -69,12 +74,17 @@ class Scheduler:
     def add(self, key: str):
         job = self.jobs.get(key)
         logger.info(f"启动任务，{job.name}")
+
+        job_kwargs = {}
+        if job.immediate:
+            job_kwargs['next_run_time'] = datetime.now()
+
         self.scheduler.add_job(self.do_job,
                                trigger=IntervalTrigger(minutes=job.interval, jitter=job.jitter),
                                id=job.key,
                                name=job.name,
                                args=[job.key],
-                               replace_existing=True)
+                               replace_existing=True, **job_kwargs)
 
     def remove(self, key: str):
         job = self.scheduler.get_job(key)

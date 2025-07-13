@@ -8,8 +8,8 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class DmmSpider(Spider):
-    host = "https://www.dmm.co.jp"
     name = 'DMM'
+    origin_host = "https://www.dmm.co.jp"
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):
