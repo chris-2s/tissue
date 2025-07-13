@@ -42,7 +42,14 @@ class Spider:
         else:
             uri = urllib3.util.parse_url(url)
             referer = f'{uri.scheme}://{uri.host}/'
-        response = requests.get(url, headers={'Referer': referer})
+        response = requests.get(url, headers={'Referer': referer}, timeout=10)
         if response.ok:
             return response.content
         return None
+
+    def testing(self) -> bool:
+        try:
+            response = self.session.get(self.origin_host)
+            return response.ok
+        except Exception as e:
+            return False

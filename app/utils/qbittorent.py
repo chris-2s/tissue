@@ -113,7 +113,7 @@ class QBittorent:
                 break
 
         if self.tracker_subscribe and torrent_hash:
-            trackers_text = requests.get(self.tracker_subscribe).text
+            trackers_text = requests.get(self.tracker_subscribe, timeout=10).text
             trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
             self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
                 'hash': torrent_hash,

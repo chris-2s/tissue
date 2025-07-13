@@ -8,3 +8,7 @@ export async function getSites() {
 export function modifySite(site: any) {
     return request.put('/site/', site)
 }
+
+export function testingSits() {
+    return request.post('/site/testing');
+}
