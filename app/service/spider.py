@@ -103,18 +103,17 @@ class SpiderService(BaseService):
         return meta
 
     def get_video(self, number: str, include_downloads=True, include_previews=True, include_comments=True):
-        spiders = filter(lambda i: i.downloadable, self._get_spiders())
+        spiders =  self._get_spiders()
         metas = []
         logger.info(f"开始刮削番号《{number}》")
         for spider in spiders:
             try:
-                if spider.downloadable:
-                    logger.info(f"{spider.name} 获取下载列表...")
-                    videos = spider.get_info(number, include_downloads=include_downloads,
-                                             include_previews=include_previews,
-                                             include_comments=include_comments)
-                    logger.info(f"获取到{len(videos.downloads)}部影片")
-                    metas.append(videos)
+                logger.info(f"{spider.name} 获取下载列表...")
+                videos = spider.get_info(number, include_downloads=include_downloads,
+                                         include_previews=include_previews,
+                                         include_comments=include_comments)
+                logger.info(f"获取到{len(videos.downloads)}部影片")
+                metas.append(videos)
             except:
                 logger.error(f"{spider.name} 获取下载列表失败")
                 traceback.print_exc()

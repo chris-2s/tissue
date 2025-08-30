@@ -9,7 +9,6 @@ from fastapi.responses import StreamingResponse
 
 from app.schema.r import R
 from app.service.spider import SpiderService
-from app.utils import spider
 from version import APP_VERSION
 
 router = APIRouter()
@@ -30,6 +29,18 @@ def proxy_video_cover(url: str):
     return Response(content=cover, media_type="image", headers=headers)
 
 
+async def advanced_stream_generator(url: str, headers: dict):
+    async with httpx.AsyncClient() as client:
+        async with client.stream("GET", url, headers=headers, timeout=None) as response:
+            response.raise_for_status()
+            yield {
+                "status_code": response.status_code,
+                "headers": dict(response.headers)
+            }
+            async for chunk in response.aiter_bytes():
+                yield chunk
+
+
 @router.get("/trailer")
 async def proxy_video_trailer(url: str, request: Request):
     headers = {
@@ -37,21 +48,22 @@ async def proxy_video_trailer(url: str, request: Request):
         "User-Agent": request.headers.get("User-Agent")
     }
 
-    async with httpx.AsyncClient() as client:
-        if url.startswith("//"):
-            url = 'http:' + url
-        response = await client.get(url, headers=headers)
-        response.raise_for_status()
+    if url.startswith("//"):
+        url = 'http:' + url
 
-        async def video_stream():
-            async for chunk in response.aiter_bytes(1024 * 1024):
-                yield chunk
+    generator = advanced_stream_generator(url, headers)
+    try:
+        metadata = await generator.__anext__()
+        status_code = metadata["status_code"]
+        response_headers = metadata["headers"]
+    except StopAsyncIteration:
+        return Response(status_code=204)
 
-        return StreamingResponse(
-            video_stream(),
-            status_code=response.status_code,
-            headers=dict(response.headers)
-        )
+    return StreamingResponse(
+        generator,
+        status_code=status_code,
+        headers=response_headers
+    )
 
 
 @router.get("/version")
