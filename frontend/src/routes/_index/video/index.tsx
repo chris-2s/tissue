@@ -1,12 +1,12 @@
 import {useRequest} from "ahooks";
 import * as api from "../../../apis/video";
-import {Card, Col, Empty, FloatButton, Row, Skeleton, Space, Tag} from "antd";
+import {Card, Col, Empty, FloatButton, Row, Skeleton, Space, Tag, Tooltip} from "antd";
 import VideoCover from "../../../components/VideoCover";
 import React, {useMemo, useState} from "react";
 import {createPortal} from "react-dom";
-import {FilterOutlined, RedoOutlined} from "@ant-design/icons";
+import {FilterOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoFilterModal, {FilterParams} from "./-components/filter.tsx";
-import {createFileRoute, Link} from "@tanstack/react-router";
+import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 
 export const Route = createFileRoute('/_index/video/')({
@@ -19,6 +19,7 @@ function Video() {
     const [selected, setSelected] = useState<string | undefined>()
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
+    const {navigate} = useRouter()
 
     const actors = useMemo(() => {
         const actors: any[] = []
@@ -72,16 +73,30 @@ function Video() {
                         >
                             <Card.Meta title={video.title}
                                        description={(
-                                           <div className={'overflow-x-scroll'} style={{scrollbarWidth: 'none'}}>
-                                               <Space size={[0, 'small']}>
-                                                   {video.is_zh && (<Tag color={'blue'} bordered={false}>中文</Tag>)}
-                                                   {video.is_uncensored && (
-                                                       <Tag color={'green'} bordered={false}>无码</Tag>)}
-                                                   {video.actors.map((actor: any) => (
-                                                       <Tag key={actor.name} color={'purple'}
-                                                            bordered={false}>{actor.name}</Tag>
-                                                   ))}
-                                               </Space>
+                                           <div className={'flex'}>
+                                               <div className={'flex-1 items-center overflow-x-scroll'}
+                                                    style={{scrollbarWidth: 'none'}}>
+                                                   <Space size={[0, 'small']} className={'flex-1'}>
+                                                       {video.is_zh && (
+                                                           <Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                                       {video.is_uncensored && (
+                                                           <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                                       {video.actors.map((actor: any) => (
+                                                           <Tag key={actor.name} color={'purple'}
+                                                                bordered={false}>{actor.name}</Tag>
+                                                       ))}
+                                                   </Space>
+                                               </div>
+                                               <Tooltip title={'搜索'}>
+                                                   <div className={'ml-1'} onClick={(event) => {
+                                                       return navigate({
+                                                           to: '/search',
+                                                           search: {num: video.num}
+                                                       })
+                                                   }}>
+                                                       <SearchOutlined/>
+                                                   </div>
+                                               </Tooltip>
                                            </div>
                                        )}
                             />

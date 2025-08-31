@@ -1,6 +1,8 @@
 import React from "react";
-import {Badge, Rate, Space, theme} from "antd";
+import {Badge, Rate, Space, theme, Tooltip} from "antd";
 import VideoCover from "../../../../components/VideoCover";
+import {SearchOutlined} from "@ant-design/icons";
+import {useRouter} from "@tanstack/react-router";
 
 const {useToken} = theme
 
@@ -8,6 +10,7 @@ function JavDBItem(props: { item: any }) {
 
     const {token} = useToken();
     const {item} = props;
+    const {navigate} = useRouter()
 
     function render() {
         return (
@@ -17,7 +20,11 @@ function JavDBItem(props: { item: any }) {
                     <VideoCover src={item.cover}/>
                 </div>
                 <div className={'p-3'}>
-                    <div className={'text-nowrap overflow-y-scroll'} style={{scrollbarWidth: 'none',fontSize:token.fontSizeHeading5,fontWeight:token.fontWeightStrong}}>
+                    <div className={'text-nowrap overflow-y-scroll'} style={{
+                        scrollbarWidth: 'none',
+                        fontSize: token.fontSizeHeading5,
+                        fontWeight: token.fontWeightStrong
+                    }}>
                         {item.num} {item.title}
                     </div>
                     <div className={'flex items-center my-2'}>
@@ -25,7 +32,20 @@ function JavDBItem(props: { item: any }) {
                         <div className={'mx-1'}>{item.rank}分</div>
                         <div>由{item.rank_count}人评价</div>
                     </div>
-                    <div>{item.publish_date}</div>
+                    <div className={'flex items-center'}>
+                        <div className={'flex-1'}>{item.publish_date}</div>
+                        <Tooltip title={'搜索'}>
+                            <div onClick={(event) => {
+                                event.stopPropagation()
+                                return navigate({
+                                    to: '/search',
+                                    search: {num: item.num}
+                                })
+                            }}>
+                                <SearchOutlined/>
+                            </div>
+                        </Tooltip>
+                    </div>
                 </div>
             </div>
         )
