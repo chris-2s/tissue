@@ -71,8 +71,9 @@ function JavDB() {
                                      onClick={() => navigate({
                                          to: '/home/detail',
                                          search: {source: 'JavDB', num: item.num, url: item.url}
-                                     })}><JavDBItem
-                                    item={item}/></Col>
+                                     })}>
+                                    <JavDBItem item={item}/>
+                                </Col>
                             ))}
                         </Row>
                     ) : (

@@ -12,6 +12,7 @@ class VideoActor(BaseModel):
 class VideoList(BaseModel):
     title: str
     path: str
+    num: Optional[str] = None
     cover: Optional[str] = None
     is_zh: bool = False
     is_uncensored: bool = False

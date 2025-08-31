@@ -13,7 +13,14 @@ import {
     Tooltip
 } from "antd";
 import React, {useEffect, useState} from "react";
-import {CarryOutOutlined, CloudDownloadOutlined, CopyOutlined, HistoryOutlined, RedoOutlined} from "@ant-design/icons";
+import {
+    CarryOutOutlined,
+    CloudDownloadOutlined,
+    CopyOutlined,
+    HistoryOutlined,
+    RedoOutlined,
+    SearchOutlined
+} from "@ant-design/icons";
 import * as api from "../../../apis/subscribe";
 import {useRequest, useResponsive} from "ahooks";
 import {useFormModal} from "../../../utils/useFormModal.ts";
@@ -49,6 +56,8 @@ export const Route = createFileRoute('/_index/search/')({
                     const history = {num: res.num, actors: res.actors, title: res.title, cover: res.cover}
                     localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 19)]))
                     return res
+                }).catch((err) => {
+
                 })
             ) : (
                 Promise.resolve()
@@ -215,7 +224,9 @@ export function Search() {
                                           value={searchInput} allowClear
                                           onChange={e => setSearchInput(e.target.value)}
                                           onSearch={(num) => {
-                                              return router.navigate({search: {num: num} as any, replace: true})
+                                              if (num) {
+                                                  return router.navigate({search: {num: num} as any, replace: true})
+                                              }
                                           }}/>
                             <div className={'ml-2'}>
                                 <Button type={"primary"} icon={<HistoryOutlined/>}
@@ -248,6 +259,19 @@ export function Search() {
                                                         })
                                                     }}/>
                                         </Tooltip>
+                                        {detailMatch && (
+                                            <Tooltip title={'搜索'}>
+                                                <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
+                                                        className={'ml-4'}
+                                                        onClick={() => {
+                                                            setSearchInput(video.num)
+                                                            return router.navigate({
+                                                                to: '/search',
+                                                                search: {num: video.num}
+                                                            })
+                                                        }}/>
+                                            </Tooltip>
+                                        )}
                                     </div>
                                     <Descriptions className={'mt-4'}
                                                   layout={'vertical'}

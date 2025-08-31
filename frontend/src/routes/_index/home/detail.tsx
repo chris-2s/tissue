@@ -14,5 +14,6 @@ export const Route = createFileRoute('/_index/home/detail')({
         })).catch(() => {
             message.error("数据加载失败")
         })
-    })
+    }),
+    staleTime: Infinity
 })
