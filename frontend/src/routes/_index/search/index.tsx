@@ -148,7 +148,9 @@ export function Search() {
                 key: 'outline-solid',
                 label: '大纲',
                 span: 24,
-                children: video.outline,
+                children: (
+                    <span className={'whitespace-pre-wrap'}>{video.outline}</span>
+                ),
             },
             {
                 key: 'studio',

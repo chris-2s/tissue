@@ -33,15 +33,24 @@ class DmmSpider(Spider):
 
         meta.num = content.get("makerContentId")
         meta.title = content["title"]
-        meta.outline = content["description"]
-        meta.rating = review["average"]
-        meta.premiered = content['makerReleasedAt'].split("T")[0]
-        meta.runtime = floor(content["duration"] / 60)
-        meta.director = content['directors'][0]['name']
-        meta.studio = content['maker']['name']
-        meta.publisher = content['label']['name']
-        meta.tags = [genres['name'] for genres in content['genres']]
-        meta.series = content['series']
+        if content.get("description"):
+            meta.outline = content["description"].replace("<br>", "\n")
+        if review:
+            meta.rating = review["average"]
+        if content.get('makerReleasedAt'):
+            meta.premiered = content['makerReleasedAt'].split("T")[0]
+        if content.get('duration'):
+            meta.runtime = floor(content["duration"] / 60)
+        if content.get('directors'):
+            meta.director = content['directors'][0]['name']
+        if content.get('maker'):
+            meta.studio = content['maker']['name']
+        if content.get('label'):
+            meta.publisher = content['label']['name']
+        if content.get('genres'):
+            meta.tags = [genres['name'] for genres in content['genres']]
+        if content.get('series'):
+            meta.series = content.get('series').get('name')
         meta.cover = content['packageImage']['largeUrl']
 
         actors = []
