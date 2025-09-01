@@ -15,7 +15,7 @@ from app.exception import BizException
 from app.schema import Setting
 from app.service.base import BaseService
 from app.service.spider import SpiderService
-from app.utils import spider, notify
+from app.utils import notify
 from app.utils.logger import logger
 from app.utils.qbittorent import qbittorent
 

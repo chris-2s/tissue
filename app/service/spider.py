@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import traceback
 from datetime import datetime
@@ -5,6 +6,7 @@ from urllib.parse import urlparse
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.db import get_db
 from app.db.models import Site
@@ -78,24 +80,37 @@ class SpiderService(BaseService):
             spiders.append(spider)
         return spiders
 
-    def get_video_info(self, number: str):
-        spiders = self._get_spiders()
-        metas = []
-        logger.info(f"开始刮削番号《{number}》")
-        for spider in spiders:
+    async def _get_video_by_spiders(self, number: str, include_downloads: bool, include_previews: bool,
+                                    include_comments: bool):
+        def __get_video_by_spider(spider: Spider):
             try:
                 logger.info(f"{spider.name} 开始刮削...")
-                meta = spider.get_info(number)
-                metas.append(meta)
+                videos = spider.get_info(number, include_downloads=include_downloads,
+                                         include_previews=include_previews,
+                                         include_comments=include_comments)
                 logger.info(f"{spider.name} 刮削成功")
+                if include_downloads:
+                    logger.info(f"{spider.name} 获取到{len(videos.downloads)}部影片")
+                return videos
             except SpiderException as e:
                 logger.info(f"{spider.name} {e.message}")
             except Exception:
                 logger.error(f'{spider.name} 未知错误，请检查网站连通性')
                 traceback.print_exc()
+                return None
+
+        spiders = self._get_spiders()
+        tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
+        return list(filter(lambda item: item, await asyncio.gather(*tasks)))
+
+    def get_video_info(self, number: str):
+        logger.info(f"开始刮削番号《{number}》")
+
+        metas = asyncio.run(
+            self._get_video_by_spiders(number, include_downloads=False, include_previews=False, include_comments=False))
 
         if len(metas) == 0:
-            return
+            return None
 
         meta = self._merge_video_info(metas)
 
@@ -103,24 +118,14 @@ class SpiderService(BaseService):
         return meta
 
     def get_video(self, number: str, include_downloads=True, include_previews=True, include_comments=True):
-        spiders =  self._get_spiders()
-        metas = []
         logger.info(f"开始刮削番号《{number}》")
-        for spider in spiders:
-            try:
-                logger.info(f"{spider.name} 获取下载列表...")
-                videos = spider.get_info(number, include_downloads=include_downloads,
-                                         include_previews=include_previews,
-                                         include_comments=include_comments)
-                logger.info(f"获取到{len(videos.downloads)}部影片")
-                metas.append(videos)
-            except:
-                logger.error(f"{spider.name} 获取下载列表失败")
-                traceback.print_exc()
-                continue
+
+        metas = asyncio.run(
+            self._get_video_by_spiders(number, include_downloads=include_downloads, include_previews=include_previews,
+                                       include_comments=include_comments))
 
         if len(metas) == 0:
-            return
+            return None
 
         meta = self._merge_video_info(metas)
 
