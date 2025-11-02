@@ -36,11 +36,11 @@ class DmmSpider(Spider):
         if content.get("description"):
             meta.outline = content["description"].replace("<br>", "\n")
         if review:
-            meta.rating = review["average"]
+            meta.rating = str(review["average"])
         if content.get('makerReleasedAt'):
             meta.premiered = content['makerReleasedAt'].split("T")[0]
         if content.get('duration'):
-            meta.runtime = floor(content["duration"] / 60)
+            meta.runtime = str(floor(content["duration"] / 60))
         if content.get('directors'):
             meta.director = content['directors'][0]['name']
         if content.get('maker'):

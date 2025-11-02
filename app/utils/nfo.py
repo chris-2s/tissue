@@ -89,7 +89,7 @@ def get_full(path: str):
 
 
 def save(path: str, detail: VideoDetail):
-    root = ET.Element('Root')
+    root = ET.Element('movie')
     tree = ET.ElementTree(root)
 
     if detail.title:

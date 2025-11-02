@@ -160,6 +160,8 @@ class VideoService(BaseService):
         logger.info(f"生成NFO文件")
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)
         nfo.save(new_nfo_path, video)
+        shutil.copy(new_nfo_path, os.path.join(save_path, 'movie.nfo'))
+
         logger.info(f"影片保存完成")
         return video_path
 
@@ -174,10 +176,13 @@ class VideoService(BaseService):
 
     def delete_video_meta(self, path):
         nfo_path = nfo.get_nfo_path_by_video(path)
+        movie_nfo_path = os.path.join(os.path.split(nfo_path)[0],'movie.nfo')
         exist = nfo.get_full(nfo_path)
         if exist:
             if os.path.exists(nfo_path):
                 os.remove(nfo_path)
+            if os.path.exists(movie_nfo_path):
+                os.remove(movie_nfo_path)
             exist_path, _ = os.path.split(path)
             for item in ['poster', 'thumb', 'fanart']:
                 image = getattr(exist, item)
