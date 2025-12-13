@@ -133,9 +133,10 @@ class JavDBSpider(Spider):
         videos = html.xpath("//div[contains(@class,'preview-images')]/a[@class='preview-video-container']")
         for video in videos:
             thumb = video.xpath('./img')[0]
-            video = html.xpath(f"//video[@id='{video.get('href')[1:]}']/source")[0]
-            preview = VideoPreviewItem(type='video', thumb=thumb.get('src'), url=video.get('src'))
-            result.append(preview)
+            video = html.xpath(f"//video[@id='{video.get('href')[1:]}']/source")
+            if video:
+                preview = VideoPreviewItem(type='video', thumb=thumb.get('src'), url=video[0].get('src'))
+                result.append(preview)
 
         images = html.xpath("//div[contains(@class,'preview-images')]/a[@class='tile-item']")
         for image in images:
