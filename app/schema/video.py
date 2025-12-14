@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class VideoActor(BaseModel):
     name: Optional[str] = None
     thumb: Optional[str] = None
+    code: Optional[str] = None
 
 
 class VideoList(BaseModel):
@@ -58,6 +59,11 @@ class VideoComment(BaseModel):
     items: List[VideoCommentItem] = []
 
 
+class VideoSiteActor(BaseModel):
+    website: Optional[str] = None
+    items: List[VideoActor] = []
+
+
 class VideoDetail(BaseModel):
     # 标题
     title: Optional[str] = None
@@ -103,6 +109,8 @@ class VideoDetail(BaseModel):
     previews: Optional[List[VideoPreview]] = []
     # 评论
     comments: Optional[List[VideoComment]] = []
+    # 站点演员
+    site_actors: Optional[List[VideoSiteActor]] = []
 
 
 class VideoNotify(VideoDetail):

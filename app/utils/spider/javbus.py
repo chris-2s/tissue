@@ -5,7 +5,7 @@ from datetime import datetime
 from lxml import etree
 from urllib.parse import urljoin
 
-from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview
+from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoSiteActor
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -75,9 +75,10 @@ class JavBusSpider(Spider):
                 actor_url = element.get('href')
                 actor_code = actor_url.split("/")[-1]
                 actor_avatar = urljoin(self.host, f'/pics/actress/{actor_code}_a.jpg')
-                actor = VideoActor(name=element.text, thumb=actor_avatar)
+                actor = VideoActor(name=element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
+            meta.site_actors = [VideoSiteActor(website=self.name, items=actors)]
 
         cover_element = html.xpath("//a[@class='bigImage']")
         if cover_element:

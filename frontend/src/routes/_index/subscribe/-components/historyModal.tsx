@@ -4,7 +4,8 @@ import React, {useEffect} from "react";
 import {useRequest} from "ahooks";
 import * as api from "../../../../apis/subscribe";
 import dayjs from "dayjs";
-import {DeleteOutlined, RollbackOutlined} from "@ant-design/icons";
+import {DeleteOutlined, RollbackOutlined, SearchOutlined} from "@ant-design/icons";
+import {useRouter} from "@tanstack/react-router";
 
 interface Props extends ModalProps {
     onResubscribe: () => void;
@@ -13,6 +14,7 @@ interface Props extends ModalProps {
 function HistoryModal(props: Props) {
 
     const {onResubscribe, ...otherProps} = props;
+    const router = useRouter()
 
     const {data, loading, run, refresh} = useRequest(api.getSubscribeHistories, {
         manual: true
@@ -69,6 +71,16 @@ function HistoryModal(props: Props) {
                               'group-hover:opacity-100 group-hover:pointer-events-auto ' +
                               'transition-opacity duration-500 flex justify-center items-center'}>
                               <Space size="large">
+                                  <Tooltip title={'搜索'}>
+                                      <Button size={"large"} icon={<SearchOutlined/>} type={'primary'}
+                                              shape={"circle"}
+                                              onClick={() => {
+                                                  router.navigate({
+                                                      to: '/search',
+                                                      search: {num: item.num}
+                                                  })
+                                              }}/>
+                                  </Tooltip>
                                   <Tooltip title={'重新订阅'}>
                                       <Button size={"large"} icon={<RollbackOutlined/>} type={'primary'}
                                               shape={"circle"} loading={loadingResubscribe}

@@ -40,6 +40,7 @@ import Preview from "./-components/preview.tsx";
 import DownloadModal from "./-components/downloadModal.tsx";
 import HistoryModal from "./-components/historyModal.tsx";
 import Comment from "./-components/comment.tsx";
+import ActorsModal from "./-components/actorsModal.tsx";
 
 const cacheHistoryKey = 'search_video_histories'
 
@@ -87,6 +88,7 @@ export function Search() {
     const [selectedVideo, setSelectedVideo] = useState<any>()
     const [selectedDownload, setSelectedDownload] = useState<any>()
     const [historyModalOpen, setHistoryModalOpen] = useState(false)
+    const [actorsModalOpen, setActorsModalOpen] = useState(false)
 
     useEffect(() => {
         appDispatch.setCanBack(!!detailMatch)
@@ -118,7 +120,12 @@ export function Search() {
                 key: 'actors',
                 label: '演员',
                 span: 24,
-                children: video.actors,
+                children: video.actors && (
+                    <div className={'cursor-pointer'} onClick={() => setActorsModalOpen(true)}>
+                        <span>{video.actors}</span>
+                        <span className={'ml-1'}><SearchOutlined/></span>
+                    </div>
+                ),
             },
             {
                 key: 'num',
@@ -280,6 +287,8 @@ export function Search() {
                                                   items={renderItems(video)}
                                                   column={24}
                                                   size={'small'}/>
+                                    <ActorsModal open={actorsModalOpen} onCancel={() => setActorsModalOpen(false)}
+                                                 actors={video.site_actors}/>
                                 </>
                             ) : (
                                 <div className={'py-11'}>
