@@ -5,7 +5,7 @@ from random import randint
 from urllib.parse import urljoin
 from lxml import etree
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoCommentItem, \
-    VideoComment
+    VideoComment, VideoSiteActor
 from app.schema.home import JavDBRanking
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
@@ -86,9 +86,10 @@ class JavDBSpider(Spider):
                 actor_url = actor_element.get('href')
                 actor_code = actor_url.split("/")[-1]
                 actor_avatar = urljoin(self.avatar_host, f'{actor_code[0:2].lower()}/{actor_code}.jpg')
-                actor = VideoActor(name=actor_element.text, thumb=actor_avatar)
+                actor = VideoActor(name=actor_element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
+            meta.site_actors = [VideoSiteActor(website=self.name, items=actors)]
 
         cover_element = html.xpath("//img[@class='video-cover']")
         if cover_element:

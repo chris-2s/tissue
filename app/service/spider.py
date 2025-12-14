@@ -14,7 +14,7 @@ from app.schema import VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
-from app.utils.spider import JavBusSpider, JavDBSpider, Jav321Spider, DmmSpider
+from app.utils.spider import JavDBSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -56,7 +56,7 @@ class SpiderService(BaseService):
         if len(metas) >= 2:
             logger.info("合并多个刮削信息...")
             for key in meta.__dict__:
-                if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads']:
+                if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads', 'site_actors']:
                     for other_meta in metas[1:]:
                         value = getattr(other_meta, key)
                         if value:
@@ -66,6 +66,7 @@ class SpiderService(BaseService):
             meta.previews = [m.previews[0] for m in metas if m.previews]
             meta.comments = [m.comments[0] for m in metas if m.comments]
             meta.downloads = sum(map(lambda x: x.downloads, metas), [])
+            meta.site_actors = [m.site_actors[0] for m in metas if m.site_actors]
             if meta.downloads:
                 meta.downloads.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
             logger.info("信息合并成功")
