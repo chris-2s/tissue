@@ -14,7 +14,7 @@ from app.schema import VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
-from app.utils.spider import JavDBSpider
+from app.utils.spider import JavDBSpider, JavBusSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -145,9 +145,18 @@ class SpiderService(BaseService):
             return JavDBSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
                                                                             include_previews=True,
                                                                             include_comments=True)
+        elif source == 'JavBus':
+            site = self.db.query(Site).filter(Site.class_str == 'JavBusSpider').one()
+            return JavBusSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
+                                                                             include_previews=True,
+                                                                             include_comments=True)
         return None
 
     def get_actor(self, source: str, code: str, page: int):
         if source == 'JavDB':
             site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
             return JavDBSpider(alternate_host=site.alternate_host).get_actor(code, page)
+        elif source == 'JavBus':
+            site = self.db.query(Site).filter(Site.class_str == 'JavBusSpider').one()
+            return JavBusSpider(alternate_host=site.alternate_host).get_actor(code, page)
+        return []

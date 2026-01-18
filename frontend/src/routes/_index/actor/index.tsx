@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_index/actor/')({
 
 function Actor() {
     const {data} = Route.useLoaderData()
-    const search = Route.useSearch()
+    const search = Route.useSearch() as any
     const navigate = useNavigate()
 
     return (
@@ -32,12 +32,12 @@ function Actor() {
                                 <Col key={item.url} span={24} md={12} lg={6}
                                      onClick={() => navigate({
                                          to: '/home/detail',
-                                         search: {source: 'JavDB', num: item.num, url: item.url}
+                                         search: {source: search.source, num: item.num, url: item.url}
                                      })}>
                                     <VideoItem item={item}/>
                                 </Col>
                             ))}
-                            <div className={'w-full flex justify-end'}>
+                            <div className={'w-full flex justify-center'}>
                                 <Pagination pageSize={data.limit} current={data.page} total={data.total}
                                             showSizeChanger={false}
                                             onChange={(page) => {

@@ -30,7 +30,7 @@ function VideoItem(props: { item: any }) {
                     <div className={'flex items-center my-2'}>
                         <Rate disabled allowHalf value={item.rank}></Rate>
                         <div className={'mx-1'}>{item.rank}分</div>
-                        <div>由{item.rank_count}人评价</div>
+                        <div>由{item.rank_count || 0}人评价</div>
                     </div>
                     <div className={'flex items-center'}>
                         <div className={'flex-1'}>{item.publish_date}</div>

@@ -26,6 +26,10 @@ def get_subscribe_service(db: Session = Depends(get_db)):
 
 class SubscribeService(BaseService):
 
+    def __init__(self, db: Session):
+        super().__init__(db)
+        self.setting = Setting()
+
     def get_subscribes(self):
         return self.db.query(Subscribe).filter(Subscribe.status != 2).order_by(Subscribe.id.desc()).all()
 
@@ -124,7 +128,8 @@ class SubscribeService(BaseService):
                     continue
 
     def download_video(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
-        response = qbittorent.add_magnet(link.magnet, Setting().download.download_path)
+        category = self.setting.download.category if self.setting.download.category else None
+        response = qbittorent.add_magnet(link.magnet, Setting().download.download_path, category)
         if response.status_code != 200:
             raise BizException('下载创建失败')
         logger.info(f"下载创建成功")
