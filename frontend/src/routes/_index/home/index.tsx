@@ -1,7 +1,7 @@
 import Filter, {FilterField} from "./-components/filter.tsx";
 import React from "react";
 import {Col, Empty, message, Row, Skeleton} from "antd";
-import JavDBItem from "./-components/item.tsx";
+import VideoItem from "./-components/item.tsx";
 import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
 import * as api from "../../../apis/home.ts";
@@ -72,7 +72,7 @@ function JavDB() {
                                          to: '/home/detail',
                                          search: {source: 'JavDB', num: item.num, url: item.url}
                                      })}>
-                                    <JavDBItem item={item}/>
+                                    <VideoItem item={item}/>
                                 </Col>
                             ))}
                         </Row>

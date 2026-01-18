@@ -6,7 +6,7 @@ import {useRouter} from "@tanstack/react-router";
 
 const {useToken} = theme
 
-function JavDBItem(props: { item: any }) {
+function VideoItem(props: { item: any }) {
 
     const {token} = useToken();
     const {item} = props;
@@ -62,4 +62,4 @@ function JavDBItem(props: { item: any }) {
     )
 }
 
-export default JavDBItem
+export default VideoItem

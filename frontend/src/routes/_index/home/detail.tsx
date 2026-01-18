@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_index/home/detail')({
     component: Search,
     loaderDeps: ({search}) => search,
     loader: async ({deps}) => ({
-        data: api.getRankingDetail(deps).then(data => ({
+        data: api.getDetail(deps).then(data => ({
             ...data,
             actors: data.actors.map((i: any) => i.name).join(", ")
         })).catch(() => {

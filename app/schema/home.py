@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class JavDBRanking(BaseModel):
+class SiteVideo(BaseModel):
     cover: Optional[str] = None
     num: Optional[str] = None
     title: Optional[str] = None
