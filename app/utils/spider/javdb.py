@@ -4,9 +4,12 @@ from datetime import datetime
 from random import randint
 from urllib.parse import urljoin
 from lxml import etree
+
+from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoCommentItem, \
     VideoComment, VideoSiteActor
-from app.schema.home import JavDBRanking
+from app.schema.home import SiteVideo
+from app.schema.r import Page
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -215,16 +218,12 @@ class JavDBSpider(Spider):
             result.append(download)
         return result
 
-    def get_ranking(self, video_type: str, cycle: str):
-        url = urljoin(self.host, f'/rankings/movies?p={cycle}&t={video_type}')
-        response = self.session.get(url)
-        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
-
+    def _get_video(self, html: etree.HTML):
         result = []
 
         videos = html.xpath('//div[contains(@class, "movie-list")]/div[@class="item"]/a')
         for video in videos:
-            ranking = JavDBRanking()
+            ranking = SiteVideo()
             ranking.cover = video.xpath('./div[contains(@class, "cover")]/img')[0].get('src')
             ranking.title = video.get('title')
             ranking.num = video.xpath('./div[@class="video-title"]/strong')[0].text
@@ -238,8 +237,41 @@ class JavDBSpider(Spider):
 
             ranking.url = urljoin(self.host, video.get('href'))
 
-            tag_str = video.xpath('./div[contains(@class, "tags")]/span/text()')[0]
-            ranking.isZh = ('中字' in tag_str)
+            tag_str = video.xpath('./div[contains(@class, "tags")]/span/text()')
+            if tag_str:
+                ranking.isZh = ('中字' in tag_str[0])
 
             result.append(ranking)
         return result
+
+    def get_ranking(self, video_type: str, cycle: str):
+        url = urljoin(self.host, f'/rankings/movies?p={cycle}&t={video_type}')
+        response = self.session.get(url)
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+
+        return self._get_video(html)
+
+    def get_actor(self, code: str, page: int):
+        url = urljoin(self.host, f'/actors/{code}')
+        response = self.session.get(url, params={'page': page})
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+
+        section_element = html.xpath('//div[contains(@class, "section-columns")]')
+        if not section_element:
+            raise BizException("未找到该演员")
+
+        pages = Page()
+        pages.page = page
+        pages.limit = 40
+
+        section = section_element[0]
+
+        meta_elements = section.xpath('.//span[@class="section-meta"]')
+        for element in meta_elements:
+            total_matched = re.match('(\d+) 部影片', element.text)
+            if total_matched:
+                pages.total = int(total_matched.group(1))
+
+        pages.data = self._get_video(html)
+
+        return pages

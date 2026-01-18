@@ -25,6 +25,7 @@ import { Route as IndexHomeIndexRouteImport } from './routes/_index/home/index'
 import { Route as IndexHistoryIndexRouteImport } from './routes/_index/history/index'
 import { Route as IndexFileIndexRouteImport } from './routes/_index/file/index'
 import { Route as IndexDownloadIndexRouteImport } from './routes/_index/download/index'
+import { Route as IndexActorIndexRouteImport } from './routes/_index/actor/index'
 import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index'
 import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
 import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
@@ -111,6 +112,11 @@ const IndexDownloadIndexRoute = IndexDownloadIndexRouteImport.update({
   path: '/download/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
+const IndexActorIndexRoute = IndexActorIndexRouteImport.update({
+  id: '/actor/',
+  path: '/actor/',
+  getParentRoute: () => IndexRouteRoute,
+} as any)
 const IndexAboutIndexRoute = IndexAboutIndexRouteImport.update({
   id: '/about/',
   path: '/about/',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
   '/about': typeof IndexAboutIndexRoute
+  '/actor': typeof IndexActorIndexRoute
   '/download': typeof IndexDownloadIndexRoute
   '/file': typeof IndexFileIndexRoute
   '/history': typeof IndexHistoryIndexRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
   '/about': typeof IndexAboutIndexRoute
+  '/actor': typeof IndexActorIndexRoute
   '/download': typeof IndexDownloadIndexRoute
   '/file': typeof IndexFileIndexRoute
   '/history': typeof IndexHistoryIndexRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_index/setting/file': typeof IndexSettingFileRoute
   '/_index/setting/notify': typeof IndexSettingNotifyRoute
   '/_index/about/': typeof IndexAboutIndexRoute
+  '/_index/actor/': typeof IndexActorIndexRoute
   '/_index/download/': typeof IndexDownloadIndexRoute
   '/_index/file/': typeof IndexFileIndexRoute
   '/_index/history/': typeof IndexHistoryIndexRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/setting/file'
     | '/setting/notify'
     | '/about'
+    | '/actor'
     | '/download'
     | '/file'
     | '/history'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/setting/file'
     | '/setting/notify'
     | '/about'
+    | '/actor'
     | '/download'
     | '/file'
     | '/history'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/_index/setting/file'
     | '/_index/setting/notify'
     | '/_index/about/'
+    | '/_index/actor/'
     | '/_index/download/'
     | '/_index/file/'
     | '/_index/history/'
@@ -403,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexDownloadIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
+    '/_index/actor/': {
+      id: '/_index/actor/'
+      path: '/actor'
+      fullPath: '/actor'
+      preLoaderRoute: typeof IndexActorIndexRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
     '/_index/about/': {
       id: '/_index/about/'
       path: '/about'
@@ -472,6 +491,7 @@ interface IndexRouteRouteChildren {
   IndexIndexRoute: typeof IndexIndexRoute
   IndexHomeDetailRoute: typeof IndexHomeDetailRoute
   IndexAboutIndexRoute: typeof IndexAboutIndexRoute
+  IndexActorIndexRoute: typeof IndexActorIndexRoute
   IndexDownloadIndexRoute: typeof IndexDownloadIndexRoute
   IndexFileIndexRoute: typeof IndexFileIndexRoute
   IndexHistoryIndexRoute: typeof IndexHistoryIndexRoute
@@ -490,6 +510,7 @@ const IndexRouteRouteChildren: IndexRouteRouteChildren = {
   IndexIndexRoute: IndexIndexRoute,
   IndexHomeDetailRoute: IndexHomeDetailRoute,
   IndexAboutIndexRoute: IndexAboutIndexRoute,
+  IndexActorIndexRoute: IndexActorIndexRoute,
   IndexDownloadIndexRoute: IndexDownloadIndexRoute,
   IndexFileIndexRoute: IndexFileIndexRoute,
   IndexHistoryIndexRoute: IndexHistoryIndexRoute,

@@ -4,6 +4,8 @@ from pathlib import Path
 import tailer
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+
+from app.schema.r import R
 from app.service.spider import get_spider_service
 
 router = APIRouter()
@@ -14,9 +16,14 @@ def get_rankings(source: str, video_type: str, cycle: str, service=Depends(get_s
     return service.get_ranking(source, video_type, cycle)
 
 
-@router.get('/ranking/detail')
-def get_ranking_detail(source: str, num: str, url: str, service=Depends(get_spider_service)):
-    return service.get_ranking_detail(source, num, url)
+@router.get('/detail')
+def get_detail(source: str, num: str, url: str, service=Depends(get_spider_service)):
+    return service.get_detail(source, num, url)
+
+
+@router.get('/actor')
+def get_actor(source: str, code: str, page: int = 1, service=Depends(get_spider_service)):
+    return R.pages(service.get_actor(source, code, page))
 
 
 @router.get('/log')

@@ -56,7 +56,8 @@ class SpiderService(BaseService):
         if len(metas) >= 2:
             logger.info("合并多个刮削信息...")
             for key in meta.__dict__:
-                if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads', 'site_actors']:
+                if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads',
+                                                          'site_actors']:
                     for other_meta in metas[1:]:
                         value = getattr(other_meta, key)
                         if value:
@@ -138,10 +139,15 @@ class SpiderService(BaseService):
             return JavDBSpider(alternate_host=site.alternate_host).get_ranking(video_type, cycle)
         return None
 
-    def get_ranking_detail(self, source: str, num: str, url: str):
+    def get_detail(self, source: str, num: str, url: str):
         if source == 'JavDB':
             site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
             return JavDBSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
                                                                             include_previews=True,
                                                                             include_comments=True)
         return None
+
+    def get_actor(self, source: str, code: str, page: int):
+        if source == 'JavDB':
+            site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
+            return JavDBSpider(alternate_host=site.alternate_host).get_actor(code, page)
