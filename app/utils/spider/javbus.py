@@ -1,3 +1,4 @@
+import os.path
 import random
 import re
 from datetime import datetime
@@ -5,7 +6,10 @@ from datetime import datetime
 from lxml import etree
 from urllib.parse import urljoin
 
+from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoSiteActor
+from app.schema.home import SiteVideo
+from app.schema.r import Page
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -18,7 +22,7 @@ class JavBusSpider(Spider):
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):
 
-        url = urljoin(self.host, num)
+        url = url if url else urljoin(self.host, num)
         response = self.session.get(url, allow_redirects=False)
 
         html = etree.HTML(response.text)
@@ -153,3 +157,51 @@ class JavBusSpider(Spider):
 
             result.append(download)
         return result
+
+    def get_actor(self, code: str, page: int):
+        url = urljoin(self.host, f'/star/{code}/{page}')
+        response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
+        html = etree.HTML(response.text)
+
+        total_elements = html.xpath("//a[@id='resultshowall']/text()")
+        if not total_elements:
+            raise BizException("未找到该演员")
+
+        pages = Page()
+        pages.page = page
+        pages.limit = 30
+
+        for element in total_elements:
+            element = element.replace(r'\xa0', '').replace(' ', '')
+            '全部影片48'
+            total_matched = re.search('全部影片(\d+)', element)
+            if total_matched:
+                pages.total = int(total_matched.group(1))
+
+        result = []
+        videos = html.xpath(r"//div[@id='waterfall']//a[@class='movie-box']")
+
+        for video in videos:
+            site_video = SiteVideo()
+
+            conver_element = video.xpath('./div[@class="photo-frame"]/img')[0]
+            cover = conver_element.get('src')
+            cover_code = cover.split("/")[-1].split(".")
+            site_video.cover = urljoin(self.host, f'/pics/cover/{cover_code[0]}_b.{cover_code[1]}')
+            site_video.title = conver_element.get('title')
+
+            info_element = video.xpath('./div[@class="photo-info"]/span')[0]
+            site_video.num = info_element.xpath('./date')[0].text
+            site_video.publish_date = datetime.strptime(info_element.xpath('./date')[1].text,
+                                                        "%Y-%m-%d").date()
+
+            tag_str = info_element.xpath('./div[@class="item-tag"]/button/text()')
+            if tag_str:
+                site_video.isZh = "字幕" in tag_str
+
+            site_video.url = video.get('href')
+
+            result.append(site_video)
+        pages.data = result
+
+        return pages
