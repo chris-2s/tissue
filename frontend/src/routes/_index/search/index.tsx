@@ -248,7 +248,7 @@ export function Search() {
                             video ? (
                                 <>
                                     <div className={'my-4 rounded-lg overflow-hidden'}>
-                                        <VideoCover src={video.cover}/>
+                                        <VideoCover src={video.cover} num={video.num}/>
                                     </div>
                                     <div className={'text-center'}>
                                         <Tooltip title={'添加订阅'}>

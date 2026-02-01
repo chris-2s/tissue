@@ -68,7 +68,7 @@ function Subscribe() {
                         <Col key={subscribe.id} span={24} md={12} lg={6}>
                             <Card hoverable
                                   size={"small"}
-                                  cover={(<VideoCover src={subscribe.cover}/>)}
+                                  cover={(<VideoCover src={subscribe.cover} num={subscribe.num} />)}
                                   onClick={() => setOpen(true, subscribe)}
                             >
                                 <Card.Meta title={subscribe.title || subscribe.num}
