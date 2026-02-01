@@ -19,7 +19,7 @@ function VideoCover(props: Props) {
 
     const libraryMatched = useMemo(() => {
         if (!num) return undefined
-        return videos?.find(i=>i.num.toUpperCase() === num.toUpperCase())
+        return videos?.find(i=>i.num?.toUpperCase() === num.toUpperCase())
     }, [videos, num])
 
     return (
