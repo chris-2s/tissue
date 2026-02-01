@@ -2,6 +2,7 @@ import {createModel} from "@rematch/core";
 import {RootModel} from "./index";
 import Cookies from 'js-cookie';
 import * as api from "../apis/auth";
+import * as videoApi from "../apis/video.ts";
 import {compare} from "compare-versions";
 import {router} from "../routes.tsx";
 
@@ -11,6 +12,7 @@ interface State {
     userInfo: any | undefined
     logging: boolean
     versions?: { current: string, latest: string, hasNew: boolean },
+    videos: any[]
 }
 
 export const auth = createModel<RootModel>()({
@@ -19,6 +21,7 @@ export const auth = createModel<RootModel>()({
         userInfo: undefined,
         logging: false,
         version: undefined,
+        videos: [],
     } as State,
     reducers: {
         setLogging(state, payload: boolean) {
@@ -32,6 +35,9 @@ export const auth = createModel<RootModel>()({
         },
         setVersions(state, payload: any | undefined) {
             return {...state, versions: payload}
+        },
+        setVideos(state, payload: any | undefined) {
+            return {...state, videos: payload}
         },
     },
     effects: (dispatch) => ({
@@ -56,6 +62,9 @@ export const auth = createModel<RootModel>()({
         async getInfo() {
             const response = await api.getInfo()
             dispatch.auth.setInfo(response.data.data)
+
+            const videos = await videoApi.getVideos()
+            dispatch.auth.setVideos(videos)
         },
         async getVersions() {
             const response = await api.getVersions()

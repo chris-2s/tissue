@@ -34,3 +34,10 @@
 :global(.ant-card .ant-card-cover) .videoCoverContainer {
     border-radius: 8px 8px 0 0
 }
+
+
+.library {
+    position: absolute;
+    right: -1px;
+    bottom: 6px;
+}

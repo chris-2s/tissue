@@ -97,7 +97,6 @@ function RouteLayout() {
                         </div>
                         <Layout.Content
                             style={{
-                                overflowY: "auto",
                                 paddingBottom: (!responsive.md) ? ('calc(50px + env(safe-area-inset-bottom, 0))') : 0
                             }}
                             className={Styles.content}>

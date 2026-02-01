@@ -17,7 +17,7 @@ function VideoItem(props: { item: any }) {
             <div className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0"
                  style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}>
                 <div>
-                    <VideoCover src={item.cover}/>
+                    <VideoCover src={item.cover} num={item.num}/>
                 </div>
                 <div className={'p-3'}>
                     <div className={'text-nowrap overflow-y-scroll'} style={{
