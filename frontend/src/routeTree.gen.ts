@@ -30,6 +30,7 @@ import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index
 import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
 import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
 import { Route as IndexSettingDownloadRouteImport } from './routes/_index/setting/download'
+import { Route as IndexSettingCookiecloudRouteImport } from './routes/_index/setting/cookiecloud'
 import { Route as IndexSettingAppRouteImport } from './routes/_index/setting/app'
 import { Route as IndexHomeDetailRouteImport } from './routes/_index/home/detail'
 
@@ -137,6 +138,11 @@ const IndexSettingDownloadRoute = IndexSettingDownloadRouteImport.update({
   path: '/download',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
+const IndexSettingCookiecloudRoute = IndexSettingCookiecloudRouteImport.update({
+  id: '/cookiecloud',
+  path: '/cookiecloud',
+  getParentRoute: () => IndexSettingRouteRoute,
+} as any)
 const IndexSettingAppRoute = IndexSettingAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginIndexRoute
   '/home/detail': typeof IndexHomeDetailRoute
   '/setting/app': typeof IndexSettingAppRoute
+  '/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginIndexRoute
   '/home/detail': typeof IndexHomeDetailRoute
   '/setting/app': typeof IndexSettingAppRoute
+  '/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/login/': typeof LoginIndexRoute
   '/_index/home/detail': typeof IndexHomeDetailRoute
   '/_index/setting/app': typeof IndexSettingAppRoute
+  '/_index/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
   '/_index/setting/download': typeof IndexSettingDownloadRoute
   '/_index/setting/file': typeof IndexSettingFileRoute
   '/_index/setting/notify': typeof IndexSettingNotifyRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home/detail'
     | '/setting/app'
+    | '/setting/cookiecloud'
     | '/setting/download'
     | '/setting/file'
     | '/setting/notify'
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home/detail'
     | '/setting/app'
+    | '/setting/cookiecloud'
     | '/setting/download'
     | '/setting/file'
     | '/setting/notify'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/login/'
     | '/_index/home/detail'
     | '/_index/setting/app'
+    | '/_index/setting/cookiecloud'
     | '/_index/setting/download'
     | '/_index/setting/file'
     | '/_index/setting/notify'
@@ -450,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexSettingDownloadRouteImport
       parentRoute: typeof IndexSettingRouteRoute
     }
+    '/_index/setting/cookiecloud': {
+      id: '/_index/setting/cookiecloud'
+      path: '/cookiecloud'
+      fullPath: '/setting/cookiecloud'
+      preLoaderRoute: typeof IndexSettingCookiecloudRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
     '/_index/setting/app': {
       id: '/_index/setting/app'
       path: '/app'
@@ -469,6 +488,7 @@ declare module '@tanstack/react-router' {
 
 interface IndexSettingRouteRouteChildren {
   IndexSettingAppRoute: typeof IndexSettingAppRoute
+  IndexSettingCookiecloudRoute: typeof IndexSettingCookiecloudRoute
   IndexSettingDownloadRoute: typeof IndexSettingDownloadRoute
   IndexSettingFileRoute: typeof IndexSettingFileRoute
   IndexSettingNotifyRoute: typeof IndexSettingNotifyRoute
@@ -477,6 +497,7 @@ interface IndexSettingRouteRouteChildren {
 
 const IndexSettingRouteRouteChildren: IndexSettingRouteRouteChildren = {
   IndexSettingAppRoute: IndexSettingAppRoute,
+  IndexSettingCookiecloudRoute: IndexSettingCookiecloudRoute,
   IndexSettingDownloadRoute: IndexSettingDownloadRoute,
   IndexSettingFileRoute: IndexSettingFileRoute,
   IndexSettingNotifyRoute: IndexSettingNotifyRoute,

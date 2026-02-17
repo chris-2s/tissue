@@ -78,7 +78,7 @@ class SpiderService(BaseService):
         spiders = []
         for site in sites:
             spider_class = self.get_spider_by_name(site.class_str)
-            spider = spider_class(alternate_host=site.alternate_host)
+            spider = spider_class(alternate_host=site.alternate_host, cookies=site.cookies)
             spiders.append(spider)
         return spiders
 
@@ -136,18 +136,18 @@ class SpiderService(BaseService):
     def get_ranking(self, source: str, video_type: str, cycle: str):
         if source == 'JavDB':
             site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
-            return JavDBSpider(alternate_host=site.alternate_host).get_ranking(video_type, cycle)
+            return JavDBSpider(alternate_host=site.alternate_host, cookies=site.cookies).get_ranking(video_type, cycle)
         return None
 
     def get_detail(self, source: str, num: str, url: str):
         if source == 'JavDB':
             site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
-            return JavDBSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
-                                                                            include_previews=True,
-                                                                            include_comments=True)
+            return JavDBSpider(alternate_host=site.alternate_host, cookies=site.cookies).get_info(num=num, url=url, include_downloads=True,
+                                                                             include_previews=True,
+                                                                             include_comments=True)
         elif source == 'JavBus':
             site = self.db.query(Site).filter(Site.class_str == 'JavBusSpider').one()
-            return JavBusSpider(alternate_host=site.alternate_host).get_info(num=num, url=url, include_downloads=True,
+            return JavBusSpider(alternate_host=site.alternate_host, cookies=site.cookies).get_info(num=num, url=url, include_downloads=True,
                                                                              include_previews=True,
                                                                              include_comments=True)
         return None
@@ -155,8 +155,8 @@ class SpiderService(BaseService):
     def get_actor(self, source: str, code: str, page: int):
         if source == 'JavDB':
             site = self.db.query(Site).filter(Site.class_str == 'JavDBSpider').one()
-            return JavDBSpider(alternate_host=site.alternate_host).get_actor(code, page)
+            return JavDBSpider(alternate_host=site.alternate_host, cookies=site.cookies).get_actor(code, page)
         elif source == 'JavBus':
             site = self.db.query(Site).filter(Site.class_str == 'JavBusSpider').one()
-            return JavBusSpider(alternate_host=site.alternate_host).get_actor(code, page)
+            return JavBusSpider(alternate_host=site.alternate_host, cookies=site.cookies).get_actor(code, page)
         return []

@@ -34,4 +34,11 @@ def save_setting(section: str, setting: dict):
         qbittorent.host = setting.get('host')
         qbittorent.tracker_subscribe = setting.get('tracker_subscribe')
 
+    if section == 'cookiecloud':
+        enabled = setting.get('enabled')
+        if enabled:
+            scheduler.add('cookiecloud_sync')
+        else:
+            scheduler.remove('cookiecloud_sync')
+
     return R.ok()

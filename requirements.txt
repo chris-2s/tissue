@@ -21,6 +21,7 @@ pillow==11.2.1
 pip-install==1.3.5
 pydantic==2.10.6
 pydantic_core==2.27.2
+pycryptodome==3.22.0
 PyJWT==2.10.1
 PyMySQL==1.1.1
 python-dotenv==1.0.1

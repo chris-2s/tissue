@@ -9,11 +9,14 @@ class Site(BaseModel):
     priority: int
     alternate_host: Optional[str]
     status: Optional[bool]
+    cookies: Optional[str]
 
     downloadable: bool
+
 
 class SiteUpdate(BaseModel):
     id: int
     priority: int
     alternate_host: Optional[str]
     status: Optional[bool]
+    cookies: Optional[str]

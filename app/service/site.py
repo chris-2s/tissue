@@ -29,6 +29,7 @@ class SiteService(BaseService):
             priority=db_site.priority,
             alternate_host=db_site.alternate_host,
             status=db_site.status,
+            cookies=db_site.cookies,
             name=spider.name,
             downloadable=spider.downloadable,
         )

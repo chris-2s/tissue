@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, Text
 
 from app.db.models.base import Base
 
@@ -11,3 +11,4 @@ class Site(Base):
     priority = Column(Integer, nullable=False)
     alternate_host = Column(String, nullable=True)
     status = Column(Boolean, nullable=True)
+    cookies = Column(Text, nullable=True)

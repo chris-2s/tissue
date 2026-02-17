@@ -22,6 +22,13 @@ function ModifyModal(props: FormModalProps) {
                 <Form.Item name={'status'} label={'状态'} valuePropName={'checked'}>
                     <Checkbox>启用</Checkbox>
                 </Form.Item>
+                <Form.Item name={'cookies'} label={'Cookie'}>
+                    <Input.TextArea
+                        placeholder={'从浏览器开发者工具复制的 cookie 字符串'}
+                        rows={4}
+                        style={{fontFamily: 'monospace'}}
+                    />
+                </Form.Item>
             </Form>
         </Modal>
     )
