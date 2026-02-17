@@ -42,6 +42,13 @@ class SettingNotify(BaseModel):
     telegram_chat_id: Optional[str] = None
 
 
+class SettingCookieCloud(BaseModel):
+    enabled: bool = False
+    host: Optional[str] = None
+    uuid: Optional[str] = None
+    password: Optional[str] = None
+
+
 config_path = Path(f'{Path(__file__).cwd()}/config/app.conf')
 
 
@@ -50,6 +57,7 @@ class Setting(BaseModel):
     file: SettingFile = SettingFile()
     download: SettingDownload = SettingDownload()
     notify: SettingNotify = SettingNotify()
+    cookiecloud: SettingCookieCloud = SettingCookieCloud()
 
     def __init__(self):
         settings = Setting.read()

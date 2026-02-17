@@ -6,6 +6,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
 from app.schema import Setting
+from app.service.cookiecloud import CookieCloudService
 from app.service.download import DownloadService
 from app.service.job import clean_cache
 from app.service.site import SiteService
@@ -49,6 +50,10 @@ class Scheduler:
                                        name='刷新可用站点',
                                        job=SiteService.job_testing_sites,
                                        interval=1 * 24 * 60, jitter=2 * 60 * 60, immediate=True),
+        'cookiecloud_sync': Job(key='cookiecloud_sync',
+                                name='CookieCloud 同步',
+                                job=CookieCloudService().sync,
+                                interval=60),
     }
 
     def __init__(self):
@@ -67,6 +72,8 @@ class Scheduler:
             self.add('scrape_download')
         if setting.download.delete_auto:
             self.add('delete_complete_download')
+        if setting.cookiecloud.enabled:
+            self.add('cookiecloud_sync')
 
     def list(self):
         return self.scheduler.get_jobs()

@@ -1,6 +1,6 @@
 import {Card, Tabs} from "antd";
 import React from "react";
-import {AppstoreOutlined, CloudDownloadOutlined, FolderOpenOutlined, NotificationOutlined} from "@ant-design/icons";
+import {AppstoreOutlined, CloudDownloadOutlined, CloudOutlined, FolderOpenOutlined, NotificationOutlined} from "@ant-design/icons";
 import {createFileRoute, Outlet, useLocation, useNavigate} from "@tanstack/react-router";
 
 export const Route = createFileRoute('/_index/setting')({
@@ -32,6 +32,11 @@ function Setting() {
             key: '/setting/notify',
             label: '通知',
             icon: <NotificationOutlined/>,
+        },
+        {
+            key: '/setting/cookiecloud',
+            label: 'CookieCloud',
+            icon: <CloudOutlined/>,
         },
     ]
 

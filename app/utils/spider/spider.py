@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from urllib.parse import unquote
 
 import requests
 import urllib3.util
@@ -22,13 +23,31 @@ class Spider:
     origin_host = None
     downloadable = False
 
-    def __init__(self, alternate_host: str | None = None):
+    def __init__(self, alternate_host: str | None = None, cookies: str | None = None):
         self.host = alternate_host or self.origin_host
 
         self.setting = Setting().app
         self.session = Session()
         self.session.headers = {'User-Agent': self.setting.user_agent, 'Referer': self.host}
         self.session.timeout = (5, self.session.timeout)
+
+        if cookies:
+            self._load_cookies(cookies)
+
+    def _load_cookies(self, cookies_str: str):
+        """从浏览器复制的 cookie 字符串加载
+        格式: key1=value1; key2=value2
+        """
+        for cookie in cookies_str.split(';'):
+            cookie = cookie.strip()
+            if not cookie or '=' not in cookie:
+                continue
+            name, value = cookie.split('=', 1)
+            self.session.cookies.set(
+                name.strip(),
+                unquote(value.strip()),
+                domain=self.host
+            )
 
     @abstractmethod
     def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False,
