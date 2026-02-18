@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 import requests
 import urllib3.util
@@ -43,11 +43,11 @@ class Spider:
             if not cookie or '=' not in cookie:
                 continue
             name, value = cookie.split('=', 1)
-            self.session.cookies.set(
-                name.strip(),
-                unquote(value.strip()),
-                domain=self.host
-            )
+            name = name.strip()
+            value = value.strip()
+            # 先 decode 再 encode，确保最终是 encode 状态
+            value = quote(unquote(value))
+            self.session.cookies.set(name, value)
 
     @abstractmethod
     def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False,

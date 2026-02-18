@@ -71,7 +71,7 @@ class CookieCloudService:
                 if not spider_class:
                     continue
 
-                origin_host = spider_class.origin_host
+                origin_host = site.alternate_host or spider_class.origin_host
                 if not origin_host:
                     continue
 
@@ -96,20 +96,25 @@ class CookieCloudService:
             return None
 
     def _find_matching_cookies(self, origin_host: str, cookie_dict: dict) -> list | None:
+        from urllib.parse import urlparse
+        parsed = urlparse(origin_host)
+        host_domain = parsed.netloc or parsed.path
+        if host_domain.startswith('www.'):
+            host_domain = host_domain[4:]
         for domain, cookies in cookie_dict.items():
-            if origin_host in domain:
+            domain_clean = domain.lstrip('.')
+            if host_domain.endswith(domain_clean) or domain_clean.endswith(host_domain):
                 return cookies
         return None
 
     def _format_cookie_string(self, cookies: list) -> str:
         """将 cookie 数组转换为浏览器复制的字符串格式"""
-        from urllib.parse import quote
         parts = []
         for cookie in cookies:
             name = cookie.get('name', '')
             value = cookie.get('value', '')
             if name:
-                parts.append(f"{name}={quote(value)}")
+                parts.append(f"{name}={value}")
         return '; '.join(parts)
 
 
