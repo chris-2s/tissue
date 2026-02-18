@@ -1,8 +1,12 @@
+import base64
 import re
 import time
 from datetime import datetime
 from random import randint
-from urllib.parse import urljoin
+from typing import Any
+from urllib.parse import urljoin, quote, unquote
+
+import requests
 from lxml import etree
 
 from app.exception import BizException
@@ -19,6 +23,64 @@ class JavDBSpider(Spider):
     origin_host = "https://javdb.com"
     downloadable = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
+
+    def get_login_page(self) -> dict[str, Any]:
+        """获取登录页信息"""
+        session = self.session
+        login_url = urljoin(self.host, "/login")
+
+        response = session.get(login_url)
+        html = etree.HTML(response.content)
+
+        token = html.xpath("//form[@action='/user_sessions']/input[@name='authenticity_token']/@value")
+        authenticity_token = token[0] if token else ""
+
+        captcha_img = html.xpath("//img[@class='rucaptcha-image']/@src")
+        captcha_base64 = ""
+        if captcha_img:
+            img_response = session.get(urljoin(self.host, captcha_img[0]))
+            if img_response.ok:
+                captcha_base64 = base64.b64encode(img_response.content).decode()
+
+        cookies = requests.utils.dict_from_cookiejar(session.cookies)
+        cookie_str = "; ".join([f"{k}={v}" for k, v in cookies.items()])
+
+        return {
+            "cookies": cookie_str,
+            "authenticity_token": authenticity_token,
+            "captcha": captcha_base64
+        }
+
+    def submit_login(self, cookies: str, authenticity_token: str,
+                     username: str, password: str, captcha: str) -> str:
+        """提交登录"""
+        session = requests.Session()
+        session.headers = self.session.headers.copy()
+
+        for cookie in cookies.split(';'):
+            cookie = cookie.strip()
+            if '=' in cookie:
+                name, value = cookie.split('=', 1)
+                session.cookies.set(name.strip(), quote(unquote(value.strip())))
+
+        login_url = urljoin(self.host, "/user_sessions")
+
+        data = {
+            "authenticity_token": authenticity_token,
+            "email": username,
+            "password": password,
+            "_rucaptcha": captcha,
+            "remember": "1",
+            "commit": "登入"
+        }
+
+        response = session.post(login_url, data=data, allow_redirects=False)
+
+        if response.status_code == 302 and '/login' not in response.headers["Location"]:
+            login_cookies = "; ".join([f"{k}={v}" for k, v in session.cookies.get_dict().items()])
+            return login_cookies
+
+        raise BizException("登录失败，请检查账号密码和验证码")
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):

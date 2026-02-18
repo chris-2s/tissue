@@ -1,12 +1,13 @@
 import {createFileRoute, Link} from "@tanstack/react-router";
-import {Badge, Card, Empty, FloatButton, List, message, Skeleton, Space, Tag, theme} from "antd";
+import {Badge, Button, Card, Empty, FloatButton, List, message, Skeleton, Space, Tag, theme} from "antd";
 import ModifyModal from "./-components/modifyModal.tsx";
+import LoginModal from "./-components/loginModal.tsx";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import * as api from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
 import {createPortal} from "react-dom";
-import {RedoOutlined} from "@ant-design/icons";
-import React from "react";
+import {KeyOutlined, RedoOutlined} from "@ant-design/icons";
+import React, {useState} from "react";
 
 
 export const Route = createFileRoute('/_index/site/')({
@@ -27,12 +28,18 @@ function Site() {
         }
     })
 
+    const [loginSite, setLoginSite] = useState<{id: number, name: string} | null>(null)
+
     const {run: onTesting} = useRequest(api.testingSits, {
         manual: true,
         onSuccess: () => {
             message.success("站点刷新提交成功")
         }
     })
+
+    const handleRefreshCookie = (item: any) => {
+        setLoginSite({ id: item.id, name: item.name })
+    }
 
     function renderItem(item: any) {
         return (
@@ -57,6 +64,16 @@ function Site() {
                                 <Tag color={'blue'} bordered={false}>元数据</Tag>
                                 {item.downloadable && <Tag color={'green'} bordered={false}>下载</Tag>}
                             </div>
+                            <Button 
+                                icon={<KeyOutlined />} 
+                                size={'small'}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleRefreshCookie(item)
+                                }}
+                            >
+                                刷新Cookie
+                            </Button>
                         </Space>
                     </Card>
                 </Badge.Ribbon>
@@ -89,6 +106,13 @@ function Site() {
                 </Card>
             )}
             <ModifyModal {...modalProps} />
+            <LoginModal 
+                siteId={loginSite?.id ?? 0}
+                siteName={loginSite?.name ?? ''}
+                open={loginSite !== null}
+                onClose={() => setLoginSite(null)}
+                onSuccess={refresh}
+            />
             {createPortal((
                     <>
                         <FloatButton icon={<RedoOutlined/>} onClick={() => onTesting()}/>

@@ -20,3 +20,11 @@ class SiteUpdate(BaseModel):
     alternate_host: Optional[str]
     status: Optional[bool]
     cookies: Optional[str]
+
+
+class LoginSubmit(BaseModel):
+    cookies: str
+    authenticity_token: str
+    username: str
+    password: str
+    captcha: str
