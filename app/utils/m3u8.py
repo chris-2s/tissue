@@ -16,7 +16,7 @@ def fix_m3u8_paths(m3u8_content: str, video_url: str) -> str:
         if line and not line.startswith('#'):
             if not line.startswith('http'):
                 line = urljoin(base_url, line)
-            line = f"/common/trailer?url={quote(line)}"
+            line = f"/api/common/trailer?url={quote(line)}"
         fixed_lines.append(line)
 
     return '\n'.join(fixed_lines)
