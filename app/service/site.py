@@ -8,6 +8,8 @@ from app.db.models import Site
 from app.db.transaction import transaction
 from app.service.base import BaseService
 from app.service.spider import SpiderService
+from app.service.cookiecloud import CookieCloudService
+from app.exception import BizException
 from app.utils.logger import logger
 
 
@@ -51,6 +53,56 @@ class SiteService(BaseService):
                 logger.info(f"站点【{spider.name}】启用成功")
             else:
                 logger.error(f"站点【{name}】无法连接，请检查网络连接")
+
+    def get_login_page(self, site_id: int) -> dict:
+        site = self.db.query(Site).get(site_id)
+        if not site:
+            raise BizException("站点不存在")
+
+        spider_service = SpiderService(self.db)
+        spider_class = spider_service.get_spider_by_name(site.class_str)
+        if not spider_class:
+            raise BizException("站点类型不存在")
+
+        spider = spider_class(alternate_host=site.alternate_host)
+        try:
+            return spider.get_login_page()
+        except NotImplementedError:
+            raise BizException("该站点暂不支持登录")
+        except Exception as e:
+            raise BizException(f"获取登录页失败: {str(e)}")
+
+    def submit_login(self, site_id: int, data: schema.LoginSubmit):
+        site = self.db.query(Site).get(site_id)
+        if not site:
+            raise BizException("站点不存在")
+
+        spider_service = SpiderService(self.db)
+        spider_class = spider_service.get_spider_by_name(site.class_str)
+        if not spider_class:
+            raise BizException("站点类型不存在")
+
+        spider = spider_class(alternate_host=site.alternate_host)
+        try:
+            cookie_str = spider.submit_login(
+                data.cookies,
+                data.authenticity_token,
+                data.username,
+                data.password,
+                data.captcha
+            )
+        except NotImplementedError:
+            raise BizException("该站点暂不支持登录")
+        except Exception as e:
+            raise BizException(f"登录失败: {str(e)}")
+
+        site.cookies = cookie_str
+        self.db.commit()
+
+        # try:
+        #     CookieCloudService().sync()
+        # except Exception:
+        #     pass
 
     @classmethod
     def job_testing_sites(cls):

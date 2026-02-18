@@ -1,5 +1,7 @@
 from abc import abstractmethod
 from urllib.parse import unquote, quote
+from typing import Any
+import base64
 
 import requests
 import urllib3.util
@@ -58,9 +60,17 @@ class Spider:
             name, value = cookie.split('=', 1)
             name = name.strip()
             value = value.strip()
-            # 先 decode 再 encode，确保最终是 encode 状态
             value = quote(unquote(value))
             self.session.cookies.set(name, value)
+
+    def get_login_page(self) -> dict[str, Any]:
+        """获取登录页信息，返回 cookies + authenticity_token + captcha"""
+        raise NotImplementedError
+
+    def submit_login(self, cookies: str, authenticity_token: str, 
+                    username: str, password: str, captcha: str) -> str:
+        """提交登录，返回登录后的 cookie 字符串"""
+        raise NotImplementedError
 
     @abstractmethod
     def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False,
