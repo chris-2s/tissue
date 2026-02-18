@@ -160,3 +160,23 @@ class SpiderService(BaseService):
             if spider_class and spider_class.name == source:
                 return spider_class(alternate_host=site.alternate_host, cookies=site.cookies)
         return None
+
+    def get_cookies_by_url(self, url: str) -> str | None:
+        """根据视频 URL 获取对应站点的 cookie"""
+        parsed = urlparse(url)
+        host = parsed.netloc
+
+        sites = self.db.query(Site).all()
+
+        for site in sites:
+            spider_class = self.get_spider_by_name(site.class_str)
+            if not spider_class or not spider_class.origin_host:
+                continue
+
+            origin_parsed = urlparse(site.alternate_host or spider_class.origin_host)
+            origin_domain = origin_parsed.netloc.lstrip('www.')
+
+            if host.endswith(origin_domain) or origin_domain.endswith(host):
+                return site.cookies
+
+        return None

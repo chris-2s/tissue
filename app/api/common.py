@@ -1,14 +1,17 @@
 import hashlib
 import re
+from urllib.parse import unquote, quote
 
 import httpx
 import requests
 from cachetools import cached, TTLCache
-from fastapi import APIRouter, Response, Request
+from fastapi import APIRouter, Response, Request, Depends
 from fastapi.responses import StreamingResponse
 
+from app.db import get_db
 from app.schema.r import R
 from app.service.spider import SpiderService
+from app.utils.m3u8 import fix_m3u8_paths, is_m3u8
 from version import APP_VERSION
 
 router = APIRouter()
@@ -29,35 +32,58 @@ def proxy_video_cover(url: str):
     return Response(content=cover, media_type="image", headers=headers)
 
 
-async def advanced_stream_generator(url: str, headers: dict):
+async def advanced_stream_generator(url: str, headers: dict, cookies: str = None):
     async with httpx.AsyncClient() as client:
-        async with client.stream("GET", url, headers=headers, timeout=None) as response:
+        async with client.stream("GET", url, headers=headers, cookies=_parse_cookies(cookies),
+                                 timeout=None) as response:
             response.raise_for_status()
             yield {
                 "status_code": response.status_code,
-                "headers": dict(response.headers)
+                "headers": dict(response.headers),
             }
             async for chunk in response.aiter_bytes():
                 yield chunk
 
 
+def _parse_cookies(cookie_str: str) -> dict:
+    """解析 cookie 字符串为字典"""
+    if not cookie_str:
+        return {}
+    cookies = {}
+    for item in cookie_str.split(';'):
+        item = item.strip()
+        if '=' in item:
+            name, value = item.split('=', 1)
+            cookies[name.strip()] = quote(unquote(value.strip()))
+    return cookies
+
+
 @router.get("/trailer")
-async def proxy_video_trailer(url: str, request: Request):
+async def proxy_video_trailer(url: str, request: Request, db=Depends(get_db)):
     headers = {
         "Range": request.headers.get("Range", ""),
-        "User-Agent": request.headers.get("User-Agent")
+        "User-Agent": request.headers.get("User-Agent"),
     }
 
-    if url.startswith("//"):
-        url = 'http:' + url
+    spider_service = SpiderService(db)
+    cookie_str = spider_service.get_cookies_by_url(url)
 
-    generator = advanced_stream_generator(url, headers)
+    generator = advanced_stream_generator(url, headers, cookie_str)
     try:
         metadata = await generator.__anext__()
         status_code = metadata["status_code"]
         response_headers = metadata["headers"]
     except StopAsyncIteration:
         return Response(status_code=204)
+
+    content_type = response_headers.get("content-type", "")
+
+    if is_m3u8(url, content_type):
+        content = b''
+        async for chunk in generator:
+            content += chunk
+        m3u8_content = fix_m3u8_paths(content.decode('utf-8'), url)
+        return Response(content=m3u8_content.encode('utf-8'), media_type='application/vnd.apple.mpegurl')
 
     return StreamingResponse(
         generator,
