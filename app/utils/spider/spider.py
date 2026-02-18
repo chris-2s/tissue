@@ -33,6 +33,19 @@ class Spider:
 
         if cookies:
             self._load_cookies(cookies)
+            self._ensure_valid_cookies()
+
+    def _ensure_valid_cookies(self):
+        """使用 HEAD 请求检测 cookie 是否有效"""
+        if not self.session.cookies:
+            return
+
+        try:
+            head_response = self.session.head(self.host, timeout=3, allow_redirects=True)
+            if not head_response.ok:
+                self.session.cookies.clear()
+        except:
+            self.session.cookies.clear()
 
     def _load_cookies(self, cookies_str: str):
         """从浏览器复制的 cookie 字符串加载

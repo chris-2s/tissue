@@ -106,16 +106,7 @@ class SpiderService(BaseService):
         return list(filter(lambda item: item, await asyncio.gather(*tasks)))
 
     def get_video_info(self, number: str):
-        logger.info(f"开始刮削番号《{number}》")
-
-        metas = asyncio.run(
-            self._get_video_by_spiders(number, include_downloads=False, include_previews=False, include_comments=False))
-
-        if len(metas) == 0:
-            return None
-
-        meta = self._merge_video_info(metas)
-
+        meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
         logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
         return meta
 
