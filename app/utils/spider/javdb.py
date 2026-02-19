@@ -23,6 +23,12 @@ class JavDBSpider(Spider):
     name = 'JavDB'
     origin_host = "https://javdb.com"
     downloadable = True
+    supports_ranking = True
+    supports_actor = True
+    supports_login = True
+    supports_downloads = True
+    supports_previews = True
+    supports_comments = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
 
     def get_login_page(self) -> dict[str, Any]:

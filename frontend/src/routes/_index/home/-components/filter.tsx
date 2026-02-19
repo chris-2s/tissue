@@ -10,25 +10,25 @@ export interface FilterField {
     span?: { xs?: number, md?: number, lg?: number }
 }
 
-interface FilterProps extends React.ComponentProps<any> {
+interface FilterProps extends React.ComponentProps<typeof Row> {
     fields: FilterField[]
-    initialValues: object
-    onChange: (values: object, filed?: string) => void
+    initialValues: Record<string, unknown>
+    onFilterChange: (values: Record<string, unknown>, filed?: string) => void
 }
 
 function Filter(props: FilterProps) {
 
-    const {fields, initialValues = {}, onChange, ...others} = props
-    const [values, setValues] = useState<any>(initialValues)
+    const {fields, initialValues = {}, onFilterChange, ...others} = props
+    const [values, setValues] = useState<Record<string, unknown>>(initialValues)
 
     function renderFields(field: FilterField) {
 
         const child = React.cloneElement(field.component, {
             value: values[field.dataIndex],
-            onChange: (value: object) => {
+            onChange: (value: unknown) => {
                 const newValues = {...values, [field.dataIndex]: value}
                 setValues(newValues)
-                onChange?.(newValues, field.dataIndex)
+                onFilterChange?.(newValues, field.dataIndex)
             }
         })
 

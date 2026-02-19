@@ -1,12 +1,13 @@
 import {List, Rate, Space, Statistic, theme} from "antd";
 import {LikeOutlined} from "@ant-design/icons";
+import type {VideoCommentItem} from "../../../../types/video";
 
-function Comment(props: { data: any }) {
+function Comment(props: { data: VideoCommentItem[] }) {
     const {data} = props;
     const {token} = theme.useToken()
     return (
         <List dataSource={data}
-              renderItem={(item: any) => (
+              renderItem={(item) => (
                   <List.Item>
                       <List.Item.Meta
                           title={(

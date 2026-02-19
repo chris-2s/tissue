@@ -11,6 +11,7 @@ class Jav321Spider(Spider):
     name = 'Jav321'
     origin_host = "https://www.jav321.com/"
     downloadable = False
+    supports_previews = True
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):

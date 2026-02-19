@@ -41,19 +41,38 @@ import DownloadModal from "./-components/downloadModal.tsx";
 import HistoryModal from "./-components/historyModal.tsx";
 import Comment from "./-components/comment.tsx";
 import ActorsModal from "./-components/actorsModal.tsx";
+import type {VideoDetail, VideoDownload} from "../../../types/video.ts";
 
 const cacheHistoryKey = 'search_video_histories'
 
+type SearchRouteSearch = {
+    num?: string;
+    site_id?: number;
+    url?: string;
+};
+
+type SearchHistory = {
+    num: string;
+    actors: string;
+    title?: string;
+    cover?: string;
+};
+
+type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
+
 export const Route = createFileRoute('/_index/search/')({
     component: Search,
-    loaderDeps: ({search}) => search as any,
+    loaderDeps: ({search}) => search as SearchRouteSearch,
     loader: ({deps}) => {
         return {
             data: deps.num ? (
-                api.searchVideo(deps).then(data => {
-                    const res = {...data, actors: data.actors.map((i: any) => i.name).join(", ")}
-                    const histories: any[] = JSON.parse(localStorage.getItem(cacheHistoryKey) || '[]')
-                        .filter((i: any) => i.num.toUpperCase() !== res.num.toUpperCase())
+                api.searchVideo({num: deps.num}).then(data => {
+                    const res: SearchVideoView = {
+                        ...data,
+                        actors: data.actors.map((i: { name?: string }) => i.name).filter(Boolean).join(", "),
+                    }
+                    const histories: SearchHistory[] = JSON.parse(localStorage.getItem(cacheHistoryKey) || '[]')
+                        .filter((i: SearchHistory) => i.num.toUpperCase() !== (res.num || '').toUpperCase())
                     const history = {num: res.num, actors: res.actors, title: res.title, cover: res.cover}
                     localStorage.setItem(cacheHistoryKey, JSON.stringify([history, ...histories.slice(0, 19)]))
                     return res
@@ -75,18 +94,18 @@ export function Search() {
 
     const detailMatch = useMatch({from: '/_index/home/detail', shouldThrow: false})
     const routeId = detailMatch ? '/_index/home/detail' : '/_index/search/'
-    const search: any = useSearch({from: routeId})
-    const {data: loaderData} = useLoaderData<any>({from: routeId})
+    const search = useSearch({from: routeId}) as SearchRouteSearch
+    const {data: loaderData} = useLoaderData({from: routeId}) as { data: Promise<SearchVideoView | undefined> }
 
     const appDispatch = useDispatch<Dispatch>().app
     const responsive = useResponsive()
-    const [searchInput, setSearchInput] = useState(!detailMatch ? search?.num : null)
+    const [searchInput, setSearchInput] = useState((!detailMatch ? search?.num : '') || '')
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
     const [previewSelected, setPreviewSelected] = useState<number>()
     const [commentSelected, setCommentSelected] = useState<number>()
 
-    const [selectedVideo, setSelectedVideo] = useState<any>()
-    const [selectedDownload, setSelectedDownload] = useState<any>()
+    const [selectedVideo, setSelectedVideo] = useState<SearchVideoView>()
+    const [selectedDownload, setSelectedDownload] = useState<VideoDownload>()
     const [historyModalOpen, setHistoryModalOpen] = useState(false)
     const [actorsModalOpen, setActorsModalOpen] = useState(false)
 
@@ -114,7 +133,7 @@ export function Search() {
         }
     })
 
-    function renderItems(video: any) {
+    function renderItems(video: SearchVideoView) {
         return [
             {
                 key: 'actors',
@@ -183,7 +202,7 @@ export function Search() {
                 span: 24,
                 children: (
                     <div className={'leading-7'}>
-                        {video.tags.map((i: any) => (
+                        {video.tags.map((i) => (
                             <Tag key={i}>{i}</Tag>
                         ))}
                     </div>
@@ -212,9 +231,9 @@ export function Search() {
         ]
     }
 
-    function onCopyClick(item: any) {
+    function onCopyClick(item: VideoDownload) {
         const textarea = document.createElement('textarea');
-        textarea.value = item.magnet;
+        textarea.value = item.magnet || '';
         textarea.style.position = 'fixed';
         document.body.appendChild(textarea);
         textarea.select();
@@ -233,8 +252,8 @@ export function Search() {
                                           value={searchInput} allowClear
                                           onChange={e => setSearchInput(e.target.value)}
                                           onSearch={(num) => {
-                                              if (num) {
-                                                  return router.navigate({search: {num: num} as any, replace: true})
+                                                  if (num) {
+                                                  return router.navigate({search: {num} as never, replace: true})
                                               }
                                           }}/>
                             <div className={'ml-2'}>
@@ -244,7 +263,7 @@ export function Search() {
                         </div>
                     )}
                     <Await promise={loaderData}>
-                        {(video, loading) => (
+                        {(video: SearchVideoView | undefined, loading) => (
                             video ? (
                                 <>
                                     <div className={'my-4 rounded-lg overflow-hidden'}>
@@ -264,7 +283,7 @@ export function Search() {
                                                         router.invalidate({filter: d => d.routeId === routeId})
                                                         return router.navigate({
                                                             replace: true,
-                                                            search: {...search, num: video.num}
+                                                            search: {...search, num: video.num} as never
                                                         })
                                                     }}/>
                                         </Tooltip>
@@ -273,7 +292,7 @@ export function Search() {
                                                 <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
                                                         className={'ml-4'}
                                                         onClick={() => {
-                                                            setSearchInput(video.num)
+                                                            setSearchInput(video.num || '')
                                                             return router.navigate({
                                                                 to: '/search',
                                                                 search: {num: video.num}
@@ -305,14 +324,14 @@ export function Search() {
             </Col>
             <Col span={24} lg={16} md={12}>
                 <Await promise={loaderData}>
-                        {(video) => {
+                        {(video: SearchVideoView | undefined) => {
                             if (video?.previews) {
-                            const previews = video.previews.find((i: any) => i.source.site_id === previewSelected) || video.previews[0]
+                            const previews = video.previews.find((i) => i.source.site_id === previewSelected) || video.previews[0]
                             return (
                                 <Card title={'预览'} className={'mb-4'} extra={(
                                     <Segmented
                                         onChange={(value: number) => setPreviewSelected(value)}
-                                        options={video.previews.map((i: any) => ({
+                                        options={video.previews.map((i) => ({
                                             label: i.source.site_name,
                                             value: i.source.site_id,
                                         }))}
@@ -340,12 +359,12 @@ export function Search() {
                     </>
                 }>
                     <Await promise={loaderData}>
-                        {(video: any, loading) => {
-                            const downloads = video?.downloads?.filter((item: any) => (
+                        {(video: SearchVideoView | undefined, loading) => {
+                            const downloads = video?.downloads?.filter((item) => (
                                 (!filter.isHd || item.is_hd) && (!filter.isZh || item.is_zh) && ((!filter.isUncensored || item.is_uncensored))
                             ))
                             return downloads ? (
-                                <List dataSource={downloads} renderItem={(item: any) => (
+                                <List dataSource={downloads} renderItem={(item) => (
                                     <List.Item actions={[
                                         <Tooltip title={'发送到下载器'}>
                                             <Button type={'primary'} icon={<CloudDownloadOutlined/>}
@@ -400,14 +419,14 @@ export function Search() {
                     </Await>
                 </Card>
                 <Await promise={loaderData}>
-                    {(video) => {
+                    {(video: SearchVideoView | undefined) => {
                         if (video?.comments && video.comments.length > 0) {
-                            const comments = video.comments.find((i: any) => i.source.site_id === commentSelected) || video.comments[0]
+                            const comments = video.comments.find((i) => i.source.site_id === commentSelected) || video.comments[0]
                             return (
                                 <Card title={'评论'} className={'mt-4'} extra={(
                                     <Segmented
                                         onChange={(value: number) => setCommentSelected(value)}
-                                        options={video.comments.map((i: any) => ({
+                                        options={video.comments.map((i) => ({
                                             label: i.source.site_name,
                                             value: i.source.site_id,
                                         }))}
@@ -427,15 +446,21 @@ export function Search() {
             <DownloadModal open={!!selectedDownload}
                            download={selectedDownload}
                            onCancel={() => setSelectedDownload(undefined)}
-                           onDownload={item => onDownload(selectedVideo, item)}
+                           onDownload={(item) => {
+                               if (!selectedVideo || !selectedVideo.num) {
+                                   message.error('视频信息缺失，请重试')
+                                   return
+                               }
+                               onDownload({...selectedVideo, num: selectedVideo.num}, item)
+                           }}
                            confirmLoading={onDownloading}
             />
             <HistoryModal open={historyModalOpen}
                           onCancel={() => setHistoryModalOpen(false)}
-                          onClick={history => {
+                              onClick={history => {
                               setHistoryModalOpen(false)
                               setSearchInput(history.num)
-                              return router.navigate({search: {num: history.num} as any, replace: true})
+                              return router.navigate({search: {num: history.num} as never, replace: true})
                           }}
             />
         </Row>

@@ -26,6 +26,12 @@ class Spider:
     name = None
     origin_host = None
     downloadable = False
+    supports_ranking = False
+    supports_actor = False
+    supports_login = False
+    supports_downloads = False
+    supports_previews = False
+    supports_comments = False
 
     def __init__(self, alternate_host: str | None = None, cookies: str | None = None, site_id: int | None = None):
         self.host = alternate_host or self.origin_host

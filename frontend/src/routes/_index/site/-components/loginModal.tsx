@@ -11,6 +11,12 @@ interface LoginModalProps {
     onSuccess: () => void;
 }
 
+interface LoginFormValues {
+    username: string;
+    password: string;
+    captcha: string;
+}
+
 function LoginModal(props: LoginModalProps) {
     const {siteId, siteName, open, onClose, onSuccess} = props
 
@@ -58,7 +64,7 @@ function LoginModal(props: LoginModalProps) {
         onClose()
     }
 
-    const handleFinish = (values: any) => {
+    const handleFinish = (values: LoginFormValues) => {
         if (!loginData) {
             message.error('登录信息已过期，请重新打开')
             return

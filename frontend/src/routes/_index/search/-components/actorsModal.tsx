@@ -1,8 +1,9 @@
 import {Modal, ModalProps, Space, Tag} from "antd";
 import {useNavigate} from "@tanstack/react-router";
+import type {VideoSiteActor} from "../../../../types/video";
 
 interface Props extends ModalProps {
-    actors: any
+    actors: VideoSiteActor[]
 }
 
 function ActorsModal(props: Props) {
@@ -13,11 +14,11 @@ function ActorsModal(props: Props) {
     return (
         <Modal {...otherProps} title={'演员'} footer={null} centered>
             <Space direction="vertical">
-                {actors?.map((site: any) => (
+                {actors?.map((site) => (
                     <div>
                         <div className={'font-extrabold mb-2'}>{site.source.site_name}</div>
                         <Space wrap={true} size={[5, 10]}>
-                            {site.items.map((actor: any) => (
+                            {site.items.map((actor) => (
                                 <Tag className={'cursor-pointer'}>
                                     <a onClick={() => {
                                         if (!site.source?.site_id) {

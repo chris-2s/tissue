@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TorrentFile(BaseModel):
@@ -15,4 +15,4 @@ class Torrent(BaseModel):
     size: str
     path: str
     tags: List[str]
-    files: List[TorrentFile] = []
+    files: List[TorrentFile] = Field(default_factory=list)

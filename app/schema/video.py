@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class VideoActor(BaseModel):
@@ -24,7 +24,7 @@ class VideoList(BaseModel):
     is_zh: bool = False
     is_uncensored: bool = False
 
-    actors: List[VideoActor] = []
+    actors: List[VideoActor] = Field(default_factory=list)
 
 
 class VideoDownload(BaseModel):
@@ -48,7 +48,7 @@ class VideoPreviewItem(BaseModel):
 
 class VideoPreview(BaseModel):
     source: SourceRef
-    items: List[VideoPreviewItem] = []
+    items: List[VideoPreviewItem] = Field(default_factory=list)
 
 
 class VideoCommentItem(BaseModel):
@@ -62,12 +62,12 @@ class VideoCommentItem(BaseModel):
 
 class VideoComment(BaseModel):
     source: SourceRef
-    items: List[VideoCommentItem] = []
+    items: List[VideoCommentItem] = Field(default_factory=list)
 
 
 class VideoSiteActor(BaseModel):
     source: SourceRef
-    items: List[VideoActor] = []
+    items: List[VideoActor] = Field(default_factory=list)
 
 
 class VideoDetail(BaseModel):
@@ -86,13 +86,13 @@ class VideoDetail(BaseModel):
     # 导演
     director: Optional[str] = None
     # 演员
-    actors: Optional[List[VideoActor]] = []
+    actors: List[VideoActor] = Field(default_factory=list)
     # 制造商
     studio: Optional[str] = None
     # 发行商
     publisher: Optional[str] = None
     # 类别
-    tags: Optional[List[str]] = []
+    tags: List[str] = Field(default_factory=list)
     # 系列
     series: Optional[str] = None
     # 封面
@@ -101,7 +101,7 @@ class VideoDetail(BaseModel):
     fanart: Optional[str] = None
     thumb: Optional[str] = None
     # 页面
-    website: Optional[List[str]] = []
+    website: List[str] = Field(default_factory=list)
     # 路径
     path: Optional[str] = None
     # 是否中文
@@ -110,13 +110,13 @@ class VideoDetail(BaseModel):
     is_uncensored: bool = False
 
     # 下载列表
-    downloads: Optional[List[VideoDownload]] = []
+    downloads: List[VideoDownload] = Field(default_factory=list)
     # 预览列表
-    previews: Optional[List[VideoPreview]] = []
+    previews: List[VideoPreview] = Field(default_factory=list)
     # 评论
-    comments: Optional[List[VideoComment]] = []
+    comments: List[VideoComment] = Field(default_factory=list)
     # 站点演员
-    site_actors: Optional[List[VideoSiteActor]] = []
+    site_actors: List[VideoSiteActor] = Field(default_factory=list)
 
 
 class VideoNotify(VideoDetail):

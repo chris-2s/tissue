@@ -26,19 +26,23 @@ class SiteService(BaseService):
         return [self.get_site(site) for site in sites]
 
     def get_site(self, db_site: Site):
+        spider_key = SpiderService.normalize_spider_key(db_site.spider_key)
+        if not spider_key:
+            raise BizException(f"站点 spider_key 无效: {db_site.spider_key}")
+
         spider_class = SpiderService.get_spider_class(db_site.spider_key)
         spider_name = spider_class.name if spider_class else db_site.spider_key
-        downloadable = spider_class.downloadable if spider_class else False
+        capabilities = SpiderService.get_spider_capabilities(spider_key)
 
         return schema.Site(
             id=db_site.id,
-            spider_key=db_site.spider_key,
+            spider_key=spider_key,
             priority=db_site.priority,
             alternate_host=db_site.alternate_host,
             status=db_site.status,
             cookies=db_site.cookies,
             name=spider_name,
-            downloadable=downloadable,
+            capabilities=capabilities,
         )
 
     @transaction
@@ -98,6 +102,8 @@ class SiteService(BaseService):
         spider = spider_service.build_spider(site, include_cookies=False)
         if not spider:
             raise BizException("站点类型不存在")
+        if not spider.supports_login:
+            raise BizException("该站点暂不支持登录")
 
         try:
             return spider.get_login_page()
@@ -117,6 +123,8 @@ class SiteService(BaseService):
         spider = spider_service.build_spider(site, include_cookies=False)
         if not spider:
             raise BizException("站点类型不存在")
+        if not spider.supports_login:
+            raise BizException("该站点暂不支持登录")
 
         try:
             cookie_list = spider.submit_login(
