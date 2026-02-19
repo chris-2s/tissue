@@ -21,12 +21,14 @@ class Session(requests.Session):
 
 
 class Spider:
+    key = None
     name = None
     origin_host = None
     downloadable = False
 
-    def __init__(self, alternate_host: str | None = None, cookies: str | None = None):
+    def __init__(self, alternate_host: str | None = None, cookies: str | None = None, site_id: int | None = None):
         self.host = alternate_host or self.origin_host
+        self.site_id = site_id
 
         self.setting = Setting().app
         self.session = Session()

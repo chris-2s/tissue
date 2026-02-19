@@ -7,6 +7,7 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class Jav321Spider(Spider):
+    key = 'jav321'
     name = 'Jav321'
     origin_host = "https://www.jav321.com/"
     downloadable = False

@@ -19,6 +19,7 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class JavDBSpider(Spider):
+    key = 'javdb'
     name = 'JavDB'
     origin_host = "https://javdb.com"
     downloadable = True
@@ -164,7 +165,7 @@ class JavDBSpider(Spider):
                 actor = VideoActor(name=actor_element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
-            meta.site_actors = [VideoSiteActor(website=self.name, items=actors)]
+            meta.site_actors = [VideoSiteActor(site_id=self.site_id, website=self.name, items=actors)]
 
         cover_element = html.xpath("//img[@class='video-cover']")
         if cover_element:

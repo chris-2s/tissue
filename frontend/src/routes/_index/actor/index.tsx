@@ -30,10 +30,10 @@ function Actor() {
                         <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
                             {videos.map((item: any) => (
                                 <Col key={item.url} span={24} md={12} lg={6}
-                                     onClick={() => navigate({
-                                         to: '/home/detail',
-                                         search: {source: search.source, num: item.num, url: item.url}
-                                     })}>
+                                 onClick={() => navigate({
+                                          to: '/home/detail',
+                                          search: {site_id: search.site_id, num: item.num, url: item.url}
+                                      })}>
                                     <VideoItem item={item}/>
                                 </Col>
                             ))}

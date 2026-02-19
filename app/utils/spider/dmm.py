@@ -8,6 +8,7 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class DmmSpider(Spider):
+    key = 'dmm'
     name = 'DMM'
     origin_host = "https://www.dmm.co.jp"
     api_url = "https://api.video.dmm.co.jp/graphql"

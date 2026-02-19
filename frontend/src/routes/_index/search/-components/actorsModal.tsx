@@ -20,8 +20,11 @@ function ActorsModal(props: Props) {
                             {site.items.map((actor: any) => (
                                 <Tag className={'cursor-pointer'}>
                                     <a onClick={() => {
+                                        if (!site.site_id) {
+                                            return
+                                        }
                                         navigate({
-                                            to: '/actor', search: {source: site.website, code: actor.code}
+                                            to: '/actor', search: {site_id: site.site_id, code: actor.code}
                                         })
                                     }}>{actor.name}</a>
                                 </Tag>

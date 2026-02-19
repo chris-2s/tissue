@@ -26,16 +26,19 @@ class SiteService(BaseService):
         return [self.get_site(site) for site in sites]
 
     def get_site(self, db_site: Site):
-        spider = SpiderService.get_spider_by_name(db_site.class_str)
+        spider_class = SpiderService.get_spider_class(db_site.spider_key)
+        spider_name = spider_class.name if spider_class else db_site.spider_key
+        downloadable = spider_class.downloadable if spider_class else False
 
         return schema.Site(
             id=db_site.id,
+            spider_key=db_site.spider_key,
             priority=db_site.priority,
             alternate_host=db_site.alternate_host,
             status=db_site.status,
             cookies=db_site.cookies,
-            name=spider.name,
-            downloadable=spider.downloadable,
+            name=spider_name,
+            downloadable=downloadable,
         )
 
     @transaction
@@ -46,10 +49,13 @@ class SiteService(BaseService):
     def testing_site(self):
         sites = self.db.query(Site).filter(Site.status == None).order_by(Site.priority).all()
         for site in sites:
-            spider = SpiderService.get_spider_by_name(site.class_str)
+            spider = SpiderService.build_spider(site, include_cookies=False)
+            if not spider:
+                logger.error(f"站点【{site.spider_key}】未注册，跳过测试")
+                continue
             name = spider.name[0] + '*' * (len(spider.name) - 2) + spider.name[-1]
             logger.info(f"站点【{name}】连接性测试...")
-            if spider().testing():
+            if spider.testing():
                 site.update(self.db, {'status': 1})
                 self.db.commit()
                 logger.info(f"站点【{spider.name}】启用成功")
@@ -63,13 +69,15 @@ class SiteService(BaseService):
 
         sites = self.db.query(Site).filter(Site.cookies.isnot(None)).all()
         for site in sites:
-            spider = SpiderService.get_spider_by_name(site.class_str)
-            spider_instance = spider(alternate_host=site.alternate_host, cookies=site.cookies)
+            spider_instance = SpiderService.build_spider(site)
+            if not spider_instance:
+                logger.error(f"站点【{site.spider_key}】未注册，跳过 Cookie 检查")
+                continue
 
             if not spider_instance.session.cookies:
-                domain = urlparse(site.alternate_host or spider.origin_host).netloc
+                domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
                 cookie_notify = CookieNotify(
-                    site_name=spider.name,
+                    site_name=spider_instance.name,
                     domain=domain,
                     message="Cookie已失效，请重新登录"
                 )
@@ -79,7 +87,7 @@ class SiteService(BaseService):
 
                 site.cookies = None
                 self.db.commit()
-                logger.warning(f"站点【{spider.name}】Cookie已失效并清除")
+                logger.warning(f"站点【{spider_instance.name}】Cookie已失效并清除")
 
     def get_login_page(self, site_id: int) -> dict:
         site = self.db.query(Site).get(site_id)
@@ -87,11 +95,10 @@ class SiteService(BaseService):
             raise BizException("站点不存在")
 
         spider_service = SpiderService(self.db)
-        spider_class = spider_service.get_spider_by_name(site.class_str)
-        if not spider_class:
+        spider = spider_service.build_spider(site, include_cookies=False)
+        if not spider:
             raise BizException("站点类型不存在")
 
-        spider = spider_class(alternate_host=site.alternate_host)
         try:
             return spider.get_login_page()
         except NotImplementedError:
@@ -107,11 +114,10 @@ class SiteService(BaseService):
             raise BizException("站点不存在")
 
         spider_service = SpiderService(self.db)
-        spider_class = spider_service.get_spider_by_name(site.class_str)
-        if not spider_class:
+        spider = spider_service.build_spider(site, include_cookies=False)
+        if not spider:
             raise BizException("站点类型不存在")
 
-        spider = spider_class(alternate_host=site.alternate_host)
         try:
             cookie_list = spider.submit_login(
                 data.cookies,
