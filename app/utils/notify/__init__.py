@@ -1,4 +1,4 @@
-from app.schema import VideoNotify, Setting, SubscribeNotify
+from app.schema import VideoNotify, Setting, SubscribeNotify, CookieNotify
 from app.utils.logger import logger
 from app.utils.notify.base import Base
 from app.utils.notify.telegram import Telegram
@@ -29,3 +29,11 @@ def send_subscribe(subscribe: SubscribeNotify):
         notification.send_subscribe(subscribe)
     except:
         logger.error("消息发送失败：订阅下载成功")
+
+
+def send_cookie(cookie: CookieNotify):
+    try:
+        notification = match_notification()
+        notification.send_cookie(cookie)
+    except:
+        logger.error("消息发送失败：Cookie失效")

@@ -1,7 +1,7 @@
 import os
 import requests
 
-from app.schema import VideoNotify, SubscribeNotify
+from app.schema import VideoNotify, SubscribeNotify, CookieNotify
 from app.utils import cache
 from app.utils.notify.base import Base
 
@@ -51,6 +51,15 @@ class Telegram(Base):
         picture = cache.get_cache_file('cover', subscribe.cover)
         _, ext_name = os.path.splitext(subscribe.cover)
         self.send(content, picture=picture, picture_name=f'cover{ext_name}')
+
+    def send_cookie(self, cookie: CookieNotify):
+        content = f'''
+<b>⚠️ 站点Cookie失效</b>
+站点：<tg-spoiler>{cookie.site_name}</tg-spoiler>
+域名：<tg-spoiler>{cookie.domain}</tg-spoiler>
+原因：<tg-spoiler>{cookie.message}</tg-spoiler>
+'''
+        self.send(content)
 
     def send(self, content: str, picture: bytes = None, picture_name: str = None):
         token = self.setting.telegram_token
