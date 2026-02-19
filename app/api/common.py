@@ -1,5 +1,6 @@
 import hashlib
 import re
+from typing import Optional
 from urllib.parse import unquote, quote
 
 import httpx
@@ -59,7 +60,7 @@ def _parse_cookies(cookie_str: str) -> dict:
 
 
 @router.get("/trailer")
-async def proxy_video_trailer(url: str, request: Request, db=Depends(get_db)):
+async def proxy_video_trailer(url: str, request: Request, db=Depends(get_db), base_url: Optional[str] = None):
     headers = {
         "Range": request.headers.get("Range", ""),
         "User-Agent": request.headers.get("User-Agent"),
@@ -82,7 +83,7 @@ async def proxy_video_trailer(url: str, request: Request, db=Depends(get_db)):
         content = b''
         async for chunk in generator:
             content += chunk
-        m3u8_content = fix_m3u8_paths(content.decode('utf-8'), url)
+        m3u8_content = fix_m3u8_paths(content.decode('utf-8'), url, base_url)
         return Response(content=m3u8_content.encode('utf-8'), media_type='application/vnd.apple.mpegurl')
 
     return StreamingResponse(

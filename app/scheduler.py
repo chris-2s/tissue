@@ -53,7 +53,7 @@ class Scheduler:
         'cookiecloud_sync': Job(key='cookiecloud_sync',
                                 name='CookieCloud 同步',
                                 job=CookieCloudService().sync,
-                                interval=60),
+                                interval=60, immediate=True),
     }
 
     def __init__(self):
