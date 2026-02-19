@@ -82,6 +82,35 @@ class CookieCloudService:
         except Exception as e:
             logger.error(f"CookieCloud 推送失败: {e}")
 
+    def delete_cookie(self, domain: str):
+        setting = Setting().cookiecloud
+        if not setting.enabled:
+            logger.info("CookieCloud 未启用")
+            return
+
+        if not setting.host or not setting.uuid or not setting.password:
+            logger.warning("CookieCloud 配置不完整")
+            return
+
+        try:
+            cookie_cloud = PyCookieCloud(setting.host, setting.uuid, setting.password)
+            decrypted_data = cookie_cloud.get_decrypted_data()
+            if not decrypted_data:
+                logger.warning("CookieCloud 返回数据为空")
+                return
+
+            if domain in decrypted_data:
+                del decrypted_data[domain]
+                if cookie_cloud.update_cookie(decrypted_data):
+                    logger.info(f"站点 {domain} cookie 已从 CookieCloud 删除")
+                else:
+                    logger.error("CookieCloud 删除失败")
+            else:
+                logger.info(f"CookieCloud 上未找到域名 {domain} 的 cookie")
+
+        except Exception as e:
+            logger.error(f"CookieCloud 删除失败: {e}")
+
     def _get_spider_class(self, class_str: str):
         try:
             module = importlib.import_module('app.utils.spider')

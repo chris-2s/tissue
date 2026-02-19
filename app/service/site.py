@@ -75,6 +75,8 @@ class SiteService(BaseService):
                 )
                 notify.send_cookie(cookie_notify)
 
+                CookieCloudService().delete_cookie(domain)
+
                 site.cookies = None
                 self.db.commit()
                 logger.warning(f"站点【{spider.name}】Cookie已失效并清除")
