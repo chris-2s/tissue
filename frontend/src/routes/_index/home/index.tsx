@@ -1,10 +1,11 @@
 import Filter, {FilterField} from "./-components/filter.tsx";
 import React from "react";
-import {Col, Empty, message, Row, Skeleton} from "antd";
+import {Col, Empty, Row, Skeleton} from "antd";
 import VideoItem from "./-components/item.tsx";
 import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
 import * as api from "../../../apis/home.ts";
+import * as siteApi from "../../../apis/site.ts";
 import {Await, createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
 
 export const Route = createFileRoute('/_index/home/')({
@@ -13,9 +14,19 @@ export const Route = createFileRoute('/_index/home/')({
         if (Object.keys(search).length === 0)
             throw redirect({search: {video_type: 'censored', cycle: 'daily', rank: 0} as any})
     },
-    loaderDeps: ({search}) => ({...search, rank: 0}),
+    loaderDeps: ({search}) => ({...search, rank: 0} as any),
     loader: async ({deps}) => ({
-        data: api.getRankings({...deps, source: 'JavDB'}).catch(() => {
+        data: siteApi.getSites().then((sites) => {
+            const preferredSite = sites.find((item: any) => item.spider_key === 'javdb') || sites[0]
+            const siteId = deps.site_id || preferredSite?.id
+
+            if (!siteId) {
+                return {siteId: 0, items: []}
+            }
+
+            return api.getRankings({...deps, site_id: siteId}).then((items) => ({siteId, items}))
+        }).catch(() => {
+            return {siteId: 0, items: []}
         })
     }),
     staleTime: Infinity
@@ -62,16 +73,16 @@ function JavDB() {
             <Await promise={data} fallback={(
                 <Skeleton active/>
             )}>
-                {(data = []) => {
-                    const videos = data.filter((item: any) => item.rank >= filter.rank)
+                {(payload: any = {siteId: 0, items: []}) => {
+                    const videos = payload.items.filter((item: any) => item.rank >= filter.rank)
                     return videos.length > 0 ? (
                         <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
                             {videos.map((item: any) => (
                                 <Col key={item.url} span={24} md={12} lg={6}
                                      onClick={() => navigate({
-                                         to: '/home/detail',
-                                         search: {source: 'JavDB', num: item.num, url: item.url}
-                                     })}>
+                                          to: '/home/detail',
+                                          search: {site_id: payload.siteId, num: item.num, url: item.url}
+                                      })}>
                                     <VideoItem item={item}/>
                                 </Col>
                             ))}

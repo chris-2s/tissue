@@ -60,6 +60,7 @@ class VideoComment(BaseModel):
 
 
 class VideoSiteActor(BaseModel):
+    site_id: Optional[int] = None
     website: Optional[str] = None
     items: List[VideoActor] = []
 

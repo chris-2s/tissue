@@ -1,10 +1,9 @@
-import importlib
-
 from PyCookieCloud import PyCookieCloud
 
 from app.db import get_db
 from app.db.models import Site
 from app.schema import Setting
+from app.service.spider import SpiderService
 from app.utils.logger import logger
 
 
@@ -33,7 +32,7 @@ class CookieCloudService:
 
             matched_count = 0
             for site in sites:
-                spider_class = self._get_spider_class(site.class_str)
+                spider_class = SpiderService.get_spider_class(site.spider_key)
                 if not spider_class:
                     continue
 
@@ -47,7 +46,7 @@ class CookieCloudService:
                     site.cookies = cookie_str
                     db.commit()
                     matched_count += 1
-                    logger.info(f"站点 {site.class_str} 同步 cookie 成功")
+                    logger.info(f"站点 {site.spider_key} 同步 cookie 成功")
 
             logger.info(f"CookieCloud 同步完成，共匹配 {matched_count} 个站点")
 
@@ -110,13 +109,6 @@ class CookieCloudService:
 
         except Exception as e:
             logger.error(f"CookieCloud 删除失败: {e}")
-
-    def _get_spider_class(self, class_str: str):
-        try:
-            module = importlib.import_module('app.utils.spider')
-            return getattr(module, class_str)
-        except (ImportError, AttributeError):
-            return None
 
     def _find_matching_cookies(self, origin_host: str, cookie_dict: dict) -> list | None:
         from urllib.parse import urlparse

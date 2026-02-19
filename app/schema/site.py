@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class Site(BaseModel):
     id: int
+    spider_key: str
     name: str
     priority: int
     alternate_host: Optional[str]

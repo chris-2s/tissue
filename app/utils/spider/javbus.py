@@ -15,6 +15,7 @@ from app.utils.spider.spider_exception import SpiderException
 
 
 class JavBusSpider(Spider):
+    key = 'javbus'
     name = 'JavBus'
     origin_host = "https://www.javbus.com/"
     downloadable = True
@@ -82,7 +83,7 @@ class JavBusSpider(Spider):
                 actor = VideoActor(name=element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
-            meta.site_actors = [VideoSiteActor(website=self.name, items=actors)]
+            meta.site_actors = [VideoSiteActor(site_id=self.site_id, website=self.name, items=actors)]
 
         cover_element = html.xpath("//a[@class='bigImage']")
         if cover_element:

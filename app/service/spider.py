@@ -1,7 +1,7 @@
 import asyncio
-import importlib
 import traceback
 from datetime import datetime
+from typing import Type
 from urllib.parse import urlparse
 
 from fastapi import Depends
@@ -14,7 +14,7 @@ from app.schema import VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
-from app.utils.spider import JavDBSpider
+from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -24,14 +24,33 @@ def get_spider_service(db: Session = Depends(get_db)):
 
 
 class SpiderService(BaseService):
+    SPIDER_REGISTRY: dict[str, Type[Spider]] = {
+        JavDBSpider.key: JavDBSpider,
+        JavBusSpider.key: JavBusSpider,
+        Jav321Spider.key: Jav321Spider,
+        DmmSpider.key: DmmSpider,
+    }
+
     @staticmethod
-    def get_spider_by_name(class_str: str):
-        try:
-            module_path = 'app.utils.spider'
-            module = importlib.import_module(module_path)
-            return getattr(module, class_str)
-        except (ImportError, AttributeError) as e:
+    def get_spider_class(spider_key: str) -> Type[Spider] | None:
+        return SpiderService.SPIDER_REGISTRY.get(spider_key)
+
+    @classmethod
+    def build_spider(cls, site: Site, include_cookies: bool = True) -> Spider | None:
+        spider_class = cls.get_spider_class(site.spider_key)
+        if not spider_class:
             return None
+        return spider_class(
+            alternate_host=site.alternate_host,
+            cookies=site.cookies if include_cookies else None,
+            site_id=site.id,
+        )
+
+    def build_spider_by_site_id(self, site_id: int, include_cookies: bool = True) -> Spider | None:
+        site = Site.get(self.db, site_id)
+        if not site:
+            return None
+        return self.build_spider(site, include_cookies=include_cookies)
 
     @staticmethod
     def get_video_cover(url: str):
@@ -77,8 +96,9 @@ class SpiderService(BaseService):
         sites = self.db.query(Site).filter(Site.status == 1).order_by(Site.priority).all()
         spiders = []
         for site in sites:
-            spider_class = self.get_spider_by_name(site.class_str)
-            spider = spider_class(alternate_host=site.alternate_host, cookies=site.cookies)
+            spider = self.build_spider(site)
+            if not spider:
+                continue
             spiders.append(spider)
         return spiders
 
@@ -124,33 +144,24 @@ class SpiderService(BaseService):
 
         return meta
 
-    def get_ranking(self, source: str, video_type: str, cycle: str):
-        spider = self.get_spider_by_source(source)
-        if not spider:
+    def get_ranking(self, site_id: int, video_type: str, cycle: str):
+        spider = self.build_spider_by_site_id(site_id)
+        if not spider or not hasattr(spider, 'get_ranking'):
             return None
         return spider.get_ranking(video_type, cycle)
 
-    def get_detail(self, source: str, num: str, url: str):
-        spider = self.get_spider_by_source(source)
+    def get_detail(self, site_id: int, num: str, url: str):
+        spider = self.build_spider_by_site_id(site_id)
         if not spider:
             return None
         return spider.get_info(num=num, url=url, include_downloads=True,
-                              include_previews=True, include_comments=True)
+                               include_previews=True, include_comments=True)
 
-    def get_actor(self, source: str, code: str, page: int):
-        spider = self.get_spider_by_source(source)
-        if not spider:
+    def get_actor(self, site_id: int, code: str, page: int):
+        spider = self.build_spider_by_site_id(site_id)
+        if not spider or not hasattr(spider, 'get_actor'):
             return []
         return spider.get_actor(code, page)
-
-    def get_spider_by_source(self, source: str) -> Spider | None:
-        """根据 source (spider.name) 获取 spider 实例"""
-        sites = self.db.query(Site).all()
-        for site in sites:
-            spider_class = self.get_spider_by_name(site.class_str)
-            if spider_class and spider_class.name == source:
-                return spider_class(alternate_host=site.alternate_host, cookies=site.cookies)
-        return None
 
     def get_cookies_by_url(self, url: str) -> str | None:
         """根据视频 URL 获取对应站点的 cookie"""
@@ -160,7 +171,7 @@ class SpiderService(BaseService):
         sites = self.db.query(Site).all()
 
         for site in sites:
-            spider_class = self.get_spider_by_name(site.class_str)
+            spider_class = self.get_spider_class(site.spider_key)
             if not spider_class or not spider_class.origin_host:
                 continue
 

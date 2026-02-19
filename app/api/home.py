@@ -12,18 +12,18 @@ router = APIRouter()
 
 
 @router.get('/ranking')
-def get_rankings(source: str, video_type: str, cycle: str, service=Depends(get_spider_service)):
-    return service.get_ranking(source, video_type, cycle)
+def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_spider_service)):
+    return service.get_ranking(site_id, video_type, cycle)
 
 
 @router.get('/detail')
-def get_detail(source: str, num: str, url: str, service=Depends(get_spider_service)):
-    return service.get_detail(source, num, url)
+def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
+    return service.get_detail(site_id, num, url)
 
 
 @router.get('/actor')
-def get_actor(source: str, code: str, page: int = 1, service=Depends(get_spider_service)):
-    return R.pages(service.get_actor(source, code, page))
+def get_actor(site_id: int, code: str, page: int = 1, service=Depends(get_spider_service)):
+    return R.pages(service.get_actor(site_id, code, page))
 
 
 @router.get('/log')
