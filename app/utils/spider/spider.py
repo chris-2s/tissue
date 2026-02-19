@@ -68,8 +68,8 @@ class Spider:
         raise NotImplementedError
 
     def submit_login(self, cookies: str, authenticity_token: str, 
-                    username: str, password: str, captcha: str) -> str:
-        """提交登录，返回登录后的 cookie 字符串"""
+                    username: str, password: str, captcha: str) -> list[dict]:
+        """提交登录，返回登录后的 cookie 数组"""
         raise NotImplementedError
 
     @abstractmethod

@@ -52,8 +52,8 @@ class JavDBSpider(Spider):
         }
 
     def submit_login(self, cookies: str, authenticity_token: str,
-                     username: str, password: str, captcha: str) -> str:
-        """提交登录"""
+                     username: str, password: str, captcha: str) -> list[dict]:
+        """提交登录，返回详细 cookie 数组"""
         session = requests.Session()
         session.headers = self.session.headers.copy()
 
@@ -77,8 +77,18 @@ class JavDBSpider(Spider):
         response = session.post(login_url, data=data, allow_redirects=False)
 
         if response.status_code == 302 and '/login' not in response.headers["Location"]:
-            login_cookies = "; ".join([f"{k}={v}" for k, v in session.cookies.get_dict().items()])
-            return login_cookies
+            cookie_list = []
+            for cookie in session.cookies:
+                cookie_list.append({
+                    'name': cookie.name,
+                    'value': cookie.value,
+                    'path': cookie.path or '/',
+                    'domain': cookie.domain or '',
+                    'secure': cookie.secure,
+                    'httpOnly': cookie.has_nonstandard_attr('HttpOnly'),
+                    'sameSite': cookie.get_nonstandard_attr('SameSite', 'Lax')
+                })
+            return cookie_list
 
         raise BizException("登录失败，请检查账号密码和验证码")
 
