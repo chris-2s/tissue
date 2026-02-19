@@ -10,6 +10,12 @@ class VideoActor(BaseModel):
     code: Optional[str] = None
 
 
+class SourceRef(BaseModel):
+    site_id: int
+    spider_key: str
+    site_name: str
+
+
 class VideoList(BaseModel):
     title: str
     path: str
@@ -27,7 +33,7 @@ class VideoDownload(BaseModel):
     is_uncensored: bool = False
 
     name: Optional[str] = None
-    website: Optional[str] = None
+    source: SourceRef
     url: Optional[str] = None
     size: Optional[str] = None
     magnet: Optional[str] = None
@@ -41,7 +47,7 @@ class VideoPreviewItem(BaseModel):
 
 
 class VideoPreview(BaseModel):
-    website: Optional[str] = None
+    source: SourceRef
     items: List[VideoPreviewItem] = []
 
 
@@ -55,13 +61,12 @@ class VideoCommentItem(BaseModel):
 
 
 class VideoComment(BaseModel):
-    website: Optional[str] = None
+    source: SourceRef
     items: List[VideoCommentItem] = []
 
 
 class VideoSiteActor(BaseModel):
-    site_id: Optional[int] = None
-    website: Optional[str] = None
+    source: SourceRef
     items: List[VideoActor] = []
 
 

@@ -52,4 +52,4 @@ class Jav321Spider(Spider):
             source = video.xpath("./source/@src")[0]
             preview = VideoPreviewItem(type='video', thumb=video.get('poster'), url=source)
             result.append(preview)
-        return [VideoPreview(website=self.name, items=result)] if result else None
+        return [VideoPreview(source=self.source_ref(), items=result)] if result else None

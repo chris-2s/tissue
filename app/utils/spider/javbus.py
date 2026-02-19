@@ -83,7 +83,7 @@ class JavBusSpider(Spider):
                 actor = VideoActor(name=element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
-            meta.site_actors = [VideoSiteActor(site_id=self.site_id, website=self.name, items=actors)]
+            meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
 
         cover_element = html.xpath("//a[@class='bigImage']")
         if cover_element:
@@ -109,7 +109,7 @@ class JavBusSpider(Spider):
             preview = VideoPreviewItem(type='image', thumb=urljoin(self.host, thumb.get('src')), url=image.get('href'))
             result.append(preview)
 
-        return [VideoPreview(website=self.name, items=result)]
+        return [VideoPreview(source=self.source_ref(), items=result)]
 
     def get_downloads(self, url: str, response: str):
         params = {'lang': 'zh', 'floor': random.Random().randint(100, 1000)}
@@ -134,8 +134,7 @@ class JavBusSpider(Spider):
             if not parts:
                 continue
 
-            download = VideoDownload()
-            download.website = self.name
+            download = VideoDownload(source=self.source_ref())
             download.url = url
             download.name = parts[0].text.strip()
             download.magnet = parts[0].get('href')

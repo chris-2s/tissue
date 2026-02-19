@@ -7,6 +7,7 @@ import requests
 import urllib3.util
 
 from app.schema import Setting
+from app.schema.video import SourceRef
 
 
 class Session(requests.Session):
@@ -38,6 +39,11 @@ class Spider:
         if cookies:
             self._load_cookies(cookies)
             self._ensure_valid_cookies()
+
+    def source_ref(self) -> SourceRef:
+        if self.site_id is None or self.key is None or self.name is None:
+            raise ValueError('Spider source fields are incomplete')
+        return SourceRef(site_id=self.site_id, spider_key=self.key, site_name=self.name)
 
     def _ensure_valid_cookies(self):
         """使用 HEAD 请求检测 cookie 是否有效"""
