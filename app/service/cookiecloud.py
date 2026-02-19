@@ -4,6 +4,12 @@ from app.db import get_db
 from app.db.models import Site
 from app.schema import Setting
 from app.service.spider import SpiderService
+from app.utils.cookies import (
+    cookiecloud_items_to_cookies,
+    cookies_to_cookiecloud_items,
+    parse_cookie_header,
+    to_cookie_header,
+)
 from app.utils.logger import logger
 
 
@@ -42,7 +48,7 @@ class CookieCloudService:
 
                 matched_cookies = self._find_matching_cookies(origin_host, cookie_dict)
                 if matched_cookies:
-                    cookie_str = self._format_cookie_string(matched_cookies)
+                    cookie_str = to_cookie_header(cookiecloud_items_to_cookies(matched_cookies))
                     site.cookies = cookie_str
                     db.commit()
                     matched_count += 1
@@ -70,7 +76,8 @@ class CookieCloudService:
                 logger.warning("CookieCloud 返回数据为空，无法推送")
                 return
 
-            decrypted_data[domain] = cookies
+            normalized_items = cookies_to_cookiecloud_items(cookiecloud_items_to_cookies(cookies))
+            decrypted_data[domain] = normalized_items
 
             if not cookie_cloud.update_cookie(decrypted_data):
                 logger.error("CookieCloud 推送失败")
@@ -81,7 +88,7 @@ class CookieCloudService:
         except Exception as e:
             logger.error(f"CookieCloud 推送失败: {e}")
 
-    def delete_cookie(self, domain: str):
+    def delete_cookie_if_match(self, domain: str, expected_cookie_header: str | None):
         setting = Setting().cookiecloud
         if not setting.enabled:
             logger.info("CookieCloud 未启用")
@@ -98,17 +105,26 @@ class CookieCloudService:
                 logger.warning("CookieCloud 返回数据为空")
                 return
 
-            if domain in decrypted_data:
-                del decrypted_data[domain]
-                if cookie_cloud.update_cookie(decrypted_data):
-                    logger.info(f"站点 {domain} cookie 已从 CookieCloud 删除")
-                else:
-                    logger.error("CookieCloud 删除失败")
-            else:
+            cloud_items = decrypted_data.get(domain)
+            if not cloud_items:
                 logger.info(f"CookieCloud 上未找到域名 {domain} 的 cookie")
+                return
+
+            cloud_cookie_header = to_cookie_header(cookiecloud_items_to_cookies(cloud_items))
+            expected_normalized = to_cookie_header(parse_cookie_header(expected_cookie_header))
+
+            if cloud_cookie_header != expected_normalized:
+                logger.warning(f"域名 {domain} 的 CookieCloud cookie 已更新，跳过删除")
+                return
+
+            del decrypted_data[domain]
+            if cookie_cloud.update_cookie(decrypted_data):
+                logger.info(f"站点 {domain} cookie 已从 CookieCloud 删除")
+            else:
+                logger.error("CookieCloud 删除失败")
 
         except Exception as e:
-            logger.error(f"CookieCloud 删除失败: {e}")
+            logger.error(f"CookieCloud 条件删除失败: {e}")
 
     def _find_matching_cookies(self, origin_host: str, cookie_dict: dict) -> list | None:
         from urllib.parse import urlparse
@@ -121,13 +137,3 @@ class CookieCloudService:
             if host_domain.endswith(domain_clean) or domain_clean.endswith(host_domain):
                 return cookies
         return None
-
-    def _format_cookie_string(self, cookies: list) -> str:
-        """将 cookie 数组转换为浏览器复制的字符串格式"""
-        parts = []
-        for cookie in cookies:
-            name = cookie.get('name', '')
-            value = cookie.get('value', '')
-            if name:
-                parts.append(f"{name}={value}")
-        return '; '.join(parts)

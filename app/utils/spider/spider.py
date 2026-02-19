@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from urllib.parse import unquote, quote
 from typing import Any
 import base64
 
@@ -8,6 +7,7 @@ import urllib3.util
 
 from app.schema import Setting
 from app.schema.video import SourceRef
+from app.utils.cookies import apply_cookie_header_to_jar
 
 
 class Session(requests.Session):
@@ -67,15 +67,7 @@ class Spider:
         """从浏览器复制的 cookie 字符串加载
         格式: key1=value1; key2=value2
         """
-        for cookie in cookies_str.split(';'):
-            cookie = cookie.strip()
-            if not cookie or '=' not in cookie:
-                continue
-            name, value = cookie.split('=', 1)
-            name = name.strip()
-            value = value.strip()
-            value = quote(unquote(value))
-            self.session.cookies.set(name, value)
+        apply_cookie_header_to_jar(cookies_str, self.session.cookies)
 
     def get_login_page(self) -> dict[str, Any]:
         """获取登录页信息，返回 cookies + authenticity_token + captcha"""
