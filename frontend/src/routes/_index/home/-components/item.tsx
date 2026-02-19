@@ -3,10 +3,11 @@ import {Badge, Rate, Space, theme, Tooltip} from "antd";
 import VideoCover from "../../../../components/VideoCover";
 import {SearchOutlined} from "@ant-design/icons";
 import {useRouter} from "@tanstack/react-router";
+import type {SiteVideo} from "../../../../types/video";
 
 const {useToken} = theme
 
-function VideoItem(props: { item: any }) {
+function VideoItem(props: { item: SiteVideo }) {
 
     const {token} = useToken();
     const {item} = props;

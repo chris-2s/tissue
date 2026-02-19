@@ -10,7 +10,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.db import get_db
 from app.db.models import Site
-from app.schema import VideoDetail
+from app.schema import SiteCapabilities, SpiderKey, VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
@@ -24,16 +24,50 @@ def get_spider_service(db: Session = Depends(get_db)):
 
 
 class SpiderService(BaseService):
-    SPIDER_REGISTRY: dict[str, Type[Spider]] = {
-        JavDBSpider.key: JavDBSpider,
-        JavBusSpider.key: JavBusSpider,
-        Jav321Spider.key: Jav321Spider,
-        DmmSpider.key: DmmSpider,
+    SPIDER_REGISTRY: dict[SpiderKey, Type[Spider]] = {
+        SpiderKey.JAVDB: JavDBSpider,
+        SpiderKey.JAVBUS: JavBusSpider,
+        SpiderKey.JAV321: Jav321Spider,
+        SpiderKey.DMM: DmmSpider,
     }
 
     @staticmethod
-    def get_spider_class(spider_key: str) -> Type[Spider] | None:
-        return SpiderService.SPIDER_REGISTRY.get(spider_key)
+    def normalize_spider_key(spider_key: str | SpiderKey) -> SpiderKey | None:
+        if isinstance(spider_key, SpiderKey):
+            return spider_key
+        try:
+            return SpiderKey(spider_key)
+        except ValueError:
+            return None
+
+    @classmethod
+    def get_spider_class(cls, spider_key: str | SpiderKey) -> Type[Spider] | None:
+        normalized_key = cls.normalize_spider_key(spider_key)
+        if not normalized_key:
+            return None
+        return cls.SPIDER_REGISTRY.get(normalized_key)
+
+    @classmethod
+    def get_spider_capabilities(cls, spider_key: str | SpiderKey) -> SiteCapabilities:
+        spider_class = cls.get_spider_class(spider_key)
+        if not spider_class:
+            return SiteCapabilities(
+                supports_ranking=False,
+                supports_actor=False,
+                supports_login=False,
+                supports_downloads=False,
+                supports_previews=False,
+                supports_comments=False,
+            )
+
+        return SiteCapabilities(
+            supports_ranking=spider_class.supports_ranking,
+            supports_actor=spider_class.supports_actor,
+            supports_login=spider_class.supports_login,
+            supports_downloads=spider_class.supports_downloads,
+            supports_previews=spider_class.supports_previews,
+            supports_comments=spider_class.supports_comments,
+        )
 
     @classmethod
     def build_spider(cls, site: Site, include_cookies: bool = True) -> Spider | None:
@@ -146,7 +180,7 @@ class SpiderService(BaseService):
 
     def get_ranking(self, site_id: int, video_type: str, cycle: str):
         spider = self.build_spider_by_site_id(site_id)
-        if not spider or not hasattr(spider, 'get_ranking'):
+        if not spider or not spider.supports_ranking:
             return None
         return spider.get_ranking(video_type, cycle)
 
@@ -159,7 +193,7 @@ class SpiderService(BaseService):
 
     def get_actor(self, site_id: int, code: str, page: int):
         spider = self.build_spider_by_site_id(site_id)
-        if not spider or not hasattr(spider, 'get_actor'):
+        if not spider or not spider.supports_actor:
             return []
         return spider.get_actor(code, page)
 

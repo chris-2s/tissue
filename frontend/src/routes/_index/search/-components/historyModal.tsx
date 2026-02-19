@@ -2,14 +2,21 @@ import {List, Modal, ModalProps} from "antd";
 import React, {useEffect, useState} from "react";
 import VideoCover from "../../../../components/VideoCover";
 
+interface SearchHistory {
+    num: string;
+    actors: string;
+    title?: string;
+    cover?: string;
+}
+
 interface Props extends ModalProps {
-    onClick: (history: any) => void
+    onClick: (history: SearchHistory) => void
 }
 
 function HistoryModal(props: Props) {
 
     const {onClick, ...otherProps} = props
-    const [histories, setHistories] = useState<any[]>([])
+    const [histories, setHistories] = useState<SearchHistory[]>([])
 
     useEffect(() => {
         if (props.open) {
@@ -22,7 +29,7 @@ function HistoryModal(props: Props) {
             <List
                 itemLayout="horizontal"
                 dataSource={histories}
-                renderItem={(item: any) => (
+                renderItem={(item) => (
                     <List.Item className={'cursor-pointer'}
                                extra={(
                                    <div className={'w-24 m-1'}>

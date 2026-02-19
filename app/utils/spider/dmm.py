@@ -12,6 +12,7 @@ class DmmSpider(Spider):
     name = 'DMM'
     origin_host = "https://www.dmm.co.jp"
     api_url = "https://api.video.dmm.co.jp/graphql"
+    supports_previews = True
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):

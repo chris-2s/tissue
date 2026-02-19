@@ -6,27 +6,38 @@ import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
 import * as api from "../../../apis/home.ts";
 import * as siteApi from "../../../apis/site.ts";
+import type {GetRankingsParams} from "../../../apis/home.ts";
+import type {SiteItem} from "../../../apis/site.ts";
+import type {SiteVideo} from "../../../types/video.ts";
 import {Await, createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
+
+type HomeSearch = GetRankingsParams & { rank: number };
+type HomeLoaderData = { siteId: number; items: SiteVideo[] };
 
 export const Route = createFileRoute('/_index/home/')({
     component: JavDB,
     beforeLoad: ({search}) => {
-        if (Object.keys(search).length === 0)
-            throw redirect({search: {video_type: 'censored', cycle: 'daily', rank: 0} as any})
+        if (Object.keys(search).length === 0) {
+            throw redirect({search: {video_type: 'censored', cycle: 'daily', rank: 0}})
+        }
     },
-    loaderDeps: ({search}) => ({...search, rank: 0} as any),
+    loaderDeps: ({search}) => {
+        const rawSearch = search as Partial<HomeSearch>
+        return {...rawSearch, rank: Number(rawSearch.rank || 0)} as HomeSearch
+    },
     loader: async ({deps}) => ({
         data: siteApi.getSites().then((sites) => {
-            const preferredSite = sites.find((item: any) => item.spider_key === 'javdb') || sites[0]
+            const rankingSites = sites.filter((item: SiteItem) => item.capabilities.supports_ranking)
+            const preferredSite = rankingSites.find((item: SiteItem) => item.spider_key === 'javdb') || rankingSites[0]
             const siteId = deps.site_id || preferredSite?.id
 
             if (!siteId) {
-                return {siteId: 0, items: []}
+                return {siteId: 0, items: []} as HomeLoaderData
             }
 
-            return api.getRankings({...deps, site_id: siteId}).then((items) => ({siteId, items}))
+            return api.getRankings({...deps, site_id: siteId}).then((items) => ({siteId, items} as HomeLoaderData))
         }).catch(() => {
-            return {siteId: 0, items: []}
+            return {siteId: 0, items: []} as HomeLoaderData
         })
     }),
     staleTime: Infinity
@@ -34,7 +45,7 @@ export const Route = createFileRoute('/_index/home/')({
 
 function JavDB() {
     const {data} = Route.useLoaderData()
-    const filter = Route.useSearch<any>()
+    const filter = Route.useSearch() as HomeSearch
     const navigate = useNavigate()
 
     const filterFields: FilterField[] = [
@@ -67,20 +78,20 @@ function JavDB() {
 
     return (
         <div>
-            <Filter initialValues={filter} onChange={(values, field) => {
-                return navigate({search: values as any})
+            <Filter initialValues={filter as unknown as Record<string, unknown>} onFilterChange={(values) => {
+                return navigate({search: values as never})
             }} fields={filterFields}/>
             <Await promise={data} fallback={(
                 <Skeleton active/>
             )}>
-                {(payload: any = {siteId: 0, items: []}) => {
-                    const videos = payload.items.filter((item: any) => item.rank >= filter.rank)
+                {(payload: HomeLoaderData = {siteId: 0, items: []}) => {
+                    const videos = payload.items.filter((item) => (item.rank || 0) >= filter.rank)
                     return videos.length > 0 ? (
                         <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
-                            {videos.map((item: any) => (
+                            {videos.map((item) => (
                                 <Col key={item.url} span={24} md={12} lg={6}
                                      onClick={() => navigate({
-                                          to: '/home/detail',
+                                           to: '/home/detail',
                                           search: {site_id: payload.siteId, num: item.num, url: item.url}
                                       })}>
                                     <VideoItem item={item}/>

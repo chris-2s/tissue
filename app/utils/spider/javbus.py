@@ -19,6 +19,9 @@ class JavBusSpider(Spider):
     name = 'JavBus'
     origin_host = "https://www.javbus.com/"
     downloadable = True
+    supports_actor = True
+    supports_downloads = True
+    supports_previews = True
 
     def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
                  include_comments=False):

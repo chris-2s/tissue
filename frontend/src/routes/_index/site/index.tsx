@@ -4,6 +4,7 @@ import ModifyModal from "./-components/modifyModal.tsx";
 import LoginModal from "./-components/loginModal.tsx";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import * as api from "../../../apis/site.ts";
+import type {SiteItem} from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
 import {createPortal} from "react-dom";
 import {KeyOutlined, RedoOutlined} from "@ant-design/icons";
@@ -37,11 +38,11 @@ function Site() {
         }
     })
 
-    const handleRefreshCookie = (item: any) => {
+    const handleRefreshCookie = (item: SiteItem) => {
         setLoginSite({ id: item.id, name: item.name })
     }
 
-    function renderItem(item: any) {
+    function renderItem(item: SiteItem) {
         return (
             <List.Item>
                 <Badge.Ribbon text={item.status ? '启用' : '停用'}
@@ -62,18 +63,29 @@ function Site() {
                             </div>
                             <div>
                                 <Tag color={'blue'} bordered={false}>元数据</Tag>
-                                {item.downloadable && <Tag color={'green'} bordered={false}>下载</Tag>}
+                                {item.capabilities?.supports_downloads && <Tag color={'green'} bordered={false}>下载</Tag>}
+                                {item.capabilities?.supports_ranking && <Tag color={'gold'} bordered={false}>榜单</Tag>}
+                                {item.capabilities?.supports_actor && <Tag color={'purple'} bordered={false}>演员页</Tag>}
+                                {item.capabilities?.supports_login && <Tag color={'cyan'} bordered={false}>登录</Tag>}
                             </div>
-                            <Button 
-                                icon={<KeyOutlined />} 
-                                size={'small'}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRefreshCookie(item)
-                                }}
-                            >
-                                刷新Cookie
-                            </Button>
+                            <div>
+                                {item.capabilities?.supports_login ? (
+                                    <Button
+                                        icon={<KeyOutlined />}
+                                        size={'small'}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleRefreshCookie(item)
+                                        }}
+                                    >
+                                        刷新Cookie
+                                    </Button>
+                                ) : (
+                                    <Button icon={<KeyOutlined />} size={'small'} style={{visibility: 'hidden'}}>
+                                        刷新Cookie
+                                    </Button>
+                                )}
+                            </div>
                         </Space>
                     </Card>
                 </Badge.Ribbon>

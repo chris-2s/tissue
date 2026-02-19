@@ -8,7 +8,7 @@ import {theme} from "antd";
 
 const {useToken} = theme
 
-interface Props extends React.ComponentProps<any> {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
     src: string,
     type: string
 }
