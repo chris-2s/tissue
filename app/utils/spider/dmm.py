@@ -96,4 +96,4 @@ class DmmSpider(Spider):
                 0,
                 VideoPreviewItem(type='video', thumb=thumb, url=video['highestMovieUrl'])
             )
-        return [VideoPreview(website=self.name, items=result)]
+        return [VideoPreview(source=self.source_ref(), items=result)]

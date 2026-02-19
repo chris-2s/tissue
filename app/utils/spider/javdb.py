@@ -165,7 +165,7 @@ class JavDBSpider(Spider):
                 actor = VideoActor(name=actor_element.text, thumb=actor_avatar, code=actor_code)
                 actors.append(actor)
             meta.actors = actors
-            meta.site_actors = [VideoSiteActor(site_id=self.site_id, website=self.name, items=actors)]
+            meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
 
         cover_element = html.xpath("//img[@class='video-cover']")
         if cover_element:
@@ -221,7 +221,7 @@ class JavDBSpider(Spider):
             preview = VideoPreviewItem(type='image', thumb=thumb.get('src'), url=image.get('href'))
             result.append(preview)
 
-        return [VideoPreview(website=self.name, items=result)]
+        return [VideoPreview(source=self.source_ref(), items=result)]
 
     def get_comments(self, url: str):
         result = []
@@ -252,16 +252,15 @@ class JavDBSpider(Spider):
 
             result.append(comment)
 
-        return [VideoComment(website=self.name, items=result)]
+        return [VideoComment(source=self.source_ref(), items=result)]
 
     def get_downloads(self, url: str, html: etree.HTML):
         result = []
         table = html.xpath("//div[@id='magnets-content']/div")
         for item in table:
-            download = VideoDownload()
+            download = VideoDownload(source=self.source_ref())
 
             parts = item.xpath("./div[1]/a")[0]
-            download.website = self.name
             download.url = url
             download.name = parts[0].text.strip()
             download.magnet = parts.get('href')

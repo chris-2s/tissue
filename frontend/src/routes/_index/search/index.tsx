@@ -82,8 +82,8 @@ export function Search() {
     const responsive = useResponsive()
     const [searchInput, setSearchInput] = useState(!detailMatch ? search?.num : null)
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false})
-    const [previewSelected, setPreviewSelected] = useState<string>()
-    const [commentSelected, setCommentSelected] = useState<string>()
+    const [previewSelected, setPreviewSelected] = useState<number>()
+    const [commentSelected, setCommentSelected] = useState<number>()
 
     const [selectedVideo, setSelectedVideo] = useState<any>()
     const [selectedDownload, setSelectedDownload] = useState<any>()
@@ -305,13 +305,18 @@ export function Search() {
             </Col>
             <Col span={24} lg={16} md={12}>
                 <Await promise={loaderData}>
-                    {(video) => {
-                        if (video?.previews) {
-                            const previews = video.previews.find((i: any) => i.website === previewSelected) || video.previews[0]
+                        {(video) => {
+                            if (video?.previews) {
+                            const previews = video.previews.find((i: any) => i.source.site_id === previewSelected) || video.previews[0]
                             return (
                                 <Card title={'预览'} className={'mb-4'} extra={(
-                                    <Segmented onChange={(value: string) => setPreviewSelected(value)}
-                                               options={video.previews.map((i: any) => i.website)}/>
+                                    <Segmented
+                                        onChange={(value: number) => setPreviewSelected(value)}
+                                        options={video.previews.map((i: any) => ({
+                                            label: i.source.site_name,
+                                            value: i.source.site_id,
+                                        }))}
+                                    />
                                 )}>
                                     <Preview data={previews.items}/>
                                 </Card>
@@ -362,7 +367,7 @@ export function Search() {
                                                                 direction={responsive.lg ? 'horizontal' : 'vertical'}
                                                                 size={responsive.lg ? 0 : 'small'}>
                                                                 <div>
-                                                                    <a href={item.url}><Tag>{item.website}</Tag></a>
+                                                                    <a href={item.url}><Tag>{item.source.site_name}</Tag></a>
                                                                     <Tag>{item.size}</Tag>
                                                                 </div>
                                                                 <div>
@@ -397,11 +402,16 @@ export function Search() {
                 <Await promise={loaderData}>
                     {(video) => {
                         if (video?.comments && video.comments.length > 0) {
-                            const comments = video.comments.find((i: any) => i.website === commentSelected) || video.comments[0]
+                            const comments = video.comments.find((i: any) => i.source.site_id === commentSelected) || video.comments[0]
                             return (
                                 <Card title={'评论'} className={'mt-4'} extra={(
-                                    <Segmented onChange={(value: string) => setCommentSelected(value)}
-                                               options={video.comments.map((i: any) => i.website)}/>
+                                    <Segmented
+                                        onChange={(value: number) => setCommentSelected(value)}
+                                        options={video.comments.map((i: any) => ({
+                                            label: i.source.site_name,
+                                            value: i.source.site_id,
+                                        }))}
+                                    />
                                 )}>
                                     <Comment data={comments.items}/>
                                 </Card>
@@ -431,4 +441,3 @@ export function Search() {
         </Row>
     )
 }
-

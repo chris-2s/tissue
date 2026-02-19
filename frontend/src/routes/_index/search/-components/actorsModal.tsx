@@ -15,16 +15,16 @@ function ActorsModal(props: Props) {
             <Space direction="vertical">
                 {actors?.map((site: any) => (
                     <div>
-                        <div className={'font-extrabold mb-2'}>{site.website}</div>
+                        <div className={'font-extrabold mb-2'}>{site.source.site_name}</div>
                         <Space wrap={true} size={[5, 10]}>
                             {site.items.map((actor: any) => (
                                 <Tag className={'cursor-pointer'}>
                                     <a onClick={() => {
-                                        if (!site.site_id) {
+                                        if (!site.source?.site_id) {
                                             return
                                         }
                                         navigate({
-                                            to: '/actor', search: {site_id: site.site_id, code: actor.code}
+                                            to: '/actor', search: {site_id: site.source.site_id, code: actor.code}
                                         })
                                     }}>{actor.name}</a>
                                 </Tag>
