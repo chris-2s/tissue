@@ -73,6 +73,8 @@ class SiteService(BaseService):
             raise BizException(f"获取登录页失败: {str(e)}")
 
     def submit_login(self, site_id: int, data: schema.LoginSubmit):
+        from urllib.parse import urlparse
+
         site = self.db.query(Site).get(site_id)
         if not site:
             raise BizException("站点不存在")
@@ -84,7 +86,7 @@ class SiteService(BaseService):
 
         spider = spider_class(alternate_host=site.alternate_host)
         try:
-            cookie_str = spider.submit_login(
+            cookie_list = spider.submit_login(
                 data.cookies,
                 data.authenticity_token,
                 data.username,
@@ -96,13 +98,15 @@ class SiteService(BaseService):
         except Exception as e:
             raise BizException(f"登录失败: {str(e)}")
 
+        cookie_str = CookieCloudService()._format_cookie_string(cookie_list)
         site.cookies = cookie_str
         self.db.commit()
 
-        # try:
-        #     CookieCloudService().sync()
-        # except Exception:
-        #     pass
+        try:
+            domain = urlparse(site.alternate_host or spider.origin_host).netloc
+            CookieCloudService().push_cookie(cookie_list, domain)
+        except Exception:
+            pass
 
     @classmethod
     def job_testing_sites(cls):

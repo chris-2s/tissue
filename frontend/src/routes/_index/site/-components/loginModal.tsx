@@ -40,6 +40,9 @@ function LoginModal(props: LoginModalProps) {
             onSuccess()
             handleClose()
         },
+        onError: (e) => {
+            getLoginPage(siteId)
+        }
     })
 
     React.useEffect(() => {
