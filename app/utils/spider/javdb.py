@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from random import randint
 from typing import Any
-from urllib.parse import urljoin, quote, unquote
+from urllib.parse import urljoin
 
 import requests
 from lxml import etree
@@ -14,6 +14,12 @@ from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem,
     VideoComment, VideoSiteActor
 from app.schema.home import SiteVideo
 from app.schema.r import Page
+from app.utils.cookies import (
+    apply_cookie_header_to_jar,
+    cookiejar_to_cookies,
+    cookies_to_cookiecloud_items,
+    to_cookie_header,
+)
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -49,8 +55,7 @@ class JavDBSpider(Spider):
             if img_response.ok:
                 captcha_base64 = base64.b64encode(img_response.content).decode()
 
-        cookies = requests.utils.dict_from_cookiejar(session.cookies)
-        cookie_str = "; ".join([f"{k}={v}" for k, v in cookies.items()])
+        cookie_str = to_cookie_header(cookiejar_to_cookies(session.cookies))
 
         return {
             "cookies": cookie_str,
@@ -64,11 +69,7 @@ class JavDBSpider(Spider):
         session = requests.Session()
         session.headers = self.session.headers.copy()
 
-        for cookie in cookies.split(';'):
-            cookie = cookie.strip()
-            if '=' in cookie:
-                name, value = cookie.split('=', 1)
-                session.cookies.set(name.strip(), quote(unquote(value.strip())))
+        apply_cookie_header_to_jar(cookies, session.cookies)
 
         login_url = urljoin(self.host, "/user_sessions")
 
@@ -84,18 +85,7 @@ class JavDBSpider(Spider):
         response = session.post(login_url, data=data, allow_redirects=False)
 
         if response.status_code == 302 and '/login' not in response.headers["Location"]:
-            cookie_list = []
-            for cookie in session.cookies:
-                cookie_list.append({
-                    'name': cookie.name,
-                    'value': cookie.value,
-                    'path': cookie.path or '/',
-                    'domain': cookie.domain or '',
-                    'secure': cookie.secure,
-                    'httpOnly': cookie.has_nonstandard_attr('HttpOnly'),
-                    'sameSite': cookie.get_nonstandard_attr('SameSite', 'Lax')
-                })
-            return cookie_list
+            return cookies_to_cookiecloud_items(cookiejar_to_cookies(session.cookies))
 
         raise BizException("登录失败，请检查账号密码和验证码")
 

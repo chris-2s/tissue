@@ -1,7 +1,6 @@
 import hashlib
 import re
 from typing import Optional
-from urllib.parse import unquote, quote
 
 import httpx
 import requests
@@ -12,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from app.db import get_db
 from app.schema.r import R
 from app.service.spider import SpiderService
+from app.utils.cookies import cookie_header_to_httpx_dict
 from app.utils.m3u8 import fix_m3u8_paths, is_m3u8
 from version import APP_VERSION
 
@@ -33,9 +33,9 @@ def proxy_video_cover(url: str):
     return Response(content=cover, media_type="image", headers=headers)
 
 
-async def advanced_stream_generator(url: str, headers: dict, cookies: str = None):
+async def advanced_stream_generator(url: str, headers: dict, cookies: str | None = None):
     async with httpx.AsyncClient() as client:
-        async with client.stream("GET", url, headers=headers, cookies=_parse_cookies(cookies),
+        async with client.stream("GET", url, headers=headers, cookies=cookie_header_to_httpx_dict(cookies),
                                  timeout=None) as response:
             response.raise_for_status()
             yield {
@@ -44,19 +44,6 @@ async def advanced_stream_generator(url: str, headers: dict, cookies: str = None
             }
             async for chunk in response.aiter_bytes():
                 yield chunk
-
-
-def _parse_cookies(cookie_str: str) -> dict:
-    """解析 cookie 字符串为字典"""
-    if not cookie_str:
-        return {}
-    cookies = {}
-    for item in cookie_str.split(';'):
-        item = item.strip()
-        if '=' in item:
-            name, value = item.split('=', 1)
-            cookies[name.strip()] = quote(unquote(value.strip()))
-    return cookies
 
 
 @router.get("/trailer")

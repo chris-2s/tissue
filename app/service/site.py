@@ -11,6 +11,7 @@ from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.service.cookiecloud import CookieCloudService
 from app.exception import BizException
+from app.utils.cookies import cookiecloud_items_to_cookies, parse_cookie_header, to_cookie_header
 from app.utils.logger import logger
 from app.utils import notify
 
@@ -48,7 +49,13 @@ class SiteService(BaseService):
     @transaction
     def modify_site(self, site: schema.SiteUpdate):
         db_site = Site.get(self.db, site.id)
-        db_site.update(self.db, site.model_dump())
+
+        payload = site.model_dump()
+        if payload.get('cookies') is not None:
+            normalized = to_cookie_header(parse_cookie_header(payload['cookies']))
+            payload['cookies'] = normalized or None
+
+        db_site.update(self.db, payload)
 
     def testing_site(self):
         sites = self.db.query(Site).filter(Site.status == None).order_by(Site.priority).all()
@@ -80,6 +87,7 @@ class SiteService(BaseService):
 
             if not spider_instance.session.cookies:
                 domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
+                stale_cookie_header = site.cookies
                 cookie_notify = CookieNotify(
                     site_name=spider_instance.name,
                     domain=domain,
@@ -87,7 +95,7 @@ class SiteService(BaseService):
                 )
                 notify.send_cookie(cookie_notify)
 
-                CookieCloudService().delete_cookie(domain)
+                CookieCloudService().delete_cookie_if_match(domain, stale_cookie_header)
 
                 site.cookies = None
                 self.db.commit()
@@ -139,7 +147,7 @@ class SiteService(BaseService):
         except Exception as e:
             raise BizException(f"登录失败: {str(e)}")
 
-        cookie_str = CookieCloudService()._format_cookie_string(cookie_list)
+        cookie_str = to_cookie_header(cookiecloud_items_to_cookies(cookie_list))
         site.cookies = cookie_str
         self.db.commit()
 
