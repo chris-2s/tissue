@@ -1,4 +1,5 @@
 from app import schema
+from app.schema import CookieNotify
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from app.service.spider import SpiderService
 from app.service.cookiecloud import CookieCloudService
 from app.exception import BizException
 from app.utils.logger import logger
+from app.utils import notify
 
 
 def get_site_service(db: Session = Depends(get_db)):
@@ -53,6 +55,29 @@ class SiteService(BaseService):
                 logger.info(f"站点【{spider.name}】启用成功")
             else:
                 logger.error(f"站点【{name}】无法连接，请检查网络连接")
+
+        self._check_cookies()
+
+    def _check_cookies(self):
+        from urllib.parse import urlparse
+
+        sites = self.db.query(Site).filter(Site.cookies.isnot(None)).all()
+        for site in sites:
+            spider = SpiderService.get_spider_by_name(site.class_str)
+            spider_instance = spider(alternate_host=site.alternate_host, cookies=site.cookies)
+
+            if not spider_instance.session.cookies:
+                domain = urlparse(site.alternate_host or spider.origin_host).netloc
+                cookie_notify = CookieNotify(
+                    site_name=spider.name,
+                    domain=domain,
+                    message="Cookie已失效，请重新登录"
+                )
+                notify.send_cookie(cookie_notify)
+
+                site.cookies = None
+                self.db.commit()
+                logger.warning(f"站点【{spider.name}】Cookie已失效并清除")
 
     def get_login_page(self, site_id: int) -> dict:
         site = self.db.query(Site).get(site_id)

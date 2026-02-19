@@ -1,4 +1,4 @@
-from app.schema import VideoNotify, SettingNotify, SubscribeNotify
+from app.schema import VideoNotify, SettingNotify, SubscribeNotify, CookieNotify
 
 
 class Base:
@@ -10,4 +10,7 @@ class Base:
         pass
 
     def send_subscribe(self, subscribe: SubscribeNotify):
+        pass
+
+    def send_cookie(self, cookie: CookieNotify):
         pass
