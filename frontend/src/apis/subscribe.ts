@@ -42,7 +42,7 @@ export async function getSubscribeHistories(): Promise<Subscribe[]> {
 export function modifySubscribe(data: SubscribeCreate | SubscribeUpdate) {
     return request.request({
         url: '/subscribe/',
-        method: 'id' in data ? 'put' : 'post',
+        method: ('id' in data && data.id) ? 'put' : 'post',
         data: data
     })
 }

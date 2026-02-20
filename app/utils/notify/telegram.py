@@ -43,7 +43,7 @@ class Telegram(Base):
 演员：<tg-spoiler>{subscribe.actors}</tg-spoiler>
 大小：{subscribe.size}
 名称：<tg-spoiler>{subscribe.name}</tg-spoiler>
-站点：<tg-spoiler>{subscribe.website}</tg-spoiler>
+站点：<tg-spoiler>{subscribe.source['site_name']}</tg-spoiler>
 链接：<a href='{subscribe.url}'>点击</a>
 日期：{subscribe.publish_date}
 标签：<tg-spoiler>{', '.join(tags)}</tg-spoiler>
