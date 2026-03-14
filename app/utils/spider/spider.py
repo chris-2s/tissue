@@ -1,23 +1,31 @@
+import base64
 from abc import abstractmethod
 from typing import Any
-import base64
 
-import requests
 import urllib3.util
+from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 
-from app.schema import Setting
 from app.schema.video import SourceRef
 from app.utils.cookies import apply_cookie_header_to_jar
 
 
-class Session(requests.Session):
+DEFAULT_IMPERSONATE = 'chrome124'
+DEFAULT_USER_AGENT = (
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/124.0.0.0 Safari/537.36'
+)
 
-    def __init__(self, timeout: int = 10):
+
+class Session(curl_requests.Session):
+
+    def __init__(self, timeout: Any = 10):
         super().__init__()
         self.timeout = timeout
 
     def request(self, *args, **kwargs):
         kwargs.setdefault('timeout', self.timeout)
+        kwargs.setdefault('impersonate', DEFAULT_IMPERSONATE)
         return super(Session, self).request(*args, **kwargs)
 
 
@@ -37,10 +45,9 @@ class Spider:
         self.host = alternate_host or self.origin_host
         self.site_id = site_id
 
-        self.setting = Setting().app
         self.session = Session()
-        self.session.headers = {'User-Agent': self.setting.user_agent, 'Referer': self.host}
-        self.session.timeout = (5, self.session.timeout)
+        self.session.headers = {'User-Agent': DEFAULT_USER_AGENT, 'Referer': self.host}
+        self.session.timeout = (5, 10)
 
         if cookies:
             self._load_cookies(cookies)
@@ -79,18 +86,21 @@ class Spider:
         raise NotImplementedError
 
     @abstractmethod
-    def get_info(self, num: str, url: str = None, include_downloads: bool = False, include_previews: bool = False,
+    def get_info(self, num: str, url: str | None = None, include_downloads: bool = False,
+                 include_previews: bool = False,
                  include_comments=False):
         pass
 
     @classmethod
-    def get_cover(cls, url):
-        if cls.origin_host:
+    def get_cover(cls, url: str):
+        referer: str
+        if cls.origin_host is not None:
             referer = cls.origin_host
         else:
             uri = urllib3.util.parse_url(url)
-            referer = f'{uri.scheme}://{uri.host}/'
-        response = requests.get(url, headers={'Referer': referer}, timeout=10)
+            scheme = uri.scheme or 'https'
+            referer = f'{scheme}://{uri.host}/' if uri.host else url
+        response = curl_requests.get(url, headers={'Referer': referer}, timeout=10, impersonate=DEFAULT_IMPERSONATE)
         if response.ok:
             return response.content
         return None

@@ -2,9 +2,6 @@ from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
 from urllib.parse import quote, unquote
 
-from requests.cookies import RequestsCookieJar
-
-
 @dataclass(frozen=True)
 class BrowserCookie:
     name: str
@@ -57,28 +54,46 @@ def to_httpx_cookie_dict(cookies: Iterable[BrowserCookie]) -> dict[str, str]:
     return cookie_dict
 
 
-def apply_cookie_header_to_jar(cookie_header: str | None, cookie_jar: RequestsCookieJar) -> None:
+def apply_cookie_header_to_jar(cookie_header: str | None, cookie_jar: Any) -> None:
     apply_cookies_to_jar(parse_cookie_header(cookie_header), cookie_jar)
 
 
-def apply_cookies_to_jar(cookies: Iterable[BrowserCookie], cookie_jar: RequestsCookieJar) -> None:
+def apply_cookies_to_jar(cookies: Iterable[BrowserCookie], cookie_jar: Any) -> None:
     for cookie in cookies:
         if cookie.name:
             cookie_jar.set(cookie.name, normalize_cookie_value(cookie.value), path=cookie.path, domain=cookie.domain)
 
 
-def cookiejar_to_cookies(cookie_jar: RequestsCookieJar) -> list[BrowserCookie]:
+def cookiejar_to_cookies(cookie_jar: Any) -> list[BrowserCookie]:
     cookies: list[BrowserCookie] = []
     for cookie in cookie_jar:
+        if isinstance(cookie, str):
+            if not cookie:
+                continue
+            value = cookie_jar.get(cookie) if hasattr(cookie_jar, 'get') else None
+            if value is None:
+                continue
+            cookies.append(BrowserCookie(name=cookie, value=normalize_cookie_value(str(value))))
+            continue
+
+        if not hasattr(cookie, 'name') or not hasattr(cookie, 'value'):
+            continue
+
+        has_nonstandard_attr = getattr(cookie, 'has_nonstandard_attr', None)
+        get_nonstandard_attr = getattr(cookie, 'get_nonstandard_attr', None)
         cookies.append(
             BrowserCookie(
                 name=cookie.name,
-                value=normalize_cookie_value(cookie.value),
-                path=cookie.path or '/',
-                domain=cookie.domain or '',
-                secure=cookie.secure,
-                http_only=cookie.has_nonstandard_attr('HttpOnly'),
-                same_site=cookie.get_nonstandard_attr('SameSite', 'Lax'),
+                value=normalize_cookie_value(str(cookie.value)),
+                path=getattr(cookie, 'path', '/') or '/',
+                domain=getattr(cookie, 'domain', '') or '',
+                secure=bool(getattr(cookie, 'secure', False)),
+                http_only=bool(has_nonstandard_attr('HttpOnly')) if callable(has_nonstandard_attr) else False,
+                same_site=(
+                    str(get_nonstandard_attr('SameSite', 'Lax'))
+                    if callable(get_nonstandard_attr) else
+                    'Lax'
+                ),
             )
         )
     return cookies
