@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 
 class SettingApp(BaseModel):
-    user_agent: str = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
     timeout: int = 60
 
     video_path: str = '/data/media'
