@@ -6,7 +6,6 @@ from random import randint
 from typing import Any
 from urllib.parse import urljoin
 
-import requests
 from lxml import etree
 
 from app.exception import BizException
@@ -20,7 +19,7 @@ from app.utils.cookies import (
     cookies_to_cookiecloud_items,
     to_cookie_header,
 )
-from app.utils.spider.spider import Spider
+from app.utils.spider.spider import Session, Spider
 from app.utils.spider.spider_exception import SpiderException
 
 
@@ -66,7 +65,7 @@ class JavDBSpider(Spider):
     def submit_login(self, cookies: str, authenticity_token: str,
                      username: str, password: str, captcha: str) -> list[dict]:
         """提交登录，返回详细 cookie 数组"""
-        session = requests.Session()
+        session = Session()
         session.headers = self.session.headers.copy()
 
         apply_cookie_header_to_jar(cookies, session.cookies)
@@ -89,7 +88,7 @@ class JavDBSpider(Spider):
 
         raise BizException("登录失败，请检查账号密码和验证码")
 
-    def get_info(self, num: str, url: str = None, include_downloads=False, include_previews=False,
+    def get_info(self, num: str, url: str | None = None, include_downloads=False, include_previews=False,
                  include_comments=False):
 
         searched = False
