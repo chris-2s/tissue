@@ -24,9 +24,10 @@ def fix_m3u8_paths(m3u8_content: str, video_url: str, base_url: str) -> str:
     return '\n'.join(fixed_lines)
 
 
-def is_m3u8(url: str, content_type: str = None) -> bool:
+def is_m3u8(url: str, content_type: str | None = None) -> bool:
     """判断是否为 m3u8 内容"""
-    if url.endswith('.m3u8'):
+    parsed = urlparse(url)
+    if parsed.path.lower().endswith('.m3u8'):
         return True
     if content_type and 'mpegurl' in content_type.lower():
         return True

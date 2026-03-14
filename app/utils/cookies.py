@@ -42,18 +42,6 @@ def to_cookie_header(cookies: Sequence[BrowserCookie]) -> str:
     return '; '.join(parts)
 
 
-def cookie_header_to_httpx_dict(cookie_header: str | None) -> dict[str, str]:
-    return to_httpx_cookie_dict(parse_cookie_header(cookie_header))
-
-
-def to_httpx_cookie_dict(cookies: Iterable[BrowserCookie]) -> dict[str, str]:
-    cookie_dict: dict[str, str] = {}
-    for cookie in cookies:
-        if cookie.name:
-            cookie_dict[cookie.name] = normalize_cookie_value(cookie.value)
-    return cookie_dict
-
-
 def apply_cookie_header_to_jar(cookie_header: str | None, cookie_jar: Any) -> None:
     apply_cookies_to_jar(parse_cookie_header(cookie_header), cookie_jar)
 
