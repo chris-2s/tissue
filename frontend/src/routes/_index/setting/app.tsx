@@ -44,9 +44,6 @@ function SettingApp() {
                     <Form.Item label={'视频最小容量'} name={'video_size_minimum'}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'User Agent'} name={'user_agent'}>
-                        <Input/>
-                    </Form.Item>
                     <Form.Item label={'超时时间(秒)'} name={'timeout'}>
                         <InputNumber style={{width: '100%'}}/>
                     </Form.Item>
@@ -58,4 +55,3 @@ function SettingApp() {
         )
     )
 }
-
