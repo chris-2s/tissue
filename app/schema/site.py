@@ -45,4 +45,4 @@ class LoginSubmit(BaseModel):
     authenticity_token: str
     username: str
     password: str
-    captcha: str
+    captcha: str = ''

@@ -1,14 +1,15 @@
 import React, {useState} from 'react'
-import {Col, Empty, message, Modal, Row, Select, Skeleton, Typography} from 'antd'
-import {HeartOutlined} from '@ant-design/icons'
-import {Await, createFileRoute, redirect, useNavigate} from '@tanstack/react-router'
+import {Button, Col, Empty, message, Modal, Row, Select, Skeleton, Typography} from 'antd'
+import {HeartOutlined, LockOutlined} from '@ant-design/icons'
+import {Await, createFileRoute, redirect, useNavigate, useRouter} from '@tanstack/react-router'
 import * as api from '../../../apis/home.ts'
 import * as siteApi from '../../../apis/site.ts'
 import type {SiteItem} from '../../../apis/site.ts'
 import type {SiteVideo} from '../../../types/video.ts'
 import TorrentItem from './-components/item.tsx'
+import LoginModal from '../site/-components/loginModal.tsx'
 
-const {Title} = Typography
+const {Title, Text} = Typography
 
 // ── categories ────────────────────────────────────────────────────────────────
 const PORN_CATS = [
@@ -39,7 +40,7 @@ interface GTSearch {
     category: string
 }
 
-type GTLoaderData = { siteId: number; items: SiteVideo[] }
+type GTLoaderData = { siteId: number; siteName: string; hasCookies: boolean; items: SiteVideo[] }
 
 export const Route = createFileRoute('/_index/gaytorrents/')({
     component: GayTorrents,
@@ -53,14 +54,23 @@ export const Route = createFileRoute('/_index/gaytorrents/')({
         data: siteApi.getSites().then((sites: SiteItem[]) => {
             const site = sites.find(s => s.spider_key === 'gaytorrents')
             if (!site || !site.status) {
-                return {siteId: 0, items: []} as GTLoaderData
+                return {siteId: 0, siteName: 'GayTorrents', hasCookies: false, items: []} as GTLoaderData
+            }
+            const hasCookies = !!(site.cookies && site.cookies.trim())
+            if (!hasCookies) {
+                return {siteId: site.id, siteName: site.name, hasCookies: false, items: []} as GTLoaderData
             }
             return api.getRankings({
                 site_id: site.id,
                 video_type: deps.category,
                 cycle: '',
-            }).then(items => ({siteId: site.id, items} as GTLoaderData))
-        }).catch(() => ({siteId: 0, items: []} as GTLoaderData))
+            }).then(items => ({
+                siteId: site.id,
+                siteName: site.name,
+                hasCookies: true,
+                items,
+            } as GTLoaderData))
+        }).catch(() => ({siteId: 0, siteName: 'GayTorrents', hasCookies: false, items: []} as GTLoaderData))
     }),
     staleTime: 0,
 })
@@ -70,7 +80,11 @@ function GayTorrents() {
     const {data} = Route.useLoaderData()
     const search = Route.useSearch() as GTSearch
     const navigate = useNavigate()
+    const router = useRouter()
     const [downloadingId, setDownloadingId] = useState<string | null>(null)
+    const [loginOpen, setLoginOpen] = useState(false)
+    const [loginSiteId, setLoginSiteId] = useState<number>(0)
+    const [loginSiteName, setLoginSiteName] = useState<string>('GayTorrents')
 
     const handleCategoryChange = (value: string) => {
         navigate({search: {category: value}})
@@ -101,6 +115,17 @@ function GayTorrents() {
         })
     }
 
+    const openLogin = (siteId: number, siteName: string) => {
+        setLoginSiteId(siteId)
+        setLoginSiteName(siteName)
+        setLoginOpen(true)
+    }
+
+    const handleLoginSuccess = () => {
+        setLoginOpen(false)
+        router.invalidate()
+    }
+
     return (
         <div>
             {/* header */}
@@ -126,13 +151,28 @@ function GayTorrents() {
 
             {/* grid */}
             <Await promise={data} fallback={<Skeleton active/>}>
-                {(payload: GTLoaderData = {siteId: 0, items: []}) => {
+                {(payload: GTLoaderData = {siteId: 0, siteName: 'GayTorrents', hasCookies: false, items: []}) => {
                     if (payload.siteId === 0) {
                         return (
                             <Empty
                                 className="mt-10"
                                 description="GayTorrents 站点未启用，请在「站点」设置中启用并配置 Cookie"
                             />
+                        )
+                    }
+                    if (!payload.hasCookies) {
+                        return (
+                            <div className="mt-10 flex flex-col items-center gap-4">
+                                <LockOutlined style={{fontSize: 48, color: '#aaa'}}/>
+                                <Text type="secondary">需要登录 GayTorrents 才能浏览内容</Text>
+                                <Button
+                                    type="primary"
+                                    icon={<LockOutlined/>}
+                                    onClick={() => openLogin(payload.siteId, payload.siteName)}
+                                >
+                                    立即登录
+                                </Button>
+                            </div>
                         )
                     }
                     return payload.items.length > 0 ? (
@@ -154,6 +194,14 @@ function GayTorrents() {
                     )
                 }}
             </Await>
+
+            <LoginModal
+                siteId={loginSiteId}
+                siteName={loginSiteName}
+                open={loginOpen}
+                onClose={() => setLoginOpen(false)}
+                onSuccess={handleLoginSuccess}
+            />
         </div>
     )
 }

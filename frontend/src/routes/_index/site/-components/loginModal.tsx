@@ -47,6 +47,7 @@ function LoginModal(props: LoginModalProps) {
             handleClose()
         },
         onError: (e) => {
+            message.error('登录失败，请检查账号密码')
             getLoginPage(siteId)
         }
     })
@@ -74,7 +75,7 @@ function LoginModal(props: LoginModalProps) {
             authenticity_token: loginData.authenticity_token,
             username: values.username,
             password: values.password,
-            captcha: values.captcha
+            captcha: values.captcha ?? ''
         })
     }
 
