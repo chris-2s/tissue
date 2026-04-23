@@ -18,7 +18,7 @@ interface TorrentItemProps {
 function TorrentItem(props: TorrentItemProps) {
     const {item, siteId, onDownload, onDetail, downloading} = props
     const {token} = useToken()
-    // undefined = loading, null = no cover, string = url
+    // undefined = loading, null = no cover, string = proxy url
     const [cover, setCover] = useState<string | null | undefined>(undefined)
 
     useEffect(() => {
@@ -42,43 +42,26 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {/* cover area */}
             {cover === undefined ? (
-                /* loading */
-                <Skeleton.Image active style={{width: '100%', height: 160, borderRadius: 0}}/>
+                <Skeleton.Image active style={{width: '100%', height: 140, borderRadius: 0, display: 'block'}}/>
             ) : cover ? (
-                /* image loaded */
                 <>
-                    <div style={{position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden'}}>
-                        <img
-                            src={cover}
-                            alt={item.title || item.num}
-                            style={{
-                                position: 'absolute',
-                                top: 0, left: 0,
-                                width: '100%', height: '100%',
-                                objectFit: 'cover',
-                            }}
-                            onError={() => setCover(null)}
-                        />
-                    </div>
+                    <img
+                        src={cover}
+                        alt={item.title || item.num}
+                        style={{width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block'}}
+                        onError={() => setCover(null)}
+                    />
                     <div style={{padding: '8px 12px 4px'}}>
                         <Paragraph
                             ellipsis={{rows: 2, tooltip: item.title}}
-                            style={{
-                                margin: 0,
-                                fontWeight: token.fontWeightStrong,
-                                fontSize: token.fontSize,
-                                color: token.colorText,
-                                lineHeight: 1.4,
-                            }}
+                            style={{margin: 0, fontWeight: token.fontWeightStrong, fontSize: token.fontSize, color: token.colorText, lineHeight: 1.4}}
                         >
                             {item.title || item.num}
                         </Paragraph>
                     </div>
                 </>
             ) : (
-                /* no cover fallback */
                 <div
                     style={{
                         background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorPrimary}33 100%)`,
@@ -91,58 +74,30 @@ function TorrentItem(props: TorrentItemProps) {
                 >
                     <Paragraph
                         ellipsis={{rows: 2, tooltip: item.title}}
-                        style={{
-                            margin: 0,
-                            fontWeight: token.fontWeightStrong,
-                            fontSize: token.fontSize,
-                            color: token.colorText,
-                            lineHeight: 1.4,
-                        }}
+                        style={{margin: 0, fontWeight: token.fontWeightStrong, fontSize: token.fontSize, color: token.colorText, lineHeight: 1.4}}
                     >
                         {item.title || item.num}
                     </Paragraph>
                 </div>
             )}
 
-            {/* meta row */}
             <div className="px-3 py-2 flex flex-wrap gap-1" style={{flex: 1}}>
                 {item.rank != null && (
-                    <Tag color="green" icon={<RiseOutlined/>}>
-                        {item.rank} seeds
-                    </Tag>
+                    <Tag color="green" icon={<RiseOutlined/>}>{item.rank} seeds</Tag>
                 )}
                 {item.publish_date && (
-                    <Tag icon={<CalendarOutlined/>} color="default">
-                        {item.publish_date}
-                    </Tag>
+                    <Tag icon={<CalendarOutlined/>} color="default">{item.publish_date}</Tag>
                 )}
             </div>
 
-            {/* action row */}
-            <div
-                className="px-3 pb-3"
-                style={{display: 'flex', gap: 8}}
-                onClick={e => e.stopPropagation()}
-            >
+            <div className="px-3 pb-3" style={{display: 'flex', gap: 8}} onClick={e => e.stopPropagation()}>
                 <Tooltip title="查看详情">
-                    <Button
-                        size="small"
-                        icon={<EyeOutlined/>}
-                        style={{flex: 1}}
-                        onClick={() => onDetail(item)}
-                    >
+                    <Button size="small" icon={<EyeOutlined/>} style={{flex: 1}} onClick={() => onDetail(item)}>
                         详情
                     </Button>
                 </Tooltip>
                 <Tooltip title="发送到下载器">
-                    <Button
-                        size="small"
-                        type="primary"
-                        icon={<DownloadOutlined/>}
-                        style={{flex: 1}}
-                        loading={downloading}
-                        onClick={() => onDownload(item)}
-                    >
+                    <Button size="small" type="primary" icon={<DownloadOutlined/>} style={{flex: 1}} loading={downloading} onClick={() => onDownload(item)}>
                         下载
                     </Button>
                 </Tooltip>

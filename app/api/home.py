@@ -2,8 +2,8 @@ import time
 from pathlib import Path
 
 import tailer
-from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response, StreamingResponse
 
 from app.exception import BizException
 from app.schema import Setting
@@ -29,6 +29,24 @@ def get_cover(site_id: int, num: str, url: str, service=Depends(get_spider_servi
         return R.ok({'cover': info.cover})
     except Exception:
         return R.ok({'cover': None})
+
+
+@router.get('/proxy-image')
+def proxy_image(site_id: int, url: str, service=Depends(get_spider_service)):
+    """Fetch an image through the site's authenticated session and return the bytes."""
+    spider = service.build_spider_by_site_id(site_id)
+    if not spider:
+        raise HTTPException(status_code=404)
+    try:
+        resp = spider.session.get(url)
+        if not resp.ok:
+            raise HTTPException(status_code=404)
+        content_type = resp.headers.get('content-type', 'image/jpeg')
+        return Response(content=resp.content, media_type=content_type)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=404)
 
 
 @router.get('/detail')
