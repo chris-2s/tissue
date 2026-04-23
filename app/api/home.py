@@ -5,8 +5,11 @@ import tailer
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
+from app.exception import BizException
+from app.schema import Setting
 from app.schema.r import R
 from app.service.spider import get_spider_service
+from app.utils.qbittorent import qbittorent
 
 router = APIRouter()
 
@@ -24,6 +27,27 @@ def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_serv
 @router.get('/actor')
 def get_actor(site_id: int, code: str, page: int = 1, service=Depends(get_spider_service)):
     return R.pages(service.get_actor(site_id, code, page))
+
+
+@router.post('/torrent-download')
+def download_torrent(site_id: int, torrent_id: str, service=Depends(get_spider_service)):
+    spider = service.build_spider_by_site_id(site_id)
+    if not spider or not hasattr(spider, 'download_torrent_file'):
+        raise BizException('该站点不支持种子下载')
+
+    torrent_data = spider.download_torrent_file(torrent_id)
+    if not torrent_data:
+        raise BizException('种子下载失败，请检查登录状态')
+
+    setting = Setting()
+    path = setting.download.download_path
+    category = setting.download.category or None
+
+    response = qbittorent.add_torrent_file(torrent_data, path, category)
+    if response.status_code != 200:
+        raise BizException('发送到下载器失败')
+
+    return R.ok()
 
 
 @router.get('/log')

@@ -46,3 +46,11 @@ export async function getActor(params: GetActorParams): Promise<PagedResponse<Si
     })
     return response.data
 }
+
+export async function downloadTorrent(site_id: number, torrent_id: string): Promise<void> {
+    await request.request({
+        url: '/home/torrent-download',
+        method: 'post',
+        params: {site_id, torrent_id}
+    })
+}

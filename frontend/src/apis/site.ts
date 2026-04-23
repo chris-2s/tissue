@@ -11,7 +11,7 @@ export interface SiteCapabilities {
 
 export interface SiteItem {
     id: number;
-    spider_key: 'javdb' | 'javbus' | 'jav321' | 'dmm';
+    spider_key: 'javdb' | 'javbus' | 'jav321' | 'dmm' | 'gaytorrents';
     name: string;
     priority: number;
     alternate_host?: string;

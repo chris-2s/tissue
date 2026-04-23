@@ -1,6 +1,6 @@
 export interface SourceRef {
     site_id: number;
-    spider_key: 'javdb' | 'javbus' | 'jav321' | 'dmm';
+    spider_key: 'javdb' | 'javbus' | 'jav321' | 'dmm' | 'gaytorrents';
     site_name: string;
 }
 

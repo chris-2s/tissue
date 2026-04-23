@@ -12,6 +12,7 @@ import {
     UserOutlined,
     VideoCameraOutlined,
     GlobalOutlined,
+    HeartOutlined,
 } from "@ant-design/icons";
 import {createRouter} from "@tanstack/react-router";
 import {routeTree} from "./routeTree.gen.ts";
@@ -32,6 +33,11 @@ export default [
         title: '首页',
         path: '/home',
         icon: (<HomeOutlined/>),
+    },
+    {
+        title: 'GayTorrents',
+        path: '/gaytorrents',
+        icon: (<HeartOutlined/>),
     },
     {
         title: '菜单',

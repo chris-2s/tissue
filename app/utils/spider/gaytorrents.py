@@ -184,6 +184,27 @@ class GayTorrentsSpider(Spider):
         download.size = size
         return [download]
 
+    def download_torrent_file(self, torrent_id: str) -> bytes | None:
+        """Download the raw .torrent file bytes using the authenticated session."""
+        detail_url = urljoin(self.host, f'/torrentdetails.php?torrentid={torrent_id}')
+        response = self.session.get(detail_url)
+        if not response.ok:
+            return None
+        html = etree.HTML(response.content)
+        tokens = html.xpath("//form[@name='torrentform']//input[@name='securitytoken']/@value")
+        if not tokens:
+            return None
+        dl = self.session.post(urljoin(self.host, '/torrentdetails.php'), data={
+            'do': 'download',
+            'securitytoken': tokens[0],
+            'torrentid': torrent_id,
+            'download': 'as Torrent',
+        })
+        content_type = dl.headers.get('content-type', '')
+        if dl.ok and ('torrent' in content_type or 'octet-stream' in content_type or dl.content[:1] == b'd'):
+            return dl.content
+        return None
+
     def get_ranking(self, video_type: str, cycle: str):
         # video_type is the category path e.g. "porn/Asian" or "nonporn/Drama"
         url = urljoin(self.host, f'/torrentslist.php?type={video_type}')

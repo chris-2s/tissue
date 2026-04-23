@@ -21,7 +21,7 @@ function LoginModal(props: LoginModalProps) {
     const {siteId, siteName, open, onClose, onSuccess} = props
 
     const [form] = Form.useForm()
-    const [captchaImg, setCaptchaImg] = useState<string>('')
+    const [captchaImg, setCaptchaImg] = useState<string | null>(null)
     const [loginData, setLoginData] = useState<{cookies: string, authenticity_token: string} | null>(null)
 
     const {run: getLoginPage, loading: gettingLogin} = useRequest(api.getLoginPage, {
@@ -32,7 +32,7 @@ function LoginModal(props: LoginModalProps) {
                 cookies: response.cookies,
                 authenticity_token: response.authenticity_token
             })
-            setCaptchaImg(`data:image/png;base64,${response.captcha}`)
+            setCaptchaImg(response.captcha ? `data:image/png;base64,${response.captcha}` : null)
         },
         onError: (e) => {
             onClose()
@@ -60,7 +60,7 @@ function LoginModal(props: LoginModalProps) {
 
     const handleClose = () => {
         setLoginData(null)
-        setCaptchaImg('')
+        setCaptchaImg(null)
         onClose()
     }
 
@@ -91,25 +91,25 @@ function LoginModal(props: LoginModalProps) {
             destroyOnClose
         >
             <Form form={form} layout={'vertical'} onFinish={handleFinish}>
-                <Form.Item label={'验证码'}>
-                    <Space>
-                        {captchaImg ? (
+                {captchaImg && (
+                    <Form.Item label={'验证码'}>
+                        <Space>
                             <Image src={captchaImg} height={40} preview={false} />
-                        ) : (
-                            <div style={{height: 40, width: 100, background: '#f0f0f0'}} />
-                        )}
-                        <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin}>换一张</Button>
-                    </Space>
-                </Form.Item>
+                            <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin}>换一张</Button>
+                        </Space>
+                    </Form.Item>
+                )}
                 <Form.Item name={'username'} label={'账号'} rules={[{required: true}]}>
                     <Input placeholder={'请输入账号'} />
                 </Form.Item>
                 <Form.Item name={'password'} label={'密码'} rules={[{required: true}]}>
                     <Input.Password placeholder={'请输入密码'} />
                 </Form.Item>
-                <Form.Item name={'captcha'} label={'验证码'} rules={[{required: true}]}>
-                    <Input placeholder={'请输入验证码'} />
-                </Form.Item>
+                {captchaImg && (
+                    <Form.Item name={'captcha'} label={'验证码'} rules={[{required: true}]}>
+                        <Input placeholder={'请输入验证码'} />
+                    </Form.Item>
+                )}
                 <div style={{textAlign: 'center'}}>
                     <Button onClick={handleClose} style={{marginRight: 8}}>取消</Button>
                     <Button type={'primary'} htmlType={'submit'} loading={logging}>登录</Button>

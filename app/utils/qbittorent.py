@@ -124,5 +124,38 @@ class QBittorent:
         self.remove_torrent_tags(torrent_hash, [nonce])
         return response
 
+    @auth
+    def add_torrent_file(self, torrent_data: bytes, path: str, category: str | None = None):
+        nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 5))
+        response = self.session.post(
+            urljoin(self.host, '/api/v2/torrents/add'),
+            data={'tags': nonce, 'savepath': path, 'category': category},
+            files={'torrents': ('upload.torrent', torrent_data, 'application/x-bittorrent')}
+        )
+        if response.status_code != 200:
+            return response
+
+        torrent_hash = ''
+        for _ in range(5):
+            time.sleep(1)
+            torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
+                'tag': nonce
+            }).json()
+            if torrents:
+                torrent_hash = torrents[0]['hash']
+                response.hash = torrent_hash
+                break
+
+        if self.tracker_subscribe and torrent_hash:
+            trackers_text = requests.get(self.tracker_subscribe, timeout=10).text
+            trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
+            self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
+                'hash': torrent_hash,
+                'urls': trackers
+            })
+
+        self.remove_torrent_tags(torrent_hash, [nonce])
+        return response
+
 
 qbittorent = QBittorent()
