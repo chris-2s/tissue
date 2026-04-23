@@ -19,6 +19,18 @@ def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_
     return service.get_ranking(site_id, video_type, cycle)
 
 
+@router.get('/cover')
+def get_cover(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
+    spider = service.build_spider_by_site_id(site_id)
+    if not spider or not hasattr(spider, 'get_info'):
+        return R.ok({'cover': None})
+    try:
+        info = spider.get_info(num, url, include_downloads=False, include_previews=False)
+        return R.ok({'cover': info.cover})
+    except Exception:
+        return R.ok({'cover': None})
+
+
 @router.get('/detail')
 def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
     return service.get_detail(site_id, num, url)

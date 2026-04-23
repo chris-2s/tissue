@@ -47,6 +47,15 @@ export async function getActor(params: GetActorParams): Promise<PagedResponse<Si
     return response.data
 }
 
+export async function getCover(site_id: number, num: string, url: string): Promise<string | null> {
+    const response = await request.request({
+        url: '/home/cover',
+        method: 'get',
+        params: {site_id, num, url}
+    })
+    return response.data?.cover ?? null
+}
+
 export async function downloadTorrent(site_id: number, torrent_id: string): Promise<void> {
     await request.request({
         url: '/home/torrent-download',

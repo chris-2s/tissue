@@ -1,7 +1,8 @@
-import React, {useState} from 'react'
-import {Button, Tag, theme, Tooltip, Typography} from 'antd'
+import React, {useEffect, useState} from 'react'
+import {Button, Skeleton, Tag, theme, Tooltip, Typography} from 'antd'
 import {CalendarOutlined, DownloadOutlined, EyeOutlined, RiseOutlined} from '@ant-design/icons'
 import type {SiteVideo} from '../../../../types/video'
+import {getCover} from '../../../../apis/home.ts'
 
 const {useToken} = theme
 const {Paragraph} = Typography
@@ -15,11 +16,20 @@ interface TorrentItemProps {
 }
 
 function TorrentItem(props: TorrentItemProps) {
-    const {item, onDownload, onDetail, downloading} = props
+    const {item, siteId, onDownload, onDetail, downloading} = props
     const {token} = useToken()
-    const [imgError, setImgError] = useState(false)
+    // undefined = loading, null = no cover, string = url
+    const [cover, setCover] = useState<string | null | undefined>(undefined)
 
-    const showCover = !!item.cover && !imgError
+    useEffect(() => {
+        if (!item.num || !item.url) {
+            setCover(null)
+            return
+        }
+        getCover(siteId, item.num, item.url)
+            .then(c => setCover(c))
+            .catch(() => setCover(null))
+    }, [item.num])
 
     return (
         <div
@@ -32,25 +42,43 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {/* cover image */}
-            {showCover && (
-                <div style={{position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden'}}>
-                    <img
-                        src={item.cover!}
-                        alt={item.title || item.num}
-                        style={{
-                            position: 'absolute',
-                            top: 0, left: 0,
-                            width: '100%', height: '100%',
-                            objectFit: 'cover',
-                        }}
-                        onError={() => setImgError(true)}
-                    />
-                </div>
-            )}
-
-            {/* gradient placeholder when no cover / cover failed */}
-            {!showCover && (
+            {/* cover area */}
+            {cover === undefined ? (
+                /* loading */
+                <Skeleton.Image active style={{width: '100%', height: 160, borderRadius: 0}}/>
+            ) : cover ? (
+                /* image loaded */
+                <>
+                    <div style={{position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden'}}>
+                        <img
+                            src={cover}
+                            alt={item.title || item.num}
+                            style={{
+                                position: 'absolute',
+                                top: 0, left: 0,
+                                width: '100%', height: '100%',
+                                objectFit: 'cover',
+                            }}
+                            onError={() => setCover(null)}
+                        />
+                    </div>
+                    <div style={{padding: '8px 12px 4px'}}>
+                        <Paragraph
+                            ellipsis={{rows: 2, tooltip: item.title}}
+                            style={{
+                                margin: 0,
+                                fontWeight: token.fontWeightStrong,
+                                fontSize: token.fontSize,
+                                color: token.colorText,
+                                lineHeight: 1.4,
+                            }}
+                        >
+                            {item.title || item.num}
+                        </Paragraph>
+                    </div>
+                </>
+            ) : (
+                /* no cover fallback */
                 <div
                     style={{
                         background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorPrimary}33 100%)`,
@@ -61,24 +89,6 @@ function TorrentItem(props: TorrentItemProps) {
                         alignItems: 'flex-start',
                     }}
                 >
-                    <Paragraph
-                        ellipsis={{rows: 2, tooltip: item.title}}
-                        style={{
-                            margin: 0,
-                            fontWeight: token.fontWeightStrong,
-                            fontSize: token.fontSize,
-                            color: token.colorText,
-                            lineHeight: 1.4,
-                        }}
-                    >
-                        {item.title || item.num}
-                    </Paragraph>
-                </div>
-            )}
-
-            {/* title below cover (only when cover is showing) */}
-            {showCover && (
-                <div style={{padding: '8px 12px 4px'}}>
                     <Paragraph
                         ellipsis={{rows: 2, tooltip: item.title}}
                         style={{
