@@ -6,4 +6,9 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [tanstackRouter({target: 'react', autoCodeSplitting: false}), tailwindcss(), react()],
+    build: {
+        rollupOptions: {
+            input: './index.html',
+        },
+    },
 })
