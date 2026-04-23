@@ -26,6 +26,12 @@ class GayTorrentsSpider(Spider):
     supports_downloads = True
     supports_previews = True
 
+    def _ensure_valid_cookies(self):
+        if not self.session.cookies:
+            return
+        if not self._is_logged_in(self.session.cookies):
+            self.session.cookies.clear()
+
     def get_login_page(self) -> dict[str, Any]:
         session = self.session
         login_url = urljoin(self.host, '/login.php')
@@ -63,12 +69,19 @@ class GayTorrentsSpider(Spider):
 
         session.post(login_url, data=data, allow_redirects=True)
 
-        # vBulletin sets bb_userid (non-zero) on successful login
-        cookies_dict = {c.name: c.value for c in session.cookies}
-        if cookies_dict.get('bb_userid', '0') not in ('0', '', None):
+        # vBulletin sets a *vbb_userid cookie on success (prefix varies per install, e.g. ENvbb_userid)
+        if self._is_logged_in(session.cookies):
             return cookies_to_cookiecloud_items(cookiejar_to_cookies(session.cookies))
 
         raise BizException('登录失败，请检查账号密码')
+
+    @staticmethod
+    def _is_logged_in(cookie_jar) -> bool:
+        """Check for a vBulletin userid cookie with non-zero value (prefix varies per install)."""
+        for c in cookie_jar:
+            if c.name.endswith('vbb_userid') and c.value not in ('0', '', None):
+                return True
+        return False
 
     def get_info(self, num: str, url: str | None = None, include_downloads=False,
                  include_previews=False, include_comments=False):
