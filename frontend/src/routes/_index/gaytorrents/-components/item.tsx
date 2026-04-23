@@ -1,10 +1,10 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {Button, Tag, theme, Tooltip, Typography} from 'antd'
 import {CalendarOutlined, DownloadOutlined, EyeOutlined, RiseOutlined} from '@ant-design/icons'
 import type {SiteVideo} from '../../../../types/video'
 
 const {useToken} = theme
-const {Text, Paragraph} = Typography
+const {Paragraph} = Typography
 
 interface TorrentItemProps {
     item: SiteVideo
@@ -17,6 +17,9 @@ interface TorrentItemProps {
 function TorrentItem(props: TorrentItemProps) {
     const {item, onDownload, onDetail, downloading} = props
     const {token} = useToken()
+    const [imgError, setImgError] = useState(false)
+
+    const showCover = !!item.cover && !imgError
 
     return (
         <div
@@ -29,26 +32,25 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {/* cover image or gradient placeholder */}
-            {item.cover ? (
+            {/* cover image */}
+            {showCover && (
                 <div style={{position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden'}}>
                     <img
-                        src={item.cover}
+                        src={item.cover!}
                         alt={item.title || item.num}
                         style={{
                             position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
+                            top: 0, left: 0,
+                            width: '100%', height: '100%',
                             objectFit: 'cover',
                         }}
-                        onError={e => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none'
-                        }}
+                        onError={() => setImgError(true)}
                     />
                 </div>
-            ) : (
+            )}
+
+            {/* gradient placeholder when no cover / cover failed */}
+            {!showCover && (
                 <div
                     style={{
                         background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorPrimary}33 100%)`,
@@ -74,8 +76,8 @@ function TorrentItem(props: TorrentItemProps) {
                 </div>
             )}
 
-            {/* title below cover */}
-            {item.cover && (
+            {/* title below cover (only when cover is showing) */}
+            {showCover && (
                 <div style={{padding: '8px 12px 4px'}}>
                     <Paragraph
                         ellipsis={{rows: 2, tooltip: item.title}}

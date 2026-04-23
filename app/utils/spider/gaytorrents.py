@@ -255,9 +255,8 @@ class GayTorrentsSpider(Spider):
                 except ValueError:
                     pass
 
-            # Grab the first thumbnail image in the row if present
-            img_srcs = row.xpath(".//img/@src")
-            cover = urljoin(self.host, img_srcs[0]) if img_srcs else None
+            # Listing page has no meaningful cover thumbnails; cover is populated on detail fetch
+            cover = None
 
             video = SiteVideo()
             video.num = torrent_id
