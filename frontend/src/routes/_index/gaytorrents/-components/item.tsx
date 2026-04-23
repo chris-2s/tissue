@@ -1,5 +1,5 @@
-import React, {useState} from 'react'
-import {Badge, Button, Modal, Space, Tag, theme, Tooltip, Typography} from 'antd'
+import React from 'react'
+import {Button, Tag, theme, Tooltip, Typography} from 'antd'
 import {CalendarOutlined, DownloadOutlined, EyeOutlined, RiseOutlined} from '@ant-design/icons'
 import type {SiteVideo} from '../../../../types/video'
 
@@ -29,30 +29,68 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {/* coloured header band as cover placeholder */}
-            <div
-                style={{
-                    background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorPrimary}33 100%)`,
-                    padding: '16px 12px 12px',
-                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-                    minHeight: 64,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                }}
-            >
-                <Paragraph
-                    ellipsis={{rows: 2, tooltip: item.title}}
+            {/* cover image or gradient placeholder */}
+            {item.cover ? (
+                <div style={{position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden'}}>
+                    <img
+                        src={item.cover}
+                        alt={item.title || item.num}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                        onError={e => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none'
+                        }}
+                    />
+                </div>
+            ) : (
+                <div
                     style={{
-                        margin: 0,
-                        fontWeight: token.fontWeightStrong,
-                        fontSize: token.fontSize,
-                        color: token.colorText,
-                        lineHeight: 1.4,
+                        background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorPrimary}33 100%)`,
+                        padding: '16px 12px 12px',
+                        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                        minHeight: 64,
+                        display: 'flex',
+                        alignItems: 'flex-start',
                     }}
                 >
-                    {item.title || item.num}
-                </Paragraph>
-            </div>
+                    <Paragraph
+                        ellipsis={{rows: 2, tooltip: item.title}}
+                        style={{
+                            margin: 0,
+                            fontWeight: token.fontWeightStrong,
+                            fontSize: token.fontSize,
+                            color: token.colorText,
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        {item.title || item.num}
+                    </Paragraph>
+                </div>
+            )}
+
+            {/* title below cover */}
+            {item.cover && (
+                <div style={{padding: '8px 12px 4px'}}>
+                    <Paragraph
+                        ellipsis={{rows: 2, tooltip: item.title}}
+                        style={{
+                            margin: 0,
+                            fontWeight: token.fontWeightStrong,
+                            fontSize: token.fontSize,
+                            color: token.colorText,
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        {item.title || item.num}
+                    </Paragraph>
+                </div>
+            )}
 
             {/* meta row */}
             <div className="px-3 py-2 flex flex-wrap gap-1" style={{flex: 1}}>

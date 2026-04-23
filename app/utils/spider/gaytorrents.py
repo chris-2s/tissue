@@ -229,6 +229,10 @@ class GayTorrentsSpider(Spider):
             if not href or not title:
                 continue
 
+            # Skip ad/promo entries
+            if title.startswith('[FFL]'):
+                continue
+
             torrent_url = urljoin(self.host, href)
             qs = parse_qs(urlparse(torrent_url).query)
             torrent_id = qs.get('torrentid', [href])[0]
@@ -251,12 +255,17 @@ class GayTorrentsSpider(Spider):
                 except ValueError:
                     pass
 
+            # Grab the first thumbnail image in the row if present
+            img_srcs = row.xpath(".//img/@src")
+            cover = urljoin(self.host, img_srcs[0]) if img_srcs else None
+
             video = SiteVideo()
             video.num = torrent_id
             video.title = title
             video.url = torrent_url
             video.publish_date = publish_date
             video.rank = rank
+            video.cover = cover
             result.append(video)
 
         return result
