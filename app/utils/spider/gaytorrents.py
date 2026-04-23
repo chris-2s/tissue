@@ -17,6 +17,11 @@ from app.utils.spider.spider import Session, Spider
 from app.utils.spider.spider_exception import SpiderException
 
 
+def _text(el) -> str:
+    """Extract all text from an lxml etree element recursively."""
+    return el.xpath('string()').strip()
+
+
 class GayTorrentsSpider(Spider):
     key = 'gaytorrents'
     name = 'GayTorrents'
@@ -94,32 +99,31 @@ class GayTorrentsSpider(Spider):
 
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
 
-        # Check we actually got a torrent page (requires login if not logged in)
         title_el = html.xpath("//h2[@id='file_name']")
         if not title_el:
             raise SpiderException('未找到种子详情，请检查登录状态')
 
         meta = VideoDetail()
         meta.num = num
-        meta.title = title_el[0].text_content().strip()
+        meta.title = _text(title_el[0])
 
         # Parse dt/dd info pairs
         dt_els = html.xpath("//dl[contains(@class,'userinfo_extra')]/dt")
         dd_els = html.xpath("//dl[contains(@class,'userinfo_extra')]/dd")
-        info = {dt.text_content().strip(): dd for dt, dd in zip(dt_els, dd_els)}
+        info = {_text(dt): dd for dt, dd in zip(dt_els, dd_els)}
 
         if 'Uploaded' in info:
             try:
                 meta.premiered = datetime.strptime(
-                    info['Uploaded'].text_content().strip(), '%H:%M %d-%b-%Y'
+                    _text(info['Uploaded']), '%H:%M %d-%b-%Y'
                 ).strftime('%Y-%m-%d')
             except ValueError:
-                meta.premiered = info['Uploaded'].text_content().strip()
+                meta.premiered = _text(info['Uploaded'])
 
         # Tags
         tag_els = html.xpath("//dd[@id='taglist']/a")
         if tag_els:
-            meta.tags = [el.text_content().strip() for el in tag_els if el.text_content().strip()]
+            meta.tags = [_text(el) for el in tag_els if _text(el)]
 
         # Category as studio
         cat_el = html.xpath("//dd[@id='category']//img/@title")
@@ -129,7 +133,7 @@ class GayTorrentsSpider(Spider):
         # Description / outline
         desc_el = html.xpath("//div[@id='description']")
         if desc_el:
-            meta.outline = desc_el[0].text_content().strip()
+            meta.outline = _text(desc_el[0])
 
         # Cover = first full-size preview image
         img_links = html.xpath("//div[@id='displayimages']/a/@href")
@@ -164,11 +168,11 @@ class GayTorrentsSpider(Spider):
             return []
 
         title_el = html.xpath("//h2[@id='file_name']")
-        name = title_el[0].text_content().strip() if title_el else 'Torrent'
+        name = _text(title_el[0]) if title_el else 'Torrent'
 
         size_dd = html.xpath("//dl[contains(@class,'userinfo_extra')]/dt[text()='Size']"
                              "/following-sibling::dd[1]")
-        size = size_dd[0].text_content().strip() if size_dd else None
+        size = _text(size_dd[0]) if size_dd else None
 
         download = VideoDownload(source=self.source_ref())
         download.url = page_url
@@ -196,7 +200,7 @@ class GayTorrentsSpider(Spider):
 
             a = name_li[0]
             href = a.get('href', '')
-            title = a.text_content().strip()
+            title = _text(a)
             if not href or not title:
                 continue
 
@@ -207,7 +211,7 @@ class GayTorrentsSpider(Spider):
             date_li = row.xpath(".//li[contains(@class,'Torrent-List-Date')]")
             publish_date = None
             if date_li:
-                date_str = date_li[0].text_content().strip()
+                date_str = _text(date_li[0])
                 try:
                     publish_date = datetime.strptime(date_str, '%H:%M %d-%b-%Y').date()
                 except ValueError:
@@ -216,7 +220,7 @@ class GayTorrentsSpider(Spider):
             seeds_li = row.xpath(".//li[contains(@class,'Torrent-List-Seeds')]")
             rank = None
             if seeds_li:
-                seeds_text = seeds_li[0].text_content().strip().rstrip('|').strip()
+                seeds_text = _text(seeds_li[0]).rstrip('|').strip()
                 try:
                     rank = float(seeds_text)
                 except ValueError:
