@@ -9,6 +9,7 @@ class SpiderKey(StrEnum):
     JAVBUS = 'javbus'
     JAV321 = 'jav321'
     DMM = 'dmm'
+    GAYTORRENTS = 'gaytorrents'
 
 
 class SiteCapabilities(BaseModel):

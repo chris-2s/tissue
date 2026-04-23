@@ -14,7 +14,7 @@ from app.schema import SiteCapabilities, SpiderKey, VideoDetail
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
-from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
+from app.utils.spider import DmmSpider, GayTorrentsSpider, Jav321Spider, JavBusSpider, JavDBSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -29,6 +29,7 @@ class SpiderService(BaseService):
         SpiderKey.JAVBUS: JavBusSpider,
         SpiderKey.JAV321: Jav321Spider,
         SpiderKey.DMM: DmmSpider,
+        SpiderKey.GAYTORRENTS: GayTorrentsSpider,
     }
 
     @staticmethod
