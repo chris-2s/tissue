@@ -83,8 +83,12 @@ class GayTorrentsSpider(Spider):
     @staticmethod
     def _is_logged_in(cookie_jar) -> bool:
         """Check for a vBulletin userid cookie with non-zero value (prefix varies per install)."""
-        for c in cookie_jar:
-            if c.name.endswith('vbb_userid') and c.value not in ('0', '', None):
+        for name in cookie_jar:
+            if isinstance(name, str):
+                value = cookie_jar.get(name)
+            else:
+                name, value = name.name, name.value
+            if name.endswith('vbb_userid') and value not in ('0', '', None):
                 return True
         return False
 
