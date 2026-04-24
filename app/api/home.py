@@ -21,28 +21,19 @@ def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_
 
 @router.get('/cover')
 def get_cover(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
-    spider = service.build_spider_by_site_id(site_id)
-    if not spider or not hasattr(spider, 'get_info'):
-        return R.ok({'cover': None})
-    try:
-        info = spider.get_info(num, url, include_downloads=False, include_previews=False)
-        return R.ok({'cover': info.cover})
-    except Exception:
-        return R.ok({'cover': None})
-
-
-@router.get('/proxy-image')
-def proxy_image(site_id: int, url: str, service=Depends(get_spider_service)):
-    """Fetch an image through the site's authenticated session and return the bytes."""
+    """Fetch the first image from the torrent detail page and return the bytes directly."""
     spider = service.build_spider_by_site_id(site_id)
     if not spider:
         raise HTTPException(status_code=404)
     try:
-        resp = spider.session.get(url)
-        if not resp.ok:
+        info = spider.get_info(num, url, include_downloads=False, include_previews=False)
+        if not info.cover:
             raise HTTPException(status_code=404)
-        content_type = resp.headers.get('content-type', 'image/jpeg')
-        return Response(content=resp.content, media_type=content_type)
+        img_resp = spider.session.get(info.cover)
+        if not img_resp.ok:
+            raise HTTPException(status_code=404)
+        content_type = img_resp.headers.get('content-type', 'image/jpeg')
+        return Response(content=img_resp.content, media_type=content_type)
     except HTTPException:
         raise
     except Exception:

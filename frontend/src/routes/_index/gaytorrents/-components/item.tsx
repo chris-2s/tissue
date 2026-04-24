@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react'
-import {Button, Skeleton, Tag, theme, Tooltip, Typography} from 'antd'
+import React, {useState} from 'react'
+import {Button, Tag, theme, Tooltip, Typography} from 'antd'
 import {CalendarOutlined, DownloadOutlined, EyeOutlined, RiseOutlined} from '@ant-design/icons'
 import type {SiteVideo} from '../../../../types/video'
-import {getCover} from '../../../../apis/home.ts'
+import {buildCoverUrl} from '../../../../apis/home.ts'
 
 const {useToken} = theme
 const {Paragraph} = Typography
@@ -18,18 +18,11 @@ interface TorrentItemProps {
 function TorrentItem(props: TorrentItemProps) {
     const {item, siteId, onDownload, onDetail, downloading} = props
     const {token} = useToken()
-    // undefined = loading, null = no cover, string = proxy url
-    const [cover, setCover] = useState<string | null | undefined>(undefined)
+    const [imgFailed, setImgFailed] = useState(false)
 
-    useEffect(() => {
-        if (!item.num || !item.url) {
-            setCover(null)
-            return
-        }
-        getCover(siteId, item.num, item.url)
-            .then(c => setCover(c))
-            .catch(() => setCover(null))
-    }, [item.num])
+    const coverSrc = item.num && item.url && !imgFailed
+        ? buildCoverUrl(siteId, item.num, item.url)
+        : null
 
     return (
         <div
@@ -42,15 +35,13 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {cover === undefined ? (
-                <Skeleton.Image active style={{width: '100%', height: 140, borderRadius: 0, display: 'block'}}/>
-            ) : cover ? (
+            {coverSrc ? (
                 <>
                     <img
-                        src={cover}
+                        src={coverSrc}
                         alt={item.title || item.num}
                         style={{width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block'}}
-                        onError={() => setCover(null)}
+                        onError={() => setImgFailed(true)}
                     />
                     <div style={{padding: '8px 12px 4px'}}>
                         <Paragraph

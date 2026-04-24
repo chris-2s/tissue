@@ -47,17 +47,9 @@ export async function getActor(params: GetActorParams): Promise<PagedResponse<Si
     return response.data
 }
 
-export async function getCover(site_id: number, num: string, url: string): Promise<string | null> {
-    const response = await request.request({
-        url: '/home/cover',
-        method: 'get',
-        params: {site_id, num, url}
-    })
-    const rawCover: string | null = response.data?.data?.cover ?? null
-    if (!rawCover) return null
-    // Images require site auth cookies — proxy through backend
+export function buildCoverUrl(site_id: number, num: string, url: string): string {
     const base = (request.defaults.baseURL ?? '').replace(/\/$/, '')
-    return `${base}/home/proxy-image?site_id=${site_id}&url=${encodeURIComponent(rawCover)}`
+    return `${base}/home/cover?site_id=${site_id}&num=${encodeURIComponent(num)}&url=${encodeURIComponent(url)}`
 }
 
 export async function downloadTorrent(site_id: number, torrent_id: string): Promise<void> {
