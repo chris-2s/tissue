@@ -53,7 +53,7 @@ export async function getCover(site_id: number, num: string, url: string): Promi
         method: 'get',
         params: {site_id, num, url}
     })
-    const rawCover: string | null = response.data?.cover ?? null
+    const rawCover: string | null = response.data?.data?.cover ?? null
     if (!rawCover) return null
     // Images require site auth cookies — proxy through backend
     const base = (request.defaults.baseURL ?? '').replace(/\/$/, '')
