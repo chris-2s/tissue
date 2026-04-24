@@ -1,3 +1,14 @@
+# ── Stage 1: build frontend ───────────────────────────────────────────────────
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ ./
+RUN npm run build
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM python:3.11.4-slim-bullseye
 LABEL authors="Chris"
 
@@ -8,13 +19,17 @@ ENV LANG="C.UTF-8" \
     UMASK=000
 
 RUN apt-get update -y \
-    && apt-get -y install nginx locales gosu
+    && apt-get -y install nginx locales gosu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./nginx/ /etc/nginx/conf.d/
 COPY . /app/
+# Replace pre-built dist (if any) with the freshly built one
+COPY --from=frontend-builder /frontend/dist /app/dist
 
 WORKDIR /app
-RUN pip install -r requirements.txt \
+RUN pip install --no-cache-dir -r requirements.txt \
     && chown -R www-data /app/dist \
     && locale-gen zh_CN.UTF-8 \
     && groupadd -r tissue -g 911 \
