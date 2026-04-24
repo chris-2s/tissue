@@ -311,7 +311,7 @@ class JavDBSpider(Spider):
             result.append(ranking)
         return result
 
-    def get_ranking(self, video_type: str, cycle: str):
+    def get_ranking(self, video_type: str, cycle: str, **kwargs):
         url = urljoin(self.host, f'/rankings/movies?p={cycle}&t={video_type}')
         response = self.session.get(url)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))

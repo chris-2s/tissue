@@ -15,8 +15,8 @@ router = APIRouter()
 
 
 @router.get('/ranking')
-def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_spider_service)):
-    return service.get_ranking(site_id, video_type, cycle)
+def get_rankings(site_id: int, video_type: str, cycle: str, pages: int = 1, service=Depends(get_spider_service)):
+    return service.get_ranking(site_id, video_type, cycle, pages=pages)
 
 
 @router.get('/cover')

@@ -179,11 +179,11 @@ class SpiderService(BaseService):
 
         return meta
 
-    def get_ranking(self, site_id: int, video_type: str, cycle: str):
+    def get_ranking(self, site_id: int, video_type: str, cycle: str, pages: int = 1):
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_ranking:
             return None
-        return spider.get_ranking(video_type, cycle)
+        return spider.get_ranking(video_type, cycle, pages=pages)
 
     def get_detail(self, site_id: int, num: str, url: str):
         spider = self.build_spider_by_site_id(site_id)

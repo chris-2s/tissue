@@ -5,6 +5,7 @@ export interface GetRankingsParams {
     site_id: number;
     video_type: string;
     cycle: string;
+    pages?: number;
 }
 
 export interface GetDetailParams {

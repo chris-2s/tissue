@@ -205,15 +205,25 @@ class GayTorrentsSpider(Spider):
             return dl.content
         return None
 
-    def get_ranking(self, video_type: str, cycle: str):
+    def get_ranking(self, video_type: str, cycle: str, pages: int = 1):
         # video_type is the category path e.g. "porn/Asian" or "nonporn/Drama"
-        url = urljoin(self.host, f'/torrentslist.php?type={video_type}')
-        response = self.session.get(url)
-        if not response.ok:
-            return []
-
-        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
-        return self._parse_listing(html)
+        result = []
+        seen_ids: set[str] = set()
+        pages = min(max(pages, 1), 20)  # clamp 1–20
+        for page in range(1, pages + 1):
+            url = urljoin(self.host, f'/torrentslist.php?type={video_type}&page={page}')
+            response = self.session.get(url)
+            if not response.ok:
+                break
+            html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+            items = self._parse_listing(html)
+            new_items = [i for i in items if i.num not in seen_ids]
+            if not new_items:
+                break  # no new content — last page reached
+            for i in new_items:
+                seen_ids.add(i.num)
+            result.extend(new_items)
+        return result
 
     def _parse_listing(self, html):
         result = []

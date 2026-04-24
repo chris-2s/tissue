@@ -64,6 +64,7 @@ export const Route = createFileRoute('/_index/gaytorrents/')({
                 site_id: site.id,
                 video_type: deps.category,
                 cycle: '',
+                pages: 5,
             }).then(items => ({
                 siteId: site.id,
                 siteName: site.name,
