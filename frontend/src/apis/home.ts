@@ -47,11 +47,6 @@ export async function getActor(params: GetActorParams): Promise<PagedResponse<Si
     return response.data
 }
 
-export function buildCoverUrl(site_id: number, num: string, url: string): string {
-    const base = (request.defaults.baseURL ?? '').replace(/\/$/, '')
-    return `${base}/home/cover?site_id=${site_id}&num=${encodeURIComponent(num)}&url=${encodeURIComponent(url)}`
-}
-
 export async function downloadTorrent(site_id: number, torrent_id: string): Promise<void> {
     await request.request({
         url: '/home/torrent-download',

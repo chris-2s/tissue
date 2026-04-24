@@ -1,8 +1,8 @@
-import React, {useState} from 'react'
-import {Button, Tag, theme, Tooltip, Typography} from 'antd'
+import React, {useEffect, useRef, useState} from 'react'
+import {Button, Skeleton, Tag, theme, Tooltip, Typography} from 'antd'
 import {CalendarOutlined, DownloadOutlined, EyeOutlined, RiseOutlined} from '@ant-design/icons'
 import type {SiteVideo} from '../../../../types/video'
-import {buildCoverUrl} from '../../../../apis/home.ts'
+import {request} from '../../../../utils/requests.ts'
 
 const {useToken} = theme
 const {Paragraph} = Typography
@@ -18,11 +18,33 @@ interface TorrentItemProps {
 function TorrentItem(props: TorrentItemProps) {
     const {item, siteId, onDownload, onDetail, downloading} = props
     const {token} = useToken()
-    const [imgFailed, setImgFailed] = useState(false)
+    // undefined = loading, null = no cover, string = blob URL
+    const [coverSrc, setCoverSrc] = useState<string | null | undefined>(undefined)
+    const blobRef = useRef<string | null>(null)
 
-    const coverSrc = item.num && item.url && !imgFailed
-        ? buildCoverUrl(siteId, item.num, item.url)
-        : null
+    useEffect(() => {
+        if (!item.num || !item.url) {
+            setCoverSrc(null)
+            return
+        }
+        request.request({
+            url: '/home/cover',
+            method: 'get',
+            params: {site_id: siteId, num: item.num, url: item.url},
+            responseType: 'blob',
+        }).then(resp => {
+            const url = URL.createObjectURL(resp.data)
+            blobRef.current = url
+            setCoverSrc(url)
+        }).catch(() => setCoverSrc(null))
+
+        return () => {
+            if (blobRef.current) {
+                URL.revokeObjectURL(blobRef.current)
+                blobRef.current = null
+            }
+        }
+    }, [item.num])
 
     return (
         <div
@@ -35,13 +57,15 @@ function TorrentItem(props: TorrentItemProps) {
                 height: '100%',
             }}
         >
-            {coverSrc ? (
+            {coverSrc === undefined ? (
+                <Skeleton.Image active style={{width: '100%', height: 140, borderRadius: 0, display: 'block'}}/>
+            ) : coverSrc ? (
                 <>
                     <img
                         src={coverSrc}
                         alt={item.title || item.num}
                         style={{width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block'}}
-                        onError={() => setImgFailed(true)}
+                        onError={() => setCoverSrc(null)}
                     />
                     <div style={{padding: '8px 12px 4px'}}>
                         <Paragraph
