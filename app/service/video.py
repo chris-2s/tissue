@@ -27,6 +27,8 @@ video_cache = LRUCache(maxsize=1)
 
 class VideoService(BaseService):
 
+    subtitle_formats = {'.ass', '.srt'}
+
     @cached(cache=video_cache, key=lambda self: 'videos')
     def get_videos(self) -> List[VideoList]:
         setting = Setting().app
@@ -117,6 +119,7 @@ class VideoService(BaseService):
         if not os.path.exists(video.path):
             raise BizException('视频不存在')
 
+        subtitle_paths = self.find_subtitle_paths(video.path, video.num)
         _, ext_name = os.path.splitext(video.path)
 
         if trans_mode == 'move':
@@ -150,6 +153,7 @@ class VideoService(BaseService):
                     logger.info(f"开始复制影片...")
                     shutil.copy(video.path, video_path)
                     logger.info(f"复制影片完成: {video_path}")
+            self.trans_subtitles(video.path, video_path, subtitle_paths, trans_mode)
             utils.remove_empty_directory(video.path)
 
         if video.cover:
@@ -169,6 +173,7 @@ class VideoService(BaseService):
         if not os.path.exists(path):
             raise BizException("视频不存在")
         self.delete_video_meta(path)
+        self.delete_subtitles(path)
         os.remove(path)
         utils.remove_empty_directory(path)
 
@@ -189,3 +194,78 @@ class VideoService(BaseService):
                 image_path = os.path.join(exist_path, image)
                 if os.path.exists(image_path):
                     os.remove(image_path)
+
+    def find_subtitle_paths(self, video_path: str, num: Optional[str]) -> list[str]:
+        parent_dir = os.path.dirname(video_path)
+        video_name = os.path.splitext(os.path.basename(video_path))[0]
+        matched_paths: list[str] = []
+        video_num = num.upper() if num else None
+
+        for ext_name in sorted(self.subtitle_formats):
+            same_name_path = os.path.join(parent_dir, f'{video_name}{ext_name}')
+            if os.path.exists(same_name_path):
+                matched_paths.append(same_name_path)
+                continue
+
+            if not video_num:
+                continue
+
+            ext_matches: list[str] = []
+            for item in os.listdir(parent_dir):
+                item_path = os.path.join(parent_dir, item)
+                if not os.path.isfile(item_path):
+                    continue
+                _, subtitle_ext_name = os.path.splitext(item)
+                if subtitle_ext_name.lower() != ext_name:
+                    continue
+
+                subtitle_meta = num_parser.parse(item_path)
+                if subtitle_meta and subtitle_meta.num and subtitle_meta.num.upper() == video_num:
+                    ext_matches.append(item_path)
+
+            if ext_matches:
+                ext_matches.sort(key=lambda p: (len(os.path.basename(p)), os.path.basename(p).lower()))
+                if len(ext_matches) > 1:
+                    logger.warning(f"影片《{video_num}》存在多个{ext_name}字幕候选，使用：{ext_matches[0]}")
+                matched_paths.append(ext_matches[0])
+
+        return matched_paths
+
+    def trans_subtitles(self, source_video_path: str, dest_video_path: str, subtitle_paths: list[str], trans_mode: str):
+        if not subtitle_paths:
+            return
+
+        dest_video_name = os.path.splitext(os.path.basename(dest_video_path))[0]
+        dest_dir = os.path.dirname(dest_video_path)
+
+        for subtitle_path in subtitle_paths:
+            _, subtitle_ext_name = os.path.splitext(subtitle_path)
+            dest_subtitle_path = os.path.join(dest_dir, f'{dest_video_name}{subtitle_ext_name.lower()}')
+
+            if subtitle_path == dest_subtitle_path:
+                continue
+
+            if os.path.exists(dest_subtitle_path):
+                if os.stat(dest_subtitle_path).st_size != os.stat(subtitle_path).st_size:
+                    logger.warning(f"字幕文件已存在且大小不同，跳过：{dest_subtitle_path}")
+                    continue
+                if trans_mode == 'move':
+                    os.remove(subtitle_path)
+                continue
+
+            if trans_mode == 'move':
+                logger.info(f"开始移动字幕：{os.path.basename(subtitle_path)}")
+                shutil.move(subtitle_path, dest_subtitle_path)
+                logger.info(f"移动字幕完成：{dest_subtitle_path}")
+            else:
+                logger.info(f"开始复制字幕：{os.path.basename(subtitle_path)}")
+                shutil.copy(subtitle_path, dest_subtitle_path)
+                logger.info(f"复制字幕完成：{dest_subtitle_path}")
+
+    def delete_subtitles(self, video_path: str):
+        folder_path = os.path.dirname(video_path)
+        video_name = os.path.splitext(os.path.basename(video_path))[0]
+        for ext_name in self.subtitle_formats:
+            subtitle_path = os.path.join(folder_path, f'{video_name}{ext_name}')
+            if os.path.exists(subtitle_path):
+                os.remove(subtitle_path)

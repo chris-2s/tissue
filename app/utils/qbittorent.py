@@ -1,10 +1,9 @@
-import json
 import random
 import time
-import traceback
-from typing import Optional, List
-from urllib.parse import urljoin
+from dataclasses import dataclass
+from typing import Optional
 
+import qbittorrentapi
 import requests
 
 from app.exception import BizException
@@ -12,117 +11,120 @@ from app.schema import Setting
 from app.utils.logger import logger
 
 
+@dataclass
+class AddMagnetResponse:
+    status_code: int
+    hash: str | None = None
+    message: str | None = None
+
+
 class QBittorent:
     def __init__(self):
         setting = Setting().download
         self.host = setting.host
         self.tracker_subscribe = setting.tracker_subscribe
-        self.session = requests.Session()
+        self.client: qbittorrentapi.Client | None = None
+        self._client_host: str | None = None
+
+    def _build_client(self) -> qbittorrentapi.Client:
+        setting = Setting().download
+        if not self.host:
+            raise BizException('下载器地址未配置')
+        return qbittorrentapi.Client(
+            host=self.host,
+            username=setting.username,
+            password=setting.password,
+        )
+
+    def _ensure_client(self) -> qbittorrentapi.Client:
+        if self.client is None or self._client_host != self.host:
+            self.client = self._build_client()
+            self._client_host = self.host
+        return self.client
 
     def login(self):
         try:
-            setting = Setting().download
-            response = self.session.post(url=urljoin(self.host, '/api/v2/auth/login'),
-                                         data={'username': setting.username, 'password': setting.password})
-            if response.status_code != 200:
-                raise BizException(response.text)
-        except:
+            client = self._ensure_client()
+            client.auth_log_in()
+        except Exception as e:
             logger.info("下载器连接失败")
-            raise BizException('下载器连接失败')
+            raise BizException(f'下载器连接失败: {e}')
 
     def auth(func):
         def wrapper(self, *args, **kwargs):
             try:
-                response = func(self, *args, **kwargs)
-                if response.status_code == 403:
-                    logger.info("登录信息失效，将尝试重新登登录...")
-                    raise Exception()
-            except:
                 self.login()
-                response = func(self, *args, **kwargs)
-            return response
+                return func(self, *args, **kwargs)
+            except Exception:
+                logger.info("登录信息失效，将尝试重新登录...")
+                self.login()
+                return func(self, *args, **kwargs)
 
         return wrapper
 
     @auth
     def get_torrents(self, category: Optional[str] = None, include_failed=True, include_success=True):
-        result = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
-            'filter': ['seeding', 'completed'],
-            'category': category
-        }).json()
+        client = self._ensure_client()
+        result = list(client.torrents_info(status_filter='completed', category=category))
 
         if not include_failed:
-            result = filter(lambda item: '整理失败' not in item['tags'], result)
+            result = filter(lambda item: '整理失败' not in item.get('tags', ''), result)
 
         if not include_success:
-            result = filter(lambda item: '整理成功' not in item['tags'], result)
+            result = filter(lambda item: '整理成功' not in item.get('tags', ''), result)
 
         return result
 
     @auth
     def get_torrent_files(self, torrent_hash: str):
-        return self.session.get(urljoin(self.host, '/api/v2/torrents/files'), params={
-            'hash': torrent_hash,
-        }).json()
+        client = self._ensure_client()
+        return list(client.torrents_files(torrent_hash=torrent_hash))
 
     @auth
-    def add_torrent_tags(self, torrent_hash: str, tags: List[str]):
-        self.session.post(urljoin(self.host, '/api/v2/torrents/addTags'), data={
-            'hashes': torrent_hash,
-            'tags': ','.join(tags)
-        })
+    def add_torrent_tags(self, torrent_hash: str, tags: list[str]):
+        client = self._ensure_client()
+        client.torrents_add_tags(torrent_hashes=torrent_hash, tags=','.join(tags))
 
     @auth
-    def remove_torrent_tags(self, torrent_hash: str, tags: List[str]):
-        self.session.post(urljoin(self.host, '/api/v2/torrents/removeTags'), data={
-            'hashes': torrent_hash,
-            'tags': ','.join(tags)
-        })
+    def remove_torrent_tags(self, torrent_hash: str, tags: list[str]):
+        client = self._ensure_client()
+        client.torrents_remove_tags(torrent_hashes=torrent_hash, tags=','.join(tags))
 
     @auth
     def delete_torrent(self, torrent_hash: str):
-        self.session.post(urljoin(self.host, '/api/v2/torrents/delete'), data={
-            'hashes': torrent_hash,
-            'deleteFiles': 'true'
-        })
+        client = self._ensure_client()
+        client.torrents_delete(torrent_hashes=torrent_hash, delete_files=True)
 
     @auth
     def get_trans_info(self):
-        return self.session.get(urljoin(self.host, '/api/v2/transfer/info')).json()
+        client = self._ensure_client()
+        return client.transfer_info()
 
     @auth
     def add_magnet(self, magnet: str, path: str, category: str | None = None):
+        client = self._ensure_client()
         nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz', 5))
-        response = self.session.post(urljoin(self.host, '/api/v2/torrents/add'), data={
-            'urls': magnet,
-            'tags': nonce,
-            'savepath': path,
-            'category': category
-        })
-        if response.status_code != 200:
-            return response
+        try:
+            client.torrents_add(urls=magnet, tags=nonce, save_path=path, category=category)
+        except Exception as e:
+            return AddMagnetResponse(status_code=500, message=str(e))
 
         torrent_hash = ''
         for _ in range(5):
             time.sleep(1)
-            torrents = self.session.get(urljoin(self.host, '/api/v2/torrents/info'), params={
-                'tag': nonce
-            }).json()
+            torrents = list(client.torrents_info(tag=nonce))
             if torrents:
                 torrent_hash = torrents[0]['hash']
-                response.hash = torrent_hash
                 break
 
         if self.tracker_subscribe and torrent_hash:
             trackers_text = requests.get(self.tracker_subscribe, timeout=10).text
             trackers = '\n'.join(filter(lambda item: item, trackers_text.split("\n")))
-            self.session.post(urljoin(self.host, '/api/v2/torrents/addTrackers'), data={
-                'hash': torrent_hash,
-                'urls': trackers
-            })
+            if trackers:
+                client.torrents_add_trackers(torrent_hash=torrent_hash, urls=trackers)
 
         self.remove_torrent_tags(torrent_hash, [nonce])
-        return response
+        return AddMagnetResponse(status_code=200, hash=torrent_hash or None)
 
 
 qbittorent = QBittorent()
