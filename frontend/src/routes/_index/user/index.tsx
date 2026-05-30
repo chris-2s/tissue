@@ -1,6 +1,7 @@
 import {Space} from "antd";
 import UserInfo from "./-components /info.tsx";
 import UserList from "./-components /user.tsx";
+import ApiKeyPanel from "./-components /apiKey.tsx";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../models";
 import {createFileRoute} from "@tanstack/react-router";
@@ -19,7 +20,7 @@ function User() {
             {userInfo?.is_admin && (
                 <UserList/>
             )}
+            <ApiKeyPanel/>
         </Space>
     )
 }
-
