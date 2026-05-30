@@ -22,8 +22,8 @@ def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_serv
 
 
 @router.get('/actor')
-def get_actor(site_id: int, code: str, page: int = 1, service=Depends(get_spider_service)):
-    return R.pages(service.get_actor(site_id, code, page))
+def get_actor_videos(site_id: int, code: str, page: int = 1, service=Depends(get_spider_service)):
+    return R.pages(service.get_actor_videos(site_id, code, page))
 
 
 @router.get('/log')

@@ -11,6 +11,7 @@ from lxml import etree
 from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoCommentItem, \
     VideoComment, VideoSiteActor
+from app.schema.actor import Actor
 from app.schema.home import SiteVideo
 from app.schema.r import Page
 from app.utils.cookies import (
@@ -318,7 +319,7 @@ class JavDBSpider(Spider):
 
         return self._get_video(html)
 
-    def get_actor(self, code: str, page: int):
+    def get_actor_videos(self, code: str, page: int):
         url = urljoin(self.host, f'/actors/{code}')
         response = self.session.get(url, params={'page': page})
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
@@ -342,3 +343,23 @@ class JavDBSpider(Spider):
         pages.data = self._get_video(html)
 
         return pages
+
+    def get_actor(self, name: str):
+        url = urljoin(self.host, f'/search?q={name}&f=actor')
+        response = self.session.get(url)
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+
+        actors_element = html.xpath('//div[@id="actors"]/div/a')
+        for actor_element in actors_element:
+            actor_names = [name.strip() for name in actor_element.get('title').split(',')]
+            actor_code = actor_element.get('href').split('/')[-1]
+            if name in actor_names:
+                actor = Actor(source=self.source_ref())
+                actor.code = actor_code
+                actor.name = name
+                actor.thumb = actor_element.xpath('.//img/@src')[0]
+                actor.alias = actor_names
+                return actor
+            else:
+                continue
+        return None

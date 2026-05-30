@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 
 from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoSiteActor
+from app.schema.actor import Actor
 from app.schema.home import SiteVideo
 from app.schema.r import Page
 from app.utils.spider.spider import Spider
@@ -161,7 +162,7 @@ class JavBusSpider(Spider):
             result.append(download)
         return result
 
-    def get_actor(self, code: str, page: int):
+    def get_actor_videos(self, code: str, page: int):
         url = urljoin(self.host, f'/star/{code}/{page}')
         response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
         html = etree.HTML(response.text)
@@ -208,3 +209,25 @@ class JavBusSpider(Spider):
         pages.data = result
 
         return pages
+
+    def get_actor(self, name: str):
+        url = urljoin(self.host, f'/searchstar/{name}')
+        response = self.session.get(url, allow_redirects=False)
+        html = etree.HTML(response.text)
+
+        actors_element = html.xpath('//a[contains(@class,"avatar-box")]')
+
+        for actor_element in actors_element:
+            avatar_element = actor_element.xpath('./div/img')[0]
+            actor_name = avatar_element.get('title')
+            actor_avatar = urljoin(self.host, avatar_element.get('src'))
+            actor_code = actor_element.get('href').split('/')[-1]
+            if actor_name == name:
+                actor = Actor(source=self.source_ref())
+                actor.code = actor_code
+                actor.name = actor_name
+                actor.thumb = actor_avatar
+                return actor
+            else:
+                continue
+        return None

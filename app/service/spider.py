@@ -159,6 +159,31 @@ class SpiderService(BaseService):
         tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
         return list(filter(lambda item: item, await asyncio.gather(*tasks)))
 
+    async def _get_actor_by_spiders(self, name: str):
+        def __get_actor_by_spider(spider: Spider):
+            try:
+                logger.info(f"{spider.name} 开始刮削演员...")
+                actors = spider.get_actor(name)
+                logger.info(f"{spider.name} 演员刮削成功")
+                return actors
+            except SpiderException as e:
+                logger.info(f"{spider.name} {e.message}")
+            except Exception:
+                logger.error(f'{spider.name} 演员刮削未知错误，请检查网站连通性')
+                traceback.print_exc()
+                return None
+
+        spiders = [spider for spider in self._get_spiders() if spider.supports_actor]
+        tasks = [run_in_threadpool(__get_actor_by_spider, spider=spider) for spider in spiders]
+        results = await asyncio.gather(*tasks)
+
+        actors = []
+        for result in results:
+            if not result:
+                continue
+            actors.append(result)
+        return actors
+
     def get_video_info(self, number: str):
         meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
         logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
@@ -191,11 +216,15 @@ class SpiderService(BaseService):
         return spider.get_info(num=num, url=url, include_downloads=True,
                                include_previews=True, include_comments=True)
 
-    def get_actor(self, site_id: int, code: str, page: int):
+    def get_actor_videos(self, site_id: int, code: str, page: int):
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_actor:
             return []
-        return spider.get_actor(code, page)
+        return spider.get_actor_videos(code, page)
+
+    def get_actor(self, name: str):
+        logger.info(f"开始刮削演员《{name}》")
+        return asyncio.run(self._get_actor_by_spiders(name))
 
     def get_cookies_by_url(self, url: str) -> str | None:
         """根据视频 URL 获取对应站点的 cookie"""
