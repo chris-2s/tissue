@@ -5,6 +5,7 @@ from typing import Any
 import urllib3.util
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 
+from app.schema.setting import Setting
 from app.schema.video import SourceRef
 from app.utils.cookies import apply_cookie_header_to_jar
 
@@ -41,13 +42,22 @@ class Spider:
     supports_previews = False
     supports_comments = False
 
+    @staticmethod
+    def _get_timeout_seconds() -> int:
+        try:
+            timeout = int(Setting().app.timeout)
+            return timeout if timeout > 0 else 10
+        except Exception:
+            return 10
+
     def __init__(self, alternate_host: str | None = None, cookies: str | None = None, site_id: int | None = None):
         self.host = alternate_host or self.origin_host
         self.site_id = site_id
+        timeout_seconds = self._get_timeout_seconds()
 
         self.session = Session()
         self.session.headers = {'User-Agent': DEFAULT_USER_AGENT, 'Referer': self.host}
-        self.session.timeout = (5, 10)
+        self.session.timeout = (10, timeout_seconds)
 
         if cookies:
             self._load_cookies(cookies)
@@ -100,7 +110,12 @@ class Spider:
             uri = urllib3.util.parse_url(url)
             scheme = uri.scheme or 'https'
             referer = f'{scheme}://{uri.host}/' if uri.host else url
-        response = curl_requests.get(url, headers={'Referer': referer}, timeout=10, impersonate=DEFAULT_IMPERSONATE)
+        response = curl_requests.get(
+            url,
+            headers={'Referer': referer},
+            timeout=cls._get_timeout_seconds(),
+            impersonate=DEFAULT_IMPERSONATE,
+        )
         if response.ok:
             return response.content
         return None
