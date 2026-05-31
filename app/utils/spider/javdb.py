@@ -352,6 +352,9 @@ class JavDBSpider(Spider):
         actors_element = html.xpath('//div[@id="actors"]/div/a')
         for actor_element in actors_element:
             actor_names = [name.strip() for name in actor_element.get('title').split(',')]
+            actor_avatar = actor_element.xpath('.//img/@src')[0]
+            if not actor_avatar or 'actor_unknow' in actor_avatar:
+                continue
             actor_code = actor_element.get('href').split('/')[-1]
             if name in actor_names:
                 actor = Actor(source=self.source_ref())
