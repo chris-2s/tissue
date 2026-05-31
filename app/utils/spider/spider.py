@@ -4,6 +4,7 @@ from typing import Any
 
 import urllib3.util
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
+from PIL import Image, ImageFile
 
 from app.schema.setting import Setting
 from app.schema.video import SourceRef
@@ -11,6 +12,8 @@ from app.utils.cookies import apply_cookie_header_to_jar
 
 
 DEFAULT_IMPERSONATE = 'chrome124'
+IMAGE_PROBE_RANGE_BYTES = 64 * 1024
+IMAGE_PROBE_MAX_BYTES = 256 * 1024
 DEFAULT_USER_AGENT = (
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
     'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -85,6 +88,53 @@ class Spider:
         格式: key1=value1; key2=value2
         """
         apply_cookie_header_to_jar(cookies_str, self.session.cookies)
+
+    def probe_image_info(self, url: str) -> dict[str, Any] | None:
+        if not url:
+            return None
+
+        response = None
+        try:
+            headers = dict(self.session.headers)
+            headers['Range'] = f'bytes=0-{IMAGE_PROBE_RANGE_BYTES - 1}'
+            response = self.session.get(url, headers=headers, stream=True, allow_redirects=True)
+            if not response.ok:
+                return None
+
+            parser = ImageFile.Parser()
+            read_size = 0
+            content_type = response.headers.get('content-type')
+            mime = content_type.split(';', 1)[0].strip() if content_type else None
+
+            for chunk in response.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+                read_size += len(chunk)
+                if read_size > IMAGE_PROBE_MAX_BYTES:
+                    break
+
+                parser.feed(chunk)
+                if parser.image:
+                    width, height = parser.image.size
+                    image_format = parser.image.format
+                    return {
+                        'width': width,
+                        'height': height,
+                        'mime': mime or Image.MIME.get(image_format),
+                    }
+
+            image = parser.close()
+            width, height = image.size
+            return {
+                'width': width,
+                'height': height,
+                'mime': mime or Image.MIME.get(image.format),
+            }
+        except Exception:
+            return None
+        finally:
+            if response is not None:
+                response.close()
 
     def get_login_page(self) -> dict[str, Any]:
         """获取登录页信息，返回 cookies + authenticity_token + captcha"""

@@ -15,27 +15,11 @@ from app.schema.r import R
 from app.service.spider import SpiderService
 from app.utils.logger import logger
 from app.utils.m3u8 import fix_m3u8_paths, is_m3u8
+from app.utils.mime import detect_image_mime
 from app.utils.spider.spider import DEFAULT_IMPERSONATE
 from version import APP_VERSION
 
 router = APIRouter()
-
-
-def detect_image_mime(content: bytes) -> str:
-    if content.startswith(b'\xff\xd8\xff'):
-        return 'image/jpeg'
-    if content.startswith(b'\x89PNG\r\n\x1a\n'):
-        return 'image/png'
-    if content.startswith((b'GIF87a', b'GIF89a')):
-        return 'image/gif'
-    if content.startswith(b'BM'):
-        return 'image/bmp'
-    if len(content) >= 12 and content.startswith(b'RIFF') and content[8:12] == b'WEBP':
-        return 'image/webp'
-    if len(content) >= 12 and content[4:8] == b'ftyp':
-        if content[8:12] in {b'avif', b'avis'}:
-            return 'image/avif'
-    return 'application/octet-stream'
 
 
 @router.get("/cover")
@@ -43,7 +27,7 @@ def proxy_video_cover(url: str):
     cover = SpiderService.get_video_cover(url)
     media_type = 'application/octet-stream'
     if cover:
-        media_type = detect_image_mime(cover)
+        media_type = detect_image_mime(cover, url)
         headers = {
             'Cache-Control': 'public, max-age=31536000',
             'ETag': hashlib.md5(url.encode()).hexdigest(),

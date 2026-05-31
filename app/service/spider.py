@@ -11,6 +11,7 @@ from starlette.concurrency import run_in_threadpool
 from app.db import get_db
 from app.db.models import Site
 from app.schema import SiteCapabilities, SpiderKey, VideoDetail
+from app.schema.actor import ImageInfo
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
@@ -164,6 +165,10 @@ class SpiderService(BaseService):
             try:
                 logger.info(f"{spider.name} 开始刮削演员...")
                 actors = spider.get_actor(name)
+                if actors and actors.thumb:
+                    thumb_info = spider.probe_image_info(actors.thumb)
+                    if thumb_info:
+                        actors.thumb_info = ImageInfo(**thumb_info)
                 logger.info(f"{spider.name} 演员刮削成功")
                 return actors
             except SpiderException as e:
