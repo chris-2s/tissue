@@ -21,6 +21,7 @@ import {
 import React, {useEffect, useMemo, useState} from "react";
 import {HistoryOutlined, SearchOutlined, UserOutlined} from "@ant-design/icons";
 import {createFileRoute, useRouter} from "@tanstack/react-router";
+import * as searchApi from "../../../apis/search.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import * as siteApi from "../../../apis/site.ts";
 import Await from "../../../components/Await";
@@ -59,6 +60,7 @@ type ActorCandidate = {
     code: string;
     thumb?: string;
     site_id: number;
+    site_name?: string;
 };
 
 type SearchResultGroup = {
@@ -117,25 +119,78 @@ function buildPlaceholderGroups(mode: SearchMode, keyword: string, sites: SiteIt
     }));
 }
 
+function groupActors(actors: searchApi.ActorSearchItem[]): SearchResultGroup[] {
+    const groupMap = new Map<number, SearchResultGroup>();
+
+    for (const actor of actors) {
+        const source = actor.source;
+        if (!source?.site_id) {
+            continue;
+        }
+
+        const group = groupMap.get(source.site_id) || {
+            siteId: source.site_id,
+            siteName: source.site_name,
+            videoItems: [],
+            actorItems: [],
+        };
+
+        group.actorItems.push({
+            name: actor.name || '',
+            code: actor.code || '',
+            thumb: actor.thumb,
+            site_id: source.site_id,
+            site_name: source.site_name,
+        });
+
+        groupMap.set(source.site_id, group);
+    }
+
+    return Array.from(groupMap.values());
+}
+
 export const Route = createFileRoute('/_index/search/')({
     component: Search,
     loaderDeps: ({search}) => normalizeSearch(search as SearchRouteSearch),
-    loader: async ({deps}) => ({
-        data: deps.keyword ? siteApi.getSites().then((sites) => {
-            cacheSearchHistory(deps.mode, deps.keyword);
-            return {
+    loader: async ({deps}) => {
+        let data: Promise<SearchLoaderResult>;
+
+        if (!deps.keyword) {
+            data = Promise.resolve({
                 mode: deps.mode,
                 keyword: deps.keyword,
-                groups: buildPlaceholderGroups(deps.mode, deps.keyword, sites),
+                groups: [],
                 isPlaceholder: true
-            } as SearchLoaderResult;
-        }) : Promise.resolve({
-            mode: deps.mode,
-            keyword: deps.keyword,
-            groups: [],
-            isPlaceholder: true
-        } as SearchLoaderResult)
-    }),
+            } as SearchLoaderResult);
+        } else if (deps.mode === 'actor') {
+            data = searchApi.searchActors(deps.keyword).then((actors) => {
+                cacheSearchHistory(deps.mode, deps.keyword);
+                return {
+                    mode: deps.mode,
+                    keyword: deps.keyword,
+                    groups: groupActors(actors),
+                    isPlaceholder: false
+                } as SearchLoaderResult;
+            }).catch(() => ({
+                mode: deps.mode,
+                keyword: deps.keyword,
+                groups: [],
+                isPlaceholder: false
+            } as SearchLoaderResult));
+        } else {
+            data = siteApi.getSites().then((sites) => {
+                cacheSearchHistory(deps.mode, deps.keyword);
+                return {
+                    mode: deps.mode,
+                    keyword: deps.keyword,
+                    groups: buildPlaceholderGroups(deps.mode, deps.keyword, sites),
+                    isPlaceholder: true
+                } as SearchLoaderResult;
+            });
+        }
+
+        return {data};
+    },
     staleTime: Infinity
 });
 
@@ -221,7 +276,7 @@ function Search() {
                         </Avatar>
                     )}
                     title={item.name}
-                    description={<Tag bordered={false}>演员候选</Tag>}
+                    description={item.site_name ? <Tag bordered={false}>{item.site_name}</Tag> : undefined}
                 />
             </List.Item>
         );

@@ -10,7 +10,7 @@ import Video from "yet-another-react-lightbox/plugins/video";
 import type {VideoPreviewItem} from "../../../../types/video";
 
 function Preview(props: { data: VideoPreviewItem[] }) {
-    const {data} = props
+    const {data} = props;
     const [openPreview, setOpenPreview] = useState(false);
     const [previewIndex, setPreviewIndex] = useState(0);
 
@@ -31,17 +31,17 @@ function Preview(props: { data: VideoPreviewItem[] }) {
                 src: api.getVideoCover(item.url || '')
             }
         )
-    ))
+    ));
 
     return (
         <Row gutter={[10, 10]}>
-            {data.map((i, index: number) => (
-                <Col className={'cursor-pointer flex items-center'} span={8} lg={3} md={6} key={i.url}
+            {data.map((item, index: number) => (
+                <Col className={'cursor-pointer flex items-center'} span={8} lg={3} md={6} key={item.url}
                      onClick={() => {
-                         setPreviewIndex(index)
-                         setOpenPreview(true)
+                         setPreviewIndex(index);
+                         setOpenPreview(true);
                      }}>
-                    <PreviewImage src={i.thumb || ''} type={i.type || 'image'}/>
+                    <PreviewImage src={item.thumb || ''} type={item.type || 'image'}/>
                 </Col>
             ))}
             <Lightbox open={openPreview}
@@ -57,7 +57,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
                       }}
                       slides={slides}/>
         </Row>
-    )
+    );
 }
 
-export default Preview
+export default Preview;

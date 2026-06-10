@@ -8,30 +8,28 @@ interface Props extends ModalProps {
 }
 
 function DownloadModal(props: Props) {
-
     const {download, onDownload, ...otherProps} = props;
-    const [item, setItem] = useState<VideoDownload>()
+    const [item, setItem] = useState<VideoDownload>();
 
     useEffect(() => {
-        setItem(download)
-    }, [download])
+        setItem(download);
+    }, [download]);
 
     function renderDownloadTag(label: string, field: keyof Pick<VideoDownload, 'is_hd' | 'is_zh' | 'is_uncensored'>, color: string) {
         return (
             <Tag className={'cursor-pointer'} color={item?.[field] ? color : 'default'}
                  bordered={item?.[field]}
                  onClick={() => {
-                      if (!item) {
-                          return
-                      }
-                      setItem({...item, [field]: !item[field]})
-                  }}
+                     if (!item) {
+                         return;
+                     }
+                     setItem({...item, [field]: !item[field]});
+                 }}
             >
                 {label}
             </Tag>
-        )
+        );
     }
-
 
     return (
         <Modal title={'是否确认下载：' + item?.name} {...otherProps} onOk={() => item && onDownload(item)}>
@@ -45,7 +43,7 @@ function DownloadModal(props: Props) {
                 {renderDownloadTag('无码', 'is_uncensored', 'green')}
             </div>
         </Modal>
-    )
+    );
 }
 
-export default DownloadModal
+export default DownloadModal;

@@ -7,11 +7,17 @@ export interface GetRankingsParams {
     cycle: string;
 }
 
-export interface GetDetailParams {
+export interface GetNumberDetailParams {
+    num: string;
+}
+
+export interface GetSiteDetailParams {
     site_id: number;
     num: string;
     url: string;
 }
+
+export type GetDetailParams = GetNumberDetailParams | GetSiteDetailParams;
 
 export interface GetActorParams {
     site_id: number;

@@ -32,10 +32,10 @@ import Websites from "../../../components/Websites";
 import type {Dispatch} from "../../../models";
 import type {VideoDetail, VideoDownload} from "../../../types/video";
 import {useFormModal} from "../../../utils/useFormModal.ts";
-import Preview from "../search/-components/preview.tsx";
-import DownloadModal from "../search/-components/downloadModal.tsx";
-import Comment from "../search/-components/comment.tsx";
-import ActorsModal from "../search/-components/actorsModal.tsx";
+import Preview from "./-components/preview.tsx";
+import DownloadModal from "./-components/downloadModal.tsx";
+import Comment from "./-components/comment.tsx";
+import ActorsModal from "./-components/actorsModal.tsx";
 import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
 
 type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
@@ -43,14 +43,20 @@ type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
 export const Route = createFileRoute('/_index/home/detail')({
     component: Detail,
     loaderDeps: ({search}) => search,
-    loader: async ({deps}) => ({
-        data: homeApi.getDetail(deps as homeApi.GetDetailParams).then((data) => ({
-            ...data,
-            actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
-        } as SearchVideoView)).catch(() => {
-            message.error("数据加载失败");
-        })
-    }),
+    loader: async ({deps}) => {
+        const request = ('site_id' in (deps as Record<string, unknown>) && 'url' in (deps as Record<string, unknown>))
+            ? homeApi.getDetail(deps as homeApi.GetSiteDetailParams)
+            : subscribeApi.searchVideo({num: (deps as homeApi.GetNumberDetailParams).num});
+
+        return {
+            data: request.then((data) => ({
+                ...data,
+                actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
+            } as SearchVideoView)).catch(() => {
+                message.error("数据加载失败");
+            })
+        };
+    },
     staleTime: Infinity
 });
 
@@ -220,7 +226,9 @@ function Detail() {
                                                         router.invalidate({filter: (route) => route.routeId === '/_index/home/detail'});
                                                         return router.navigate({
                                                             replace: true,
-                                                            search: {...search, num: video.num} as never
+                                                            search: ('site_id' in search && 'url' in search)
+                                                                ? {...search, num: video.num} as never
+                                                                : {num: video.num} as never
                                                         });
                                                     }}/>
                                         </Tooltip>
@@ -229,8 +237,8 @@ function Detail() {
                                                     className={'ml-4'}
                                                     onClick={() => {
                                                         router.navigate({
-                                                            to: '/search',
-                                                            search: {mode: 'video', keyword: video.num || ''} as never
+                                                            to: '/home/detail',
+                                                            search: {num: video.num || ''} as never
                                                         });
                                                     }}/>
                                         </Tooltip>

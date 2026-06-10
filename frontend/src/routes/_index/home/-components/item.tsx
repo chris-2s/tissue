@@ -39,8 +39,8 @@ function VideoItem(props: { item: SiteVideo }) {
                             <div onClick={(event) => {
                                 event.stopPropagation()
                                 return navigate({
-                                    to: '/search',
-                                    search: {mode: 'video', keyword: item.num}
+                                    to: '/home/detail',
+                                    search: {num: item.num}
                                 })
                             }}>
                                 <SearchOutlined/>

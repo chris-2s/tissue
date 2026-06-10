@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 from app.db import get_db
 from app.db.models import Site
 from app.schema import SiteCapabilities, SpiderKey, VideoDetail
-from app.schema.actor import ImageInfo
+from app.schema.actor import Actor, ImageInfo
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
@@ -160,15 +160,17 @@ class SpiderService(BaseService):
         tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
         return list(filter(lambda item: item, await asyncio.gather(*tasks)))
 
-    async def _get_actor_by_spiders(self, name: str):
-        def __get_actor_by_spider(spider: Spider):
+    async def _search_actor_by_spiders(self, name: str):
+        def __search_actor_by_spider(spider: Spider):
             try:
                 logger.info(f"{spider.name} 开始刮削演员...")
-                actors = spider.get_actor(name)
-                if actors and actors.thumb:
-                    thumb_info = spider.probe_image_info(actors.thumb)
+                actors = spider.search_actor(name)
+                for actor in actors or []:
+                    if not actor.thumb:
+                        continue
+                    thumb_info = spider.probe_image_info(actor.thumb)
                     if thumb_info:
-                        actors.thumb_info = ImageInfo(**thumb_info)
+                        actor.thumb_info = ImageInfo(**thumb_info)
                 logger.info(f"{spider.name} 演员刮削成功")
                 return actors
             except SpiderException as e:
@@ -179,14 +181,14 @@ class SpiderService(BaseService):
                 return None
 
         spiders = [spider for spider in self._get_spiders() if spider.supports_actor]
-        tasks = [run_in_threadpool(__get_actor_by_spider, spider=spider) for spider in spiders]
+        tasks = [run_in_threadpool(__search_actor_by_spider, spider=spider) for spider in spiders]
         results = await asyncio.gather(*tasks)
 
-        actors = []
+        actors: list[Actor] = []
         for result in results:
             if not result:
                 continue
-            actors.append(result)
+            actors.extend(result)
         return actors
 
     def get_video_info(self, number: str):
@@ -227,9 +229,12 @@ class SpiderService(BaseService):
             return []
         return spider.get_actor_videos(code, page)
 
-    def get_actor(self, name: str):
+    def search_actor(self, name: str):
         logger.info(f"开始刮削演员《{name}》")
-        return asyncio.run(self._get_actor_by_spiders(name))
+        return asyncio.run(self._search_actor_by_spiders(name))
+
+    def get_actor(self, name: str):
+        return self.search_actor(name)
 
     def get_cookies_by_url(self, url: str) -> str | None:
         """根据视频 URL 获取对应站点的 cookie"""

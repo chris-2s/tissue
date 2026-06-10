@@ -7,26 +7,25 @@ interface Props extends ModalProps {
 }
 
 function ActorsModal(props: Props) {
-
-    const {actors, ...otherProps} = props
-    const navigate = useNavigate()
+    const {actors, ...otherProps} = props;
+    const navigate = useNavigate();
 
     return (
         <Modal {...otherProps} title={'演员'} footer={null} centered>
             <Space direction="vertical">
                 {actors?.map((site) => (
-                    <div>
+                    <div key={site.source.site_id}>
                         <div className={'font-extrabold mb-2'}>{site.source.site_name}</div>
                         <Space wrap={true} size={[5, 10]}>
                             {site.items.map((actor) => (
-                                <Tag className={'cursor-pointer'}>
+                                <Tag className={'cursor-pointer'} key={`${site.source.site_id}-${actor.code || actor.name}`}>
                                     <a onClick={() => {
                                         if (!site.source?.site_id) {
-                                            return
+                                            return;
                                         }
                                         navigate({
                                             to: '/actor', search: {site_id: site.source.site_id, code: actor.code}
-                                        })
+                                        });
                                     }}>{actor.name}</a>
                                 </Tag>
                             ))}
@@ -35,7 +34,7 @@ function ActorsModal(props: Props) {
                 ))}
             </Space>
         </Modal>
-    )
+    );
 }
 
-export default ActorsModal
+export default ActorsModal;

@@ -90,8 +90,8 @@ function Video() {
                                                <Tooltip title={'搜索'}>
                                                    <div className={'ml-1'} onClick={(event) => {
                                                        return navigate({
-                                                           to: '/search',
-                                                           search: {mode: 'video', keyword: video.num}
+                                                           to: '/home/detail',
+                                                           search: {num: video.num}
                                                        })
                                                    }}>
                                                        <SearchOutlined/>

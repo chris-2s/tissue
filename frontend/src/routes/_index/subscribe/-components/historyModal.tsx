@@ -76,8 +76,8 @@ function HistoryModal(props: Props) {
                                               shape={"circle"}
                                               onClick={() => {
                                                   router.navigate({
-                                                      to: '/search',
-                                                      search: {mode: 'video', keyword: item.num}
+                                                      to: '/home/detail',
+                                                      search: {num: item.num}
                                                   })
                                               }}/>
                                   </Tooltip>

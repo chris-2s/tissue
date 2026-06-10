@@ -88,8 +88,8 @@ function Subscribe() {
                                                    <Tooltip title={'搜索'}>
                                                        <div className={'px-2'} onClick={() => {
                                                            return navigate({
-                                                               to: '/search',
-                                                               search: {mode: 'video', keyword: subscribe.num}
+                                                               to: '/home/detail',
+                                                               search: {num: subscribe.num}
                                                            })
                                                        }}>
                                                            <SearchOutlined/>

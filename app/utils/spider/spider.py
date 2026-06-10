@@ -151,6 +151,9 @@ class Spider:
                  include_comments=False):
         pass
 
+    def search_actor(self, name: str):
+        raise NotImplementedError
+
     @classmethod
     def get_cover(cls, url: str):
         referer: str

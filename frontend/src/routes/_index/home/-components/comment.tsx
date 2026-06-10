@@ -1,10 +1,10 @@
-import {List, Rate, Space, Statistic, theme} from "antd";
+import {List, Rate, Space, theme} from "antd";
 import {LikeOutlined} from "@ant-design/icons";
 import type {VideoCommentItem} from "../../../../types/video";
 
 function Comment(props: { data: VideoCommentItem[] }) {
     const {data} = props;
-    const {token} = theme.useToken()
+    const {token} = theme.useToken();
     return (
         <List dataSource={data}
               renderItem={(item) => (
@@ -31,7 +31,7 @@ function Comment(props: { data: VideoCommentItem[] }) {
                   </List.Item>
               )}
         />
-    )
+    );
 }
 
 export default Comment;

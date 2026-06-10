@@ -210,13 +210,13 @@ class JavBusSpider(Spider):
 
         return pages
 
-    def get_actor(self, name: str):
+    def search_actor(self, name: str):
         url = urljoin(self.host, f'/searchstar/{name}')
         response = self.session.get(url, allow_redirects=False)
         html = etree.HTML(response.text)
 
         actors_element = html.xpath('//a[contains(@class,"avatar-box")]')
-
+        actors = []
         for actor_element in actors_element:
             avatar_element = actor_element.xpath('./div/img')[0]
             actor_name = avatar_element.get('title')
@@ -225,12 +225,9 @@ class JavBusSpider(Spider):
                 continue
             actor_avatar = urljoin(self.host, avatar_element.get('src'))
             actor_code = actor_element.get('href').split('/')[-1]
-            if actor_name == name:
-                actor = Actor(source=self.source_ref())
-                actor.code = actor_code
-                actor.name = actor_name
-                actor.thumb = actor_avatar
-                return actor
-            else:
-                continue
-        return None
+            actor = Actor(source=self.source_ref())
+            actor.code = actor_code
+            actor.name = actor_name
+            actor.thumb = actor_avatar
+            actors.append(actor)
+        return actors
