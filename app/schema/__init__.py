@@ -9,3 +9,4 @@ from .schedule import *
 from .subscribe import *
 from .site import *
 from .cookie import *
+from .home import *

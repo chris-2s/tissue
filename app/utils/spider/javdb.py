@@ -95,7 +95,10 @@ class JavDBSpider(Spider):
         searched = False
 
         if url is None:
-            url = self.search(num)
+            candidates = self.search_video(num)
+            matched = next((item for item in candidates if (item.num or '').lower() == num.lower()), None)
+            selected = matched or (candidates[0] if candidates else None)
+            url = selected.url if selected else None
             searched = True
 
         if not url:
@@ -187,18 +190,12 @@ class JavDBSpider(Spider):
 
         return meta
 
-    def search(self, num: str):
+    def search_video(self, num: str):
         url = urljoin(self.host, f"/search?q={num}&f=all")
         response = self.session.get(url)
 
-        html = etree.HTML(response.content)
-        matched_elements = html.xpath(fr"//div[@class='video-title']/strong")
-        for matched_element in matched_elements:
-            if matched_element.text.lower() == num.lower():
-                code = matched_element.xpath('./../..')[0].get('href')
-                return urljoin(self.host, code)
-            return None
-        return None
+        html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+        return self._get_video(html)
 
     def get_previews(self, html: etree.HTML):
         result = []
@@ -309,6 +306,7 @@ class JavDBSpider(Spider):
             if tag_str:
                 ranking.isZh = ('中字' in tag_str[0])
 
+            ranking.source = self.source_ref()
             result.append(ranking)
         return result
 

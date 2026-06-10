@@ -162,26 +162,19 @@ class JavBusSpider(Spider):
             result.append(download)
         return result
 
-    def get_actor_videos(self, code: str, page: int):
-        url = urljoin(self.host, f'/star/{code}/{page}')
-        response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
-        html = etree.HTML(response.text)
-
+    def _parse_movie_total(self, html: etree.HTML):
         total_elements = html.xpath("//a[@id='resultshowall']/text()")
         if not total_elements:
-            raise BizException("未找到该演员")
-
-        pages = Page()
-        pages.page = page
-        pages.limit = 30
+            return None
 
         for element in total_elements:
             element = element.replace(r'\xa0', '').replace(' ', '')
-            '全部影片48'
-            total_matched = re.search('全部影片(\d+)', element)
+            total_matched = re.search(r'全部影片(\d+)', element)
             if total_matched:
-                pages.total = int(total_matched.group(1))
+                return int(total_matched.group(1))
+        return None
 
+    def _parse_movie_boxes(self, html: etree.HTML):
         result = []
         videos = html.xpath(r"//div[@id='waterfall']//a[@class='movie-box']")
 
@@ -191,22 +184,38 @@ class JavBusSpider(Spider):
             conver_element = video.xpath('./div[@class="photo-frame"]/img')[0]
             cover = conver_element.get('src')
             cover_code = cover.split("/")[-1].split(".")
-            site_video.cover = urljoin(self.host, f'/pics/cover/{cover_code[0]}_b.{cover_code[1]}')
+            cover_prefix = cover.split("/")[1]
+            site_video.cover = urljoin(self.host, f'/{cover_prefix}/cover/{cover_code[0]}_b.{cover_code[1]}')
             site_video.title = conver_element.get('title')
 
             info_element = video.xpath('./div[@class="photo-info"]/span')[0]
             site_video.num = info_element.xpath('./date')[0].text
-            site_video.publish_date = datetime.strptime(info_element.xpath('./date')[1].text,
-                                                        "%Y-%m-%d").date()
+            site_video.publish_date = datetime.strptime(info_element.xpath('./date')[1].text, "%Y-%m-%d").date()
 
             tag_str = info_element.xpath('./div[@class="item-tag"]/button/text()')
             if tag_str:
                 site_video.isZh = "字幕" in tag_str
 
             site_video.url = video.get('href')
-
+            site_video.source = self.source_ref()
             result.append(site_video)
-        pages.data = result
+
+        return result
+
+    def get_actor_videos(self, code: str, page: int):
+        url = urljoin(self.host, f'/star/{code}/{page}')
+        response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
+        html = etree.HTML(response.text)
+
+        total = self._parse_movie_total(html)
+        if total is None:
+            raise BizException("未找到该演员")
+
+        pages = Page()
+        pages.page = page
+        pages.limit = 30
+        pages.total = total
+        pages.data = self._parse_movie_boxes(html)
 
         return pages
 
@@ -231,3 +240,14 @@ class JavBusSpider(Spider):
             actor.thumb = actor_avatar
             actors.append(actor)
         return actors
+
+    def search_video(self, num: str):
+        result = self.search_with_type('/search/', num)
+        result.extend(self.search_with_type('/uncensored/search/', num))
+        return result
+
+    def search_with_type(self, path: str, num: str):
+        url = urljoin(self.host, f'{path}{num}')
+        response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
+        html = etree.HTML(response.text)
+        return self._parse_movie_boxes(html)

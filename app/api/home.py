@@ -5,6 +5,8 @@ import tailer
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
+from app import schema
+from app.schema.home import SiteVideo
 from app.schema.r import R
 from app.service.spider import get_spider_service
 
@@ -19,6 +21,11 @@ def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_
 @router.get('/detail')
 def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
     return service.get_detail(site_id, num, url)
+
+
+@router.get('/search', response_model=R[list[SiteVideo]])
+def search_video(num: str, service=Depends(get_spider_service)):
+    return R.list(service.search_video(num))
 
 
 @router.get('/actor')

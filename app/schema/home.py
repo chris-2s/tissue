@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.schema.video import SourceRef
+
 
 class SiteVideo(BaseModel):
     cover: Optional[str] = None
@@ -13,3 +15,4 @@ class SiteVideo(BaseModel):
     rank_count: Optional[int] = None
     isZh: Optional[bool] = False
     url: Optional[str] = None
+    source: Optional[SourceRef] = None

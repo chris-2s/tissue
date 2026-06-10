@@ -19,6 +19,7 @@ export interface SiteVideo {
     rank_count?: number;
     isZh?: boolean;
     url?: string;
+    source?: SourceRef;
 }
 
 export interface VideoPreviewItem {

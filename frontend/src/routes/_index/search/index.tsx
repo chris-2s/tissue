@@ -1,6 +1,7 @@
 import {
     Alert,
     Avatar,
+    Badge,
     Button,
     Card,
     Col,
@@ -15,18 +16,17 @@ import {
     Tag,
     Divider,
     theme,
-    Tooltip,
     Typography
 } from "antd";
 import React, {useEffect, useMemo, useState} from "react";
-import {HistoryOutlined, SearchOutlined, UserOutlined} from "@ant-design/icons";
+import {HistoryOutlined, UserOutlined} from "@ant-design/icons";
 import {createFileRoute, useRouter} from "@tanstack/react-router";
 import * as searchApi from "../../../apis/search.ts";
-import type {SiteItem} from "../../../apis/site.ts";
-import * as siteApi from "../../../apis/site.ts";
+import * as videoApi from "../../../apis/video.ts";
 import Await from "../../../components/Await";
 import VideoCover from "../../../components/VideoCover";
 import HistoryModal from "./-components/historyModal.tsx";
+import {LazyLoadImage} from "react-lazy-load-image-component";
 
 const {Text} = Typography;
 const {useToken} = theme;
@@ -53,6 +53,8 @@ type VideoCandidate = {
     cover?: string;
     url: string;
     site_id: number;
+    site_name?: string;
+    site_names: string[];
 };
 
 type ActorCandidate = {
@@ -74,6 +76,7 @@ type SearchLoaderResult = {
     mode: SearchMode;
     keyword: string;
     groups: SearchResultGroup[];
+    videoItems: VideoCandidate[];
     isPlaceholder: boolean;
 };
 
@@ -92,31 +95,6 @@ function cacheSearchHistory(mode: SearchMode, keyword: string) {
     const histories: string[] = JSON.parse(localStorage.getItem(cacheKey) || '[]')
         .filter((item: string) => item.toUpperCase() !== keyword.toUpperCase());
     localStorage.setItem(cacheKey, JSON.stringify([keyword, ...histories.slice(0, 19)]));
-}
-
-function buildPlaceholderGroups(mode: SearchMode, keyword: string, sites: SiteItem[]): SearchResultGroup[] {
-    const enabledSites = sites.filter((item) => mode === 'actor' ? item.capabilities.supports_actor : true);
-    return enabledSites.map((site, index) => ({
-        siteId: site.id,
-        siteName: site.name,
-        videoItems: mode === 'video' ? [{
-            num: keyword.toUpperCase(),
-            title: `搜索候选占位 ${site.name}`,
-            publish_date: `2024-0${(index % 9) + 1}-15`,
-            rank: 4.2,
-            rank_count: 120 + index * 9,
-            isZh: index % 2 === 0,
-            cover: undefined,
-            url: '',
-            site_id: site.id,
-        }] : [],
-        actorItems: mode === 'actor' ? [{
-            name: keyword,
-            code: keyword,
-            thumb: undefined,
-            site_id: site.id,
-        }] : [],
-    }));
 }
 
 function groupActors(actors: searchApi.ActorSearchItem[]): SearchResultGroup[] {
@@ -149,6 +127,51 @@ function groupActors(actors: searchApi.ActorSearchItem[]): SearchResultGroup[] {
     return Array.from(groupMap.values());
 }
 
+function aggregateVideos(videos: searchApi.VideoSearchItem[]): VideoCandidate[] {
+    const videoMap = new Map<string, VideoCandidate>();
+
+    for (const video of videos) {
+        const num = (video.num || '').trim();
+        if (!num) {
+            continue;
+        }
+
+        const key = num.toUpperCase();
+        const existing = videoMap.get(key);
+        if (existing) {
+            if (video.isZh) {
+                existing.isZh = true;
+            }
+            if (!existing.rank && video.rank) {
+                existing.rank = video.rank;
+            }
+            if (!existing.rank_count && video.rank_count) {
+                existing.rank_count = video.rank_count;
+            }
+            if (video.source?.site_name && !existing.site_names.includes(video.source.site_name)) {
+                existing.site_names.push(video.source.site_name);
+            }
+            continue;
+        }
+
+        videoMap.set(key, {
+            num,
+            title: video.title || '',
+            publish_date: video.publish_date || '',
+            rank: video.rank || 0,
+            rank_count: video.rank_count || 0,
+            isZh: !!video.isZh,
+            cover: video.cover,
+            url: video.url || '',
+            site_id: video.source?.site_id || 0,
+            site_name: video.source?.site_name,
+            site_names: video.source?.site_name ? [video.source.site_name] : [],
+        });
+    }
+
+    return Array.from(videoMap.values());
+}
+
 export const Route = createFileRoute('/_index/search/')({
     component: Search,
     loaderDeps: ({search}) => normalizeSearch(search as SearchRouteSearch),
@@ -160,6 +183,7 @@ export const Route = createFileRoute('/_index/search/')({
                 mode: deps.mode,
                 keyword: deps.keyword,
                 groups: [],
+                videoItems: [],
                 isPlaceholder: true
             } as SearchLoaderResult);
         } else if (deps.mode === 'actor') {
@@ -169,24 +193,33 @@ export const Route = createFileRoute('/_index/search/')({
                     mode: deps.mode,
                     keyword: deps.keyword,
                     groups: groupActors(actors),
+                    videoItems: [],
                     isPlaceholder: false
                 } as SearchLoaderResult;
             }).catch(() => ({
                 mode: deps.mode,
                 keyword: deps.keyword,
                 groups: [],
+                videoItems: [],
                 isPlaceholder: false
             } as SearchLoaderResult));
         } else {
-            data = siteApi.getSites().then((sites) => {
+            data = searchApi.searchVideos(deps.keyword).then((videos) => {
                 cacheSearchHistory(deps.mode, deps.keyword);
                 return {
                     mode: deps.mode,
                     keyword: deps.keyword,
-                    groups: buildPlaceholderGroups(deps.mode, deps.keyword, sites),
-                    isPlaceholder: true
+                    groups: [],
+                    videoItems: aggregateVideos(videos),
+                    isPlaceholder: false
                 } as SearchLoaderResult;
-            });
+            }).catch(() => ({
+                mode: deps.mode,
+                keyword: deps.keyword,
+                groups: [],
+                videoItems: [],
+                isPlaceholder: false
+            } as SearchLoaderResult));
         }
 
         return {data};
@@ -225,7 +258,7 @@ function Search() {
                 style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}
                 onClick={() => router.navigate({
                     to: '/home/detail',
-                    search: {site_id: item.site_id, num: item.num, url: item.url} as never
+                    search: {num: item.num} as never
                 })}
             >
                 <div>
@@ -246,20 +279,17 @@ function Search() {
                     </div>
                     <div className={'flex items-center'}>
                         <div className={'flex-1'}>{item.publish_date}</div>
-                        <Tooltip title={'搜索'}>
-                            <div onClick={(event) => {
-                                event.stopPropagation();
-                                return runSearch('video', item.num);
-                            }}>
-                                <SearchOutlined/>
-                            </div>
-                        </Tooltip>
+                        <Space size={[4, 4]} wrap>
+                            {item.site_names.map((siteName) => (
+                                <Tag bordered={false} key={siteName}>{siteName}</Tag>
+                            ))}
+                        </Space>
                     </div>
                 </div>
             </div>
         );
 
-        return item.isZh ? <BadgeLike text={'中文'}>{content}</BadgeLike> : content;
+        return item.isZh ? <Badge.Ribbon text={'中文'}>{content}</Badge.Ribbon> : content;
     }
 
     function renderActorItem(item: ActorCandidate) {
@@ -270,7 +300,11 @@ function Search() {
                            search: {site_id: item.site_id, code: item.code} as never
                        })}>
                 <List.Item.Meta
-                    avatar={item.thumb ? <Avatar size={56} src={item.thumb}/> : (
+                    avatar={item.thumb ? (
+                        <div className={'h-14 w-14 overflow-hidden rounded-full bg-black/5'}>
+                            <LazyLoadImage className={'h-full w-full object-contain'} src={videoApi.getVideoCover(item.thumb)}/>
+                        </div>
+                    ) : (
                         <Avatar size={56} icon={<UserOutlined/>}>
                             {item.name.slice(0, 1).toUpperCase()}
                         </Avatar>
@@ -335,6 +369,35 @@ function Search() {
                             );
                         }
 
+                        if (submittedMode === 'video') {
+                            if (!result.videoItems.length) {
+                                return (
+                                    <Card>
+                                        <Empty description={'暂无搜索结果'}/>
+                                    </Card>
+                                );
+                            }
+
+                            return (
+                                <Space direction={'vertical'} size={16} className={'w-full'}>
+                                    {result.isPlaceholder && (
+                                        <Alert
+                                            type={'info'}
+                                            showIcon
+                                            message={'当前结果为前端布局占位数据，后续接口接入后替换'}
+                                        />
+                                    )}
+                                    <Row gutter={[12, 12]}>
+                                        {result.videoItems.map((item) => (
+                                            <Col key={item.num} span={24} md={12} lg={6}>
+                                                {renderVideoItem(item)}
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                </Space>
+                            );
+                        }
+
                         if (!result.groups.length) {
                             return (
                                 <Card>
@@ -359,23 +422,13 @@ function Search() {
                                         <div className={'mb-4 flex items-center justify-between'}>
                                             <Text strong>{group.siteName}</Text>
                                             <Text type={'secondary'}>
-                                                {submittedMode === 'video' ? group.videoItems.length : group.actorItems.length} 条结果
+                                                {group.actorItems.length} 条结果
                                             </Text>
                                         </div>
-                                        {submittedMode === 'video' ? (
-                                            <Row gutter={[12, 12]}>
-                                                {group.videoItems.map((item) => (
-                                                    <Col key={`${group.siteId}-${item.num}`} span={24} md={12} lg={6}>
-                                                        {renderVideoItem(item)}
-                                                    </Col>
-                                                ))}
-                                            </Row>
-                                        ) : (
-                                            <List
-                                                dataSource={group.actorItems}
-                                                renderItem={(item) => renderActorItem(item)}
-                                            />
-                                        )}
+                                        <List
+                                            dataSource={group.actorItems}
+                                            renderItem={(item) => renderActorItem(item)}
+                                        />
                                         <Divider className={'mb-0 mt-4'}/>
                                     </div>
                                 ))}
@@ -395,17 +448,6 @@ function Search() {
                 }}
             />
         </Row>
-    );
-}
-
-function BadgeLike(props: { text: string; children: React.ReactNode }) {
-    return (
-        <div className={'relative'}>
-            <div className={'absolute right-3 top-0 z-10 rounded-b-md bg-blue-500 px-2 py-1 text-xs text-white'}>
-                {props.text}
-            </div>
-            {props.children}
-        </div>
     );
 }
 

@@ -12,6 +12,7 @@ from app.db import get_db
 from app.db.models import Site
 from app.schema import SiteCapabilities, SpiderKey, VideoDetail
 from app.schema.actor import Actor, ImageInfo
+from app.schema.home import SiteVideo
 from app.service.base import BaseService
 from app.utils import cache
 from app.utils.logger import logger
@@ -191,6 +192,31 @@ class SpiderService(BaseService):
             actors.extend(result)
         return actors
 
+    async def _search_video_by_spiders(self, num: str):
+        def __search_video_by_spider(spider: Spider):
+            try:
+                logger.info(f"{spider.name} 开始搜索影片...")
+                videos = spider.search_video(num)
+                logger.info(f"{spider.name} 影片搜索成功")
+                return videos
+            except SpiderException as e:
+                logger.info(f"{spider.name} {e.message}")
+            except Exception:
+                logger.error(f'{spider.name} 影片搜索未知错误，请检查网站连通性')
+                traceback.print_exc()
+                return None
+
+        spiders = self._get_spiders()
+        tasks = [run_in_threadpool(__search_video_by_spider, spider=spider) for spider in spiders]
+        results = await asyncio.gather(*tasks)
+
+        videos: list[SiteVideo] = []
+        for result in results:
+            if not result:
+                continue
+            videos.extend(result)
+        return videos
+
     def get_video_info(self, number: str):
         meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
         logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
@@ -235,6 +261,10 @@ class SpiderService(BaseService):
 
     def get_actor(self, name: str):
         return self.search_actor(name)
+
+    def search_video(self, num: str):
+        logger.info(f"开始搜索影片《{num}》")
+        return asyncio.run(self._search_video_by_spiders(num))
 
     def get_cookies_by_url(self, url: str) -> str | None:
         """根据视频 URL 获取对应站点的 cookie"""
