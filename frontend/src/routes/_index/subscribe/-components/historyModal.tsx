@@ -77,7 +77,7 @@ function HistoryModal(props: Props) {
                                               onClick={() => {
                                                   router.navigate({
                                                       to: '/search',
-                                                      search: {num: item.num}
+                                                      search: {mode: 'video', keyword: item.num}
                                                   })
                                               }}/>
                                   </Tooltip>

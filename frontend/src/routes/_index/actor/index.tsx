@@ -1,9 +1,11 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Col, Empty, Pagination, Row, Skeleton} from "antd";
 import * as api from "../../../apis/home.ts";
 import {Await, createFileRoute, useNavigate} from "@tanstack/react-router";
+import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {PagedResponse, SiteVideo} from "../../../types/video.ts";
+import type {Dispatch} from "../../../models";
 
 type ActorSearch = {
     site_id: number;
@@ -26,6 +28,14 @@ function Actor() {
     const {data} = Route.useLoaderData()
     const search = Route.useSearch() as ActorSearch
     const navigate = useNavigate()
+    const appDispatch = useDispatch<Dispatch>().app
+
+    useEffect(() => {
+        appDispatch.setCanBack(true)
+        return () => {
+            appDispatch.setCanBack(false)
+        }
+    }, [appDispatch])
 
     return (
         <div>

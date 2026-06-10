@@ -40,7 +40,7 @@ function VideoItem(props: { item: SiteVideo }) {
                                 event.stopPropagation()
                                 return navigate({
                                     to: '/search',
-                                    search: {num: item.num}
+                                    search: {mode: 'video', keyword: item.num}
                                 })
                             }}>
                                 <SearchOutlined/>

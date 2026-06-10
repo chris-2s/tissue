@@ -1,53 +1,34 @@
 import {List, Modal, ModalProps} from "antd";
 import React, {useEffect, useState} from "react";
-import VideoCover from "../../../../components/VideoCover";
-
-interface SearchHistory {
-    num: string;
-    actors: string;
-    title?: string;
-    cover?: string;
-}
 
 interface Props extends ModalProps {
-    onClick: (history: SearchHistory) => void
+    cacheKey: string;
+    onClick: (keyword: string) => void;
 }
 
 function HistoryModal(props: Props) {
-
-    const {onClick, ...otherProps} = props
-    const [histories, setHistories] = useState<SearchHistory[]>([])
+    const {cacheKey, onClick, ...otherProps} = props;
+    const [histories, setHistories] = useState<string[]>([]);
 
     useEffect(() => {
         if (props.open) {
-            setHistories(JSON.parse(localStorage.getItem('search_video_histories') || '[]'))
+            setHistories(JSON.parse(localStorage.getItem(cacheKey) || '[]'));
         }
-    }, [props.open])
+    }, [cacheKey, props.open]);
 
     return (
         <Modal {...otherProps} footer={null} title={'历史记录'}>
             <List
-                itemLayout="horizontal"
+                locale={{emptyText: '暂无历史记录'}}
                 dataSource={histories}
                 renderItem={(item) => (
-                    <List.Item className={'cursor-pointer'}
-                               extra={(
-                                   <div className={'w-24 m-1'}>
-                                       <VideoCover src={item.cover}/>
-                                   </div>
-                               )}
-                               onClick={() => {
-                                   onClick(item)
-                               }}>
-                        <List.Item.Meta
-                            title={item.title}
-                            description={item.actors}
-                        />
+                    <List.Item className={'cursor-pointer'} onClick={() => onClick(item)}>
+                        <List.Item.Meta title={item}/>
                     </List.Item>
                 )}
             />
         </Modal>
-    )
+    );
 }
 
-export default HistoryModal
+export default HistoryModal;

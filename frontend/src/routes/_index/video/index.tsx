@@ -91,7 +91,7 @@ function Video() {
                                                    <div className={'ml-1'} onClick={(event) => {
                                                        return navigate({
                                                            to: '/search',
-                                                           search: {num: video.num}
+                                                           search: {mode: 'video', keyword: video.num}
                                                        })
                                                    }}>
                                                        <SearchOutlined/>

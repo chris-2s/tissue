@@ -89,7 +89,7 @@ function Subscribe() {
                                                        <div className={'px-2'} onClick={() => {
                                                            return navigate({
                                                                to: '/search',
-                                                               search: {num: subscribe.num}
+                                                               search: {mode: 'video', keyword: subscribe.num}
                                                            })
                                                        }}>
                                                            <SearchOutlined/>
@@ -129,4 +129,3 @@ function Subscribe() {
         </div>
     )
 }
-
