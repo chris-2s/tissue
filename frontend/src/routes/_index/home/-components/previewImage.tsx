@@ -1,19 +1,33 @@
 import React from "react";
-import {PlayCircleOutlined} from "@ant-design/icons";
-import Styles from "./previewImage.module.css";
 import * as api from "../../../../apis/video.ts";
+import Styles from "./previewImage.module.css";
+import {useSelector} from "react-redux";
+import {RootState} from "../../../../models";
+import {PlayCircleTwoTone} from "@ant-design/icons";
+import {theme} from "antd";
 
-function PreviewImage(props: { src: string; type: string }) {
+const {useToken} = theme;
+
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
+    src: string,
+    type: string
+}
+
+function PreviewImage(props: Props) {
     const {src, type} = props;
+    const {goodBoy} = useSelector((state: RootState) => state.app);
+    const {token} = useToken();
 
     return (
-        <div className={Styles.image}>
-            <img src={api.getVideoCover(src)} alt=""/>
+        <div className={Styles.container}>
+            {goodBoy && <div className={Styles.blur}/>}
             {type === 'video' && (
-                <div className={'absolute inset-0 flex items-center justify-center text-white text-2xl'}>
-                    <PlayCircleOutlined/>
+                <div className={'absolute z-50 top-0 bottom-0 left-0 right-0 flex justify-center items-center'}>
+                    <PlayCircleTwoTone style={{color: token.colorPrimary}} className={'text-4xl'}/>
                 </div>
             )}
+            <img className={'w-full h-auto align-bottom object-contain'} style={{maxHeight: 80}} src={api.getVideoCover(src)}
+                 alt=""/>
         </div>
     );
 }
