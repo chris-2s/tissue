@@ -10,13 +10,15 @@ router = APIRouter()
 def get_actor(name: str, service=Depends(get_spider_service)):
     actors = service.get_actor(name)
     normalized_name = name.strip().casefold()
+    result = []
     for actor in actors:
         if (actor.name or '').strip().casefold() == normalized_name:
-            return R.ok(actor)
-        aliases = [(alias or '').strip().casefold() for alias in (actor.alias or [])]
-        if normalized_name in aliases:
-            return R.ok(actor)
-    return R.ok()
+            result.append(actor)
+        else:
+            aliases = [(alias or '').strip().casefold() for alias in (actor.alias or [])]
+            if normalized_name in aliases:
+                result.append(actor)
+    return R.ok(data=result)
 
 
 @router.get("/search")
