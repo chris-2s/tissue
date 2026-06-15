@@ -1,100 +1,40 @@
 import {
-    Alert,
-    Avatar,
-    Badge,
-    Button,
     Card,
     Col,
+    Divider,
     Empty,
-    Input,
     List,
-    Rate,
     Row,
-    Select,
     Skeleton,
     Space,
-    Tag,
-    Divider,
     theme,
     Typography
 } from "antd";
-import React, {useEffect, useMemo, useState} from "react";
-import {HistoryOutlined, UserOutlined} from "@ant-design/icons";
+import type {InputRef} from "antd";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {createFileRoute, useRouter} from "@tanstack/react-router";
 import * as searchApi from "../../../apis/search.ts";
-import * as videoApi from "../../../apis/video.ts";
 import Await from "../../../components/Await";
-import VideoCover from "../../../components/VideoCover";
-import HistoryModal from "./-components/historyModal.tsx";
-import {LazyLoadImage} from "react-lazy-load-image-component";
+import ActorResultItem from "./-components/actorResultItem.tsx";
+import {cacheSearchHistory, clearSearchHistories, getSearchHistories} from "./-components/history.ts";
+import SearchPanel from "./-components/searchPanel.tsx";
+import {
+    type SearchLoaderResult,
+    type SearchMode,
+    type SearchResultGroup,
+    type SearchRouteSearch,
+    type VideoCandidate
+} from "./-components/types.ts";
+import VideoResultCard from "./-components/videoResultCard.tsx";
 
 const {Text} = Typography;
 const {useToken} = theme;
-
-type SearchMode = 'video' | 'actor';
-
-const historyKeys: Record<SearchMode, string> = {
-    video: 'search_keyword_histories_v2',
-    actor: 'search_actor_keyword_histories_v1',
-};
-
-type SearchRouteSearch = {
-    mode?: SearchMode;
-    keyword?: string;
-};
-
-type VideoCandidate = {
-    num: string;
-    title: string;
-    publish_date: string;
-    rank: number;
-    rank_count: number;
-    isZh: boolean;
-    cover?: string;
-    url: string;
-    site_id: number;
-    site_name?: string;
-    site_names: string[];
-};
-
-type ActorCandidate = {
-    name: string;
-    code: string;
-    thumb?: string;
-    site_id: number;
-    site_name?: string;
-};
-
-type SearchResultGroup = {
-    siteId: number;
-    siteName: string;
-    videoItems: VideoCandidate[];
-    actorItems: ActorCandidate[];
-};
-
-type SearchLoaderResult = {
-    mode: SearchMode;
-    keyword: string;
-    groups: SearchResultGroup[];
-    videoItems: VideoCandidate[];
-    isPlaceholder: boolean;
-};
 
 function normalizeSearch(search: SearchRouteSearch): { mode: SearchMode; keyword: string } {
     return {
         mode: search.mode === 'actor' ? 'actor' : 'video',
         keyword: (search.keyword || '').trim()
     };
-}
-
-function cacheSearchHistory(mode: SearchMode, keyword: string) {
-    if (!keyword) {
-        return;
-    }
-    const cacheKey = historyKeys[mode];
-    const histories: string[] = JSON.parse(localStorage.getItem(cacheKey) || '[]')
-        .filter((item: string) => item.toUpperCase() !== keyword.toUpperCase());
-    localStorage.setItem(cacheKey, JSON.stringify([keyword, ...histories.slice(0, 19)]));
 }
 
 function groupActors(actors: searchApi.ActorSearchItem[]): SearchResultGroup[] {
@@ -184,41 +124,30 @@ export const Route = createFileRoute('/_index/search/')({
                 keyword: deps.keyword,
                 groups: [],
                 videoItems: [],
-                isPlaceholder: true
             } as SearchLoaderResult);
         } else if (deps.mode === 'actor') {
-            data = searchApi.searchActors(deps.keyword).then((actors) => {
-                cacheSearchHistory(deps.mode, deps.keyword);
-                return {
-                    mode: deps.mode,
-                    keyword: deps.keyword,
-                    groups: groupActors(actors),
-                    videoItems: [],
-                    isPlaceholder: false
-                } as SearchLoaderResult;
-            }).catch(() => ({
+            data = searchApi.searchActors(deps.keyword).then((actors) => ({
+                mode: deps.mode,
+                keyword: deps.keyword,
+                groups: groupActors(actors),
+                videoItems: [],
+            } as SearchLoaderResult)).catch(() => ({
                 mode: deps.mode,
                 keyword: deps.keyword,
                 groups: [],
                 videoItems: [],
-                isPlaceholder: false
             } as SearchLoaderResult));
         } else {
-            data = searchApi.searchVideos(deps.keyword).then((videos) => {
-                cacheSearchHistory(deps.mode, deps.keyword);
-                return {
-                    mode: deps.mode,
-                    keyword: deps.keyword,
-                    groups: [],
-                    videoItems: aggregateVideos(videos),
-                    isPlaceholder: false
-                } as SearchLoaderResult;
-            }).catch(() => ({
+            data = searchApi.searchVideos(deps.keyword).then((videos) => ({
+                mode: deps.mode,
+                keyword: deps.keyword,
+                groups: [],
+                videoItems: aggregateVideos(videos),
+            } as SearchLoaderResult)).catch(() => ({
                 mode: deps.mode,
                 keyword: deps.keyword,
                 groups: [],
                 videoItems: [],
-                isPlaceholder: false
             } as SearchLoaderResult));
         }
 
@@ -234,117 +163,74 @@ function Search() {
     const {data: loaderData} = Route.useLoaderData();
     const normalized = useMemo(() => normalizeSearch(search), [search]);
     const submittedMode = normalized.mode;
+    const submittedKeyword = normalized.keyword;
 
-    const [mode, setMode] = useState<SearchMode>(submittedMode);
-    const [keywordInput, setKeywordInput] = useState(normalized.keyword);
-    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [draftKeyword, setDraftKeyword] = useState(submittedKeyword);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const [histories, setHistories] = useState<string[]>([]);
+    const inputRef = useRef<InputRef>(null);
 
     useEffect(() => {
-        setMode(submittedMode);
-        setKeywordInput(normalized.keyword);
-    }, [normalized.keyword, submittedMode]);
+        setDraftKeyword(submittedKeyword);
+    }, [submittedKeyword, submittedMode]);
+
+    useEffect(() => {
+        setHistories(getSearchHistories());
+    }, []);
 
     function runSearch(nextMode: SearchMode, nextKeyword: string, replace = true) {
+        const keyword = nextKeyword.trim();
         return router.navigate({
             replace,
-            search: {mode: nextMode, keyword: nextKeyword.trim()} as never
+            search: keyword ? {mode: nextMode, keyword} as never : {} as never
         });
     }
 
-    function renderVideoItem(item: VideoCandidate) {
-        const content = (
-            <div
-                className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0 cursor-pointer"
-                style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}
-                onClick={() => router.navigate({
-                    to: '/home/detail',
-                    search: {num: item.num} as never
-                })}
-            >
-                <div>
-                    <VideoCover src={item.cover} num={item.num}/>
-                </div>
-                <div className={'p-3'}>
-                    <div className={'text-nowrap overflow-y-scroll'} style={{
-                        scrollbarWidth: 'none',
-                        fontSize: token.fontSizeHeading5,
-                        fontWeight: token.fontWeightStrong
-                    }}>
-                        {item.num} {item.title}
-                    </div>
-                    <div className={'flex items-center my-2'}>
-                        <Rate disabled allowHalf value={item.rank}></Rate>
-                        <div className={'mx-1'}>{item.rank}分</div>
-                        <div>由{item.rank_count}人评价</div>
-                    </div>
-                    <div className={'flex items-center'}>
-                        <div className={'flex-1'}>{item.publish_date}</div>
-                        <Space size={[4, 4]} wrap>
-                            {item.site_names.map((siteName) => (
-                                <Tag bordered={false} key={siteName}>{siteName}</Tag>
-                            ))}
-                        </Space>
-                    </div>
-                </div>
-            </div>
-        );
-
-        return item.isZh ? <Badge.Ribbon text={'中文'}>{content}</Badge.Ribbon> : content;
+    function syncInputFocusState() {
+        requestAnimationFrame(() => {
+            setIsInputFocused(document.activeElement === inputRef.current?.input);
+        });
     }
 
-    function renderActorItem(item: ActorCandidate) {
-        return (
-            <List.Item className={'cursor-pointer'}
-                       onClick={() => router.navigate({
-                           to: '/actor',
-                           search: {site_id: item.site_id, code: item.code} as never
-                       })}>
-                <List.Item.Meta
-                    avatar={item.thumb ? (
-                        <div className={'h-14 w-14 overflow-hidden rounded-full bg-black/5'}>
-                            <LazyLoadImage className={'h-full w-full object-contain'} src={videoApi.getVideoCover(item.thumb)}/>
-                        </div>
-                    ) : (
-                        <Avatar size={56} icon={<UserOutlined/>}>
-                            {item.name.slice(0, 1).toUpperCase()}
-                        </Avatar>
-                    )}
-                    title={item.name}
-                    description={item.site_name ? <Tag bordered={false}>{item.site_name}</Tag> : undefined}
-                />
-            </List.Item>
-        );
+    function handleSubmit(nextMode: SearchMode) {
+        const keyword = draftKeyword.trim();
+        setIsInputFocused(false);
+        if (keyword) {
+            cacheSearchHistory(keyword);
+            setHistories(getSearchHistories());
+        }
+        return runSearch(nextMode, draftKeyword);
     }
 
     return (
         <Row gutter={[15, 15]}>
             <Col span={24}>
                 <Card>
-                    <div className={'flex gap-2'}>
-                        <Select<SearchMode>
-                            value={mode}
-                            className={'w-20'}
-                            options={[
-                                {label: '影片', value: 'video'},
-                                {label: '演员', value: 'actor'}
-                            ]}
-                            onChange={(value) => {
-                                setMode(value);
-                            }}
-                        />
-                        <Input.Search
-                            className={'flex-1'}
-                            placeholder={mode === 'video' ? '请输入影片' : '请输入演员名称'}
-                            enterButton
-                            allowClear
-                            value={keywordInput}
-                            onChange={(event) => setKeywordInput(event.target.value)}
-                            onSearch={(value) => runSearch(mode, value)}
-                        />
-                        <Button type={'primary'}
-                                icon={<HistoryOutlined/>}
-                                onClick={() => setHistoryModalOpen(true)}/>
-                    </div>
+                    <SearchPanel
+                        draftKeyword={draftKeyword}
+                        histories={histories}
+                        inputRef={inputRef}
+                        isActive={isInputFocused}
+                        onChangeKeyword={(value) => {
+                            setDraftKeyword(value);
+                            syncInputFocusState();
+                        }}
+                        onBlurInput={syncInputFocusState}
+                        onClearHistories={() => {
+                            clearSearchHistories();
+                            setHistories([]);
+                            inputRef.current?.focus();
+                            setIsInputFocused(true);
+                        }}
+                        onFocusInput={() => setIsInputFocused(true)}
+                        onPickHistory={(keyword) => {
+                            setDraftKeyword(keyword);
+                            inputRef.current?.focus();
+                            setIsInputFocused(true);
+                        }}
+                        onSearchActor={() => handleSubmit('actor')}
+                        onSearchVideo={() => handleSubmit('video')}
+                    />
                 </Card>
             </Col>
             <Col span={24}>
@@ -363,7 +249,7 @@ function Search() {
                                 <Card>
                                     <Empty
                                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                        description={submittedMode === 'video' ? '输入影片后展示搜索结果' : '输入演员名称后展示搜索结果'}
+                                        description={'输入关键词后可选择搜索影片或演员'}
                                     />
                                 </Card>
                             );
@@ -379,22 +265,19 @@ function Search() {
                             }
 
                             return (
-                                <Space direction={'vertical'} size={16} className={'w-full'}>
-                                    {result.isPlaceholder && (
-                                        <Alert
-                                            type={'info'}
-                                            showIcon
-                                            message={'当前结果为前端布局占位数据，后续接口接入后替换'}
-                                        />
-                                    )}
-                                    <Row gutter={[12, 12]}>
-                                        {result.videoItems.map((item) => (
-                                            <Col key={item.num} span={24} md={12} lg={6}>
-                                                {renderVideoItem(item)}
-                                            </Col>
-                                        ))}
-                                    </Row>
-                                </Space>
+                                <Row gutter={[12, 12]}>
+                                    {result.videoItems.map((item) => (
+                                        <Col key={item.num} span={24} md={12} lg={6}>
+                                            <VideoResultCard
+                                                item={item}
+                                                onClick={() => router.navigate({
+                                                    to: '/home/detail',
+                                                    search: {num: item.num} as never
+                                                })}
+                                            />
+                                        </Col>
+                                    ))}
+                                </Row>
                             );
                         }
 
@@ -408,13 +291,6 @@ function Search() {
 
                         return (
                             <Space direction={'vertical'} size={16} className={'w-full'}>
-                                {result.isPlaceholder && (
-                                    <Alert
-                                        type={'info'}
-                                        showIcon
-                                        message={'当前结果为前端布局占位数据，后续接口接入后替换'}
-                                    />
-                                )}
                                 {result.groups.map((group) => (
                                     <div key={group.siteId}
                                          className={'rounded-xl p-4'}
@@ -427,7 +303,15 @@ function Search() {
                                         </div>
                                         <List
                                             dataSource={group.actorItems}
-                                            renderItem={(item) => renderActorItem(item)}
+                                            renderItem={(item) => (
+                                                <ActorResultItem
+                                                    item={item}
+                                                    onClick={() => router.navigate({
+                                                        to: '/actor',
+                                                        search: {site_id: item.site_id, code: item.code} as never
+                                                    })}
+                                                />
+                                            )}
                                         />
                                         <Divider className={'mb-0 mt-4'}/>
                                     </div>
@@ -437,16 +321,6 @@ function Search() {
                     }}
                 </Await>
             </Col>
-            <HistoryModal
-                open={historyModalOpen}
-                cacheKey={historyKeys[submittedMode]}
-                onCancel={() => setHistoryModalOpen(false)}
-                onClick={(keyword) => {
-                    setHistoryModalOpen(false);
-                    setKeywordInput(keyword);
-                    runSearch(submittedMode, keyword);
-                }}
-            />
         </Row>
     );
 }
