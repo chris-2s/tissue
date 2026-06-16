@@ -56,8 +56,8 @@ function SearchPanel(props: SearchPanelProps) {
         setHistories(getSearchHistories());
     }
 
-    function handleSubmitVideo() {
-        if (!trimmedDraftKeyword) {
+    function handleSubmitVideo(keyword?: string) {
+        if (!trimmedDraftKeyword || !keyword) {
             return;
         }
         recordHistory(trimmedDraftKeyword);
@@ -129,7 +129,7 @@ function SearchPanel(props: SearchPanelProps) {
                                 background: token.colorFillQuaternary,
                                 borderColor: token.colorBorderSecondary
                             }}
-                            onClick={handleSubmitVideo}
+                            onClick={() => handleSubmitVideo(trimmedDraftKeyword)}
                         >
                             <Avatar icon={<VideoCameraOutlined/>} style={{background: token.colorPrimary}}/>
                             <div className={'flex-1 overflow-hidden'}>

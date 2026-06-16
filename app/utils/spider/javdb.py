@@ -358,7 +358,8 @@ class JavDBSpider(Spider):
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_names[0] if actor_names else None
-            actor.thumb = actor_avatar
+            if actor_avatar and not 'actor_unknow' in actor_avatar:
+                actor.thumb = actor_avatar
             actor.alias = actor_names
             actors.append(actor)
         return actors

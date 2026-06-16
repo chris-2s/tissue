@@ -12,7 +12,7 @@ def get_actor(name: str, service=Depends(get_spider_service)):
     normalized_name = name.strip().casefold()
     result = []
     for actor in actors:
-        if 'nowprinting' in actor.thumb or 'actor_unknow' in actor.thumb:
+        if not actor.thumb:
             continue
         if (actor.name or '').strip().casefold() == normalized_name:
             result.append(actor)

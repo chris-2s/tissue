@@ -235,7 +235,8 @@ class JavBusSpider(Spider):
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_name
-            actor.thumb = actor_avatar
+            if actor_src and not 'nowprinting' in actor_src:
+                actor.thumb = actor_avatar
             actors.append(actor)
         return actors
 
