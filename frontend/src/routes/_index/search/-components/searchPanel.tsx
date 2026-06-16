@@ -1,62 +1,90 @@
 import {Avatar, Button, Input, Typography, theme} from "antd";
-import type {InputRef} from "antd";
 import {
     HistoryOutlined,
     SearchOutlined,
     UserOutlined,
     VideoCameraOutlined
 } from "@ant-design/icons";
-import React from "react";
+import React, {useEffect, useState} from "react";
+import {cacheSearchHistory, clearSearchHistories, getSearchHistories} from "./history.ts";
 
 const {Text} = Typography;
 
 interface SearchPanelProps {
-    draftKeyword: string;
-    histories: string[];
-    isActive: boolean;
-    inputRef: React.Ref<InputRef>;
-    onChangeKeyword: (value: string) => void;
-    onBlurInput: () => void;
-    onClearHistories: () => void;
-    onFocusInput: () => void;
-    onPickHistory: (keyword: string) => void;
-    onSearchActor: () => void;
-    onSearchVideo: () => void;
+    submittedKeyword: string;
+    onSubmitActor: (keyword: string) => void;
+    onSubmitVideo: (keyword: string) => void;
 }
 
 function SearchPanel(props: SearchPanelProps) {
-    const {
-        draftKeyword,
-        histories,
-        isActive,
-        inputRef,
-        onChangeKeyword,
-        onBlurInput,
-        onClearHistories,
-        onFocusInput,
-        onPickHistory,
-        onSearchActor,
-        onSearchVideo
-    } = props;
+    const {submittedKeyword, onSubmitActor, onSubmitVideo} = props;
     const {token} = theme.useToken();
+    const [draftKeyword, setDraftKeyword] = useState(submittedKeyword);
+    const [showSearchActions, setShowSearchActions] = useState(false);
+    const [histories, setHistories] = useState<string[]>([]);
+
+    useEffect(() => {
+        setDraftKeyword(submittedKeyword);
+        setShowSearchActions(false);
+    }, [submittedKeyword]);
+
+    useEffect(() => {
+        setHistories(getSearchHistories());
+    }, []);
 
     const trimmedDraftKeyword = draftKeyword.trim();
-    const showHistoryPanel = isActive && !trimmedDraftKeyword;
-    const showActionPanel = isActive && !!trimmedDraftKeyword;
+    const showHistoryPanel = !trimmedDraftKeyword;
+    const showActionPanel = showSearchActions && !!trimmedDraftKeyword;
+
+    function handleChangeKeyword(value: string) {
+        setDraftKeyword(value);
+        setShowSearchActions(!!value.trim());
+    }
+
+    function handleClearHistories() {
+        clearSearchHistories();
+        setHistories([]);
+    }
+
+    function handlePickHistory(keyword: string) {
+        setDraftKeyword(keyword);
+        setShowSearchActions(true);
+    }
+
+    function recordHistory(keyword: string) {
+        cacheSearchHistory(keyword);
+        setHistories(getSearchHistories());
+    }
+
+    function handleSubmitVideo() {
+        if (!trimmedDraftKeyword) {
+            return;
+        }
+        recordHistory(trimmedDraftKeyword);
+        setShowSearchActions(false);
+        onSubmitVideo(trimmedDraftKeyword);
+    }
+
+    function handleSubmitActor() {
+        if (!trimmedDraftKeyword) {
+            return;
+        }
+        recordHistory(trimmedDraftKeyword);
+        setShowSearchActions(false);
+        onSubmitActor(trimmedDraftKeyword);
+    }
 
     return (
         <div>
             <Input.Search
-                ref={inputRef}
                 className={'flex-1'}
                 placeholder={'搜索电影、剧集以及更多...'}
                 enterButton
                 allowClear
                 value={draftKeyword}
-                onFocus={onFocusInput}
-                onBlur={onBlurInput}
-                onChange={(event) => onChangeKeyword(event.target.value)}
-                onSearch={onSearchVideo}
+                onChange={(event) => handleChangeKeyword(event.target.value)}
+                onSearch={handleSubmitVideo}
+                onFocus={() => draftKeyword && setShowSearchActions(true)}
             />
             {showHistoryPanel && (
                 <div className={'mt-4'}>
@@ -67,8 +95,7 @@ function SearchPanel(props: SearchPanelProps) {
                                 type={'link'}
                                 size={'small'}
                                 className={'px-0'}
-                                onMouseDown={(event) => event.preventDefault()}
-                                onClick={onClearHistories}
+                                onClick={handleClearHistories}
                             >
                                 清空历史
                             </Button>
@@ -81,8 +108,7 @@ function SearchPanel(props: SearchPanelProps) {
                                 type={'default'}
                                 shape={'round'}
                                 icon={<HistoryOutlined/>}
-                                onMouseDown={(event) => event.preventDefault()}
-                                onClick={() => onPickHistory(item)}
+                                onClick={() => handlePickHistory(item)}
                             >
                                 {item}
                             </Button>
@@ -103,13 +129,14 @@ function SearchPanel(props: SearchPanelProps) {
                                 background: token.colorFillQuaternary,
                                 borderColor: token.colorBorderSecondary
                             }}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={onSearchVideo}
+                            onClick={handleSubmitVideo}
                         >
                             <Avatar icon={<VideoCameraOutlined/>} style={{background: token.colorPrimary}}/>
                             <div className={'flex-1 overflow-hidden'}>
                                 <div className={'font-medium'}>搜索影片</div>
-                                <div className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的影片结果</div>
+                                <div
+                                    className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的影片结果
+                                </div>
                             </div>
                             <SearchOutlined/>
                         </button>
@@ -120,13 +147,14 @@ function SearchPanel(props: SearchPanelProps) {
                                 background: token.colorFillQuaternary,
                                 borderColor: token.colorBorderSecondary
                             }}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={onSearchActor}
+                            onClick={handleSubmitActor}
                         >
                             <Avatar icon={<UserOutlined/>} style={{background: token.colorPrimary}}/>
                             <div className={'flex-1 overflow-hidden'}>
                                 <div className={'font-medium'}>搜索演员</div>
-                                <div className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的演员结果</div>
+                                <div
+                                    className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的演员结果
+                                </div>
                             </div>
                             <SearchOutlined/>
                         </button>

@@ -10,13 +10,11 @@ import {
     theme,
     Typography
 } from "antd";
-import type {InputRef} from "antd";
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useMemo} from "react";
 import {createFileRoute, useRouter} from "@tanstack/react-router";
 import * as searchApi from "../../../apis/search.ts";
 import Await from "../../../components/Await";
 import ActorResultItem from "./-components/actorResultItem.tsx";
-import {cacheSearchHistory, clearSearchHistories, getSearchHistories} from "./-components/history.ts";
 import SearchPanel from "./-components/searchPanel.tsx";
 import {
     type SearchLoaderResult,
@@ -165,19 +163,6 @@ function Search() {
     const submittedMode = normalized.mode;
     const submittedKeyword = normalized.keyword;
 
-    const [draftKeyword, setDraftKeyword] = useState(submittedKeyword);
-    const [isInputFocused, setIsInputFocused] = useState(false);
-    const [histories, setHistories] = useState<string[]>([]);
-    const inputRef = useRef<InputRef>(null);
-
-    useEffect(() => {
-        setDraftKeyword(submittedKeyword);
-    }, [submittedKeyword, submittedMode]);
-
-    useEffect(() => {
-        setHistories(getSearchHistories());
-    }, []);
-
     function runSearch(nextMode: SearchMode, nextKeyword: string, replace = true) {
         const keyword = nextKeyword.trim();
         return router.navigate({
@@ -186,50 +171,14 @@ function Search() {
         });
     }
 
-    function syncInputFocusState() {
-        requestAnimationFrame(() => {
-            setIsInputFocused(document.activeElement === inputRef.current?.input);
-        });
-    }
-
-    function handleSubmit(nextMode: SearchMode) {
-        const keyword = draftKeyword.trim();
-        setIsInputFocused(false);
-        if (keyword) {
-            cacheSearchHistory(keyword);
-            setHistories(getSearchHistories());
-        }
-        return runSearch(nextMode, draftKeyword);
-    }
-
     return (
         <Row gutter={[15, 15]}>
             <Col span={24}>
                 <Card>
                     <SearchPanel
-                        draftKeyword={draftKeyword}
-                        histories={histories}
-                        inputRef={inputRef}
-                        isActive={isInputFocused}
-                        onChangeKeyword={(value) => {
-                            setDraftKeyword(value);
-                            syncInputFocusState();
-                        }}
-                        onBlurInput={syncInputFocusState}
-                        onClearHistories={() => {
-                            clearSearchHistories();
-                            setHistories([]);
-                            inputRef.current?.focus();
-                            setIsInputFocused(true);
-                        }}
-                        onFocusInput={() => setIsInputFocused(true)}
-                        onPickHistory={(keyword) => {
-                            setDraftKeyword(keyword);
-                            inputRef.current?.focus();
-                            setIsInputFocused(true);
-                        }}
-                        onSearchActor={() => handleSubmit('actor')}
-                        onSearchVideo={() => handleSubmit('video')}
+                        submittedKeyword={submittedKeyword}
+                        onSubmitActor={(keyword) => runSearch('actor', keyword)}
+                        onSubmitVideo={(keyword) => runSearch('video', keyword)}
                     />
                 </Card>
             </Col>

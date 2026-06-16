@@ -230,9 +230,7 @@ class JavBusSpider(Spider):
             avatar_element = actor_element.xpath('./div/img')[0]
             actor_name = avatar_element.get('title')
             actor_src = avatar_element.get('src')
-            if not actor_src or 'nowprinting' in actor_src:
-                continue
-            actor_avatar = urljoin(self.host, avatar_element.get('src'))
+            actor_avatar = urljoin(self.host, actor_src)
             actor_code = actor_element.get('href').split('/')[-1]
             actor = Actor(source=self.source_ref())
             actor.code = actor_code

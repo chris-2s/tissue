@@ -292,8 +292,10 @@ class JavDBSpider(Spider):
             ranking.cover = video.xpath('./div[contains(@class, "cover")]/img')[0].get('src')
             ranking.title = video.get('title')
             ranking.num = video.xpath('./div[@class="video-title"]/strong')[0].text
-            ranking.publish_date = datetime.strptime(video.xpath('./div[@class="meta"]')[0].text.strip(),
-                                                     "%Y-%m-%d").date()
+
+            publish_date_str = video.xpath('./div[@class="meta"]')[0].text.strip()
+            if publish_date_str and publish_date_str != 'N/A':
+                ranking.publish_date = datetime.strptime(publish_date_str, "%Y-%m-%d").date()
 
             rank_str = video.xpath('./div[@class="score"]/span/text()')[0].strip()
             rank_matched = re.match('(.+?)分, 由(.+?)人評價', rank_str)
@@ -352,13 +354,11 @@ class JavDBSpider(Spider):
         for actor_element in actors_element:
             actor_names = [name.strip() for name in actor_element.get('title').split(',')]
             actor_avatar = actor_element.xpath('.//img/@src')[0]
-            if not actor_avatar or 'actor_unknow' in actor_avatar:
-                continue
             actor_code = actor_element.get('href').split('/')[-1]
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_names[0] if actor_names else None
-            actor.thumb = actor_element.xpath('.//img/@src')[0]
+            actor.thumb = actor_avatar
             actor.alias = actor_names
             actors.append(actor)
         return actors
