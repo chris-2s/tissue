@@ -3,12 +3,10 @@ import {
     Card,
     Col,
     Descriptions,
-    Empty,
     List,
     message,
     Row,
     Segmented,
-    Skeleton,
     Space,
     Tag,
     Tooltip
@@ -21,12 +19,13 @@ import {
     RedoOutlined,
     SearchOutlined
 } from "@ant-design/icons";
-import {createFileRoute, useRouter} from "@tanstack/react-router";
+import {createFileRoute, type ErrorComponentProps, useRouter} from "@tanstack/react-router";
 import {useRequest, useResponsive} from "ahooks";
 import {useDispatch} from "react-redux";
 import * as homeApi from "../../../apis/home";
 import * as subscribeApi from "../../../apis/subscribe";
-import Await from "../../../components/Await";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
 import VideoCover from "../../../components/VideoCover";
 import Websites from "../../../components/Websites";
 import type {Dispatch} from "../../../models";
@@ -40,39 +39,61 @@ import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
 
 type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
 
+function DetailPending() {
+    return <RoutePendingState variant={'detail'}/>;
+}
+
+function DetailError(props: ErrorComponentProps) {
+    const router = useRouter();
+
+    return (
+        <RouteErrorState
+            title={'详情加载失败'}
+            description={'请检查网络或数据源状态后重试。'}
+            error={props.error instanceof Error ? props.error : new Error('详情加载失败')}
+            onRetry={async () => {
+                props.reset();
+                await router.invalidate({
+                    filter: (route) => route.routeId === '/_index/home/detail'
+                });
+            }}
+        />
+    );
+}
+
 export const Route = createFileRoute('/_index/home/detail')({
     component: Detail,
+    pendingComponent: DetailPending,
+    errorComponent: DetailError,
+    pendingMs: 200,
+    pendingMinMs: 300,
     loaderDeps: ({search}) => search,
     loader: async ({deps}) => {
         const request = ('site_id' in (deps as Record<string, unknown>) && 'url' in (deps as Record<string, unknown>))
             ? homeApi.getDetail(deps as homeApi.GetSiteDetailParams)
             : subscribeApi.searchVideo({num: (deps as homeApi.GetNumberDetailParams).num});
+        const data = await request;
 
         return {
-            data: request.then((data) => ({
-                ...data,
-                actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
-            } as SearchVideoView)).catch(() => {
-                message.error("数据加载失败");
-            })
-        };
-    },
-    staleTime: Infinity
+            ...data,
+            actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
+        } as SearchVideoView;
+    }
 });
 
 function Detail() {
     const router = useRouter();
     const responsive = useResponsive();
     const search = Route.useSearch() as homeApi.GetDetailParams;
-    const {data: loaderData} = Route.useLoaderData();
+    const video = Route.useLoaderData();
     const appDispatch = useDispatch<Dispatch>().app;
 
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false});
     const [previewSelected, setPreviewSelected] = useState<number>();
     const [commentSelected, setCommentSelected] = useState<number>();
-    const [selectedVideo, setSelectedVideo] = useState<SearchVideoView>();
     const [selectedDownload, setSelectedDownload] = useState<VideoDownload>();
     const [actorsModalOpen, setActorsModalOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         appDispatch.setCanBack(true);
@@ -92,7 +113,6 @@ function Detail() {
     const {run: onDownload, loading: onDownloading} = useRequest(subscribeApi.downloadVideos, {
         manual: true,
         onSuccess: () => {
-            setSelectedVideo(undefined);
             setSelectedDownload(undefined);
             return message.success("下载任务创建成功");
         }
@@ -203,86 +223,80 @@ function Detail() {
         ];
     }
 
+    const filteredDownloads = video.downloads.filter((item) => (
+        (!filter.isHd || item.is_hd) &&
+        (!filter.isZh || item.is_zh) &&
+        (!filter.isUncensored || item.is_uncensored)
+    ));
+    const isSearchMode = !('site_id' in search && 'url' in search);
+
+    async function onRefresh() {
+        setRefreshing(true);
+        try {
+            await router.invalidate({
+                filter: (route) => route.routeId === '/_index/home/detail',
+                sync: true
+            });
+        } finally {
+            setRefreshing(false);
+        }
+    }
+
     return (
         <Row gutter={[15, 15]}>
             <Col span={24} lg={8} md={12}>
                 <Card>
-                    <Await promise={loaderData}>
-                        {(video: SearchVideoView | undefined, loading) => (
-                            video ? (
-                                <>
-                                    <div className={'my-4 rounded-lg overflow-hidden'}>
-                                        <VideoCover src={video.cover} num={video.num}/>
-                                    </div>
-                                    <div className={'text-center'}>
-                                        <Tooltip title={'添加订阅'}>
-                                            <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
-                                                    onClick={() => setSubscribeOpen(true, video)}/>
-                                        </Tooltip>
-                                        <Tooltip title={'刷新'}>
-                                            <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'}
-                                                    className={'ml-4'}
-                                                    onClick={() => {
-                                                        router.invalidate({filter: (route) => route.routeId === '/_index/home/detail'});
-                                                        return router.navigate({
-                                                            replace: true,
-                                                            search: ('site_id' in search && 'url' in search)
-                                                                ? {...search, num: video.num} as never
-                                                                : {num: video.num} as never
-                                                        });
-                                                    }}/>
-                                        </Tooltip>
-                                        <Tooltip title={'搜索'}>
-                                            <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
-                                                    className={'ml-4'}
-                                                    onClick={() => {
-                                                        router.navigate({
-                                                            to: '/home/detail',
-                                                            search: {num: video.num || ''} as never
-                                                        });
-                                                    }}/>
-                                        </Tooltip>
-                                    </div>
-                                    <Descriptions className={'mt-4'}
-                                                  layout={'vertical'}
-                                                  items={renderItems(video)}
-                                                  column={24}
-                                                  size={'small'}/>
-                                    <ActorsModal open={actorsModalOpen}
-                                                 onCancel={() => setActorsModalOpen(false)}
-                                                 actors={video.site_actors}/>
-                                </>
-                            ) : (
-                                <div className={'py-11'}>
-                                    {loading ? <Skeleton active/> : <Empty/>}
-                                </div>
-                            )
+                    <div className={'my-4 rounded-lg overflow-hidden'}>
+                        <VideoCover src={video.cover} num={video.num}/>
+                    </div>
+                    <div className={'text-center'}>
+                        <Tooltip title={'添加订阅'}>
+                            <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
+                                    onClick={() => setSubscribeOpen(true, video)}/>
+                        </Tooltip>
+                        <Tooltip title={'刷新'}>
+                            <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'}
+                                    className={'ml-4'}
+                                    loading={refreshing}
+                                    onClick={() => void onRefresh()}/>
+                        </Tooltip>
+                        {!isSearchMode && (
+                            <Tooltip title={'搜索'}>
+                                <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
+                                        className={'ml-4'}
+                                        onClick={() => {
+                                            router.navigate({
+                                                to: '/home/detail',
+                                                search: {num: video.num || ''} as never
+                                            });
+                                        }}/>
+                            </Tooltip>
                         )}
-                    </Await>
+                    </div>
+                    <Descriptions className={'mt-4'}
+                                  layout={'vertical'}
+                                  items={renderItems(video)}
+                                  column={24}
+                                  size={'small'}/>
+                    <ActorsModal open={actorsModalOpen}
+                                 onCancel={() => setActorsModalOpen(false)}
+                                 actors={video.site_actors}/>
                 </Card>
             </Col>
             <Col span={24} lg={16} md={12}>
-                <Await promise={loaderData}>
-                    {(video: SearchVideoView | undefined) => {
-                        if (video?.previews) {
-                            const previews = video.previews.find((item) => item.source.site_id === previewSelected) || video.previews[0];
-                            return (
-                                <Card title={'预览'} className={'mb-4'} extra={(
-                                    <Segmented
-                                        onChange={(value: number) => setPreviewSelected(value)}
-                                        options={video.previews.map((item) => ({
-                                            label: item.source.site_name,
-                                            value: item.source.site_id,
-                                        }))}
-                                    />
-                                )}>
-                                    <Preview data={previews.items}/>
-                                </Card>
-                            );
-                        }
-                        return <div></div>;
-                    }}
-                </Await>
+                {video.previews.length > 0 && (
+                    <Card title={'预览'} className={'mb-4'} extra={(
+                        <Segmented
+                            onChange={(value: number) => setPreviewSelected(value)}
+                            options={video.previews.map((item) => ({
+                                label: item.source.site_name,
+                                value: item.source.site_id,
+                            }))}
+                        />
+                    )}>
+                        <Preview data={(video.previews.find((item) => item.source.site_id === previewSelected) || video.previews[0]).items}/>
+                    </Card>
+                )}
                 <Card title={'资源列表'} extra={(
                     <>
                         <Tag color={filter.isHd ? 'red' : 'default'} className={'cursor-pointer'}
@@ -293,89 +307,69 @@ function Detail() {
                              onClick={() => setFilter({...filter, isUncensored: !filter.isUncensored})}>无码</Tag>
                     </>
                 )}>
-                    <Await promise={loaderData}>
-                        {(video: SearchVideoView | undefined, loading) => {
-                            const downloads = video?.downloads?.filter((item) => (
-                                (!filter.isHd || item.is_hd) &&
-                                (!filter.isZh || item.is_zh) &&
-                                (!filter.isUncensored || item.is_uncensored)
-                            ));
-                            return downloads ? (
-                                <List dataSource={downloads} renderItem={(item) => (
-                                    <List.Item actions={[
-                                        <Tooltip title={'发送到下载器'} key={'download'}>
-                                            <Button type={'primary'} icon={<CloudDownloadOutlined/>}
-                                                    shape={'circle'}
-                                                    onClick={() => {
-                                                        setSelectedVideo(video);
-                                                        setSelectedDownload(item);
-                                                    }}/>
-                                        </Tooltip>,
-                                        <Tooltip title={'复制磁力链接'} key={'copy'}>
-                                            <Button type={'primary'} icon={<CopyOutlined/>} shape={'circle'}
-                                                    onClick={() => onCopyClick(item)}/>
-                                        </Tooltip>
-                                    ]}>
-                                        <List.Item.Meta title={item.name}
-                                                        description={(
-                                                            <Space
-                                                                direction={responsive.lg ? 'horizontal' : 'vertical'}
-                                                                size={responsive.lg ? 0 : 'small'}>
-                                                                <div>
-                                                                    <a href={item.url}><Tag>{item.source.site_name}</Tag></a>
-                                                                    <Tag>{item.size}</Tag>
-                                                                </div>
-                                                                <div>
-                                                                    {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
-                                                                    {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
-                                                                    {item.is_uncensored &&
-                                                                        <Tag color={'green'} bordered={false}>无码</Tag>}
-                                                                </div>
-                                                                <div>{item.publish_date}</div>
-                                                            </Space>
-                                                        )}/>
-                                    </List.Item>
-                                )}/>
-                            ) : (
-                                <div className={'py-8'}>
-                                    {loading ? <Skeleton active/> : <Empty/>}
-                                </div>
-                            );
-                        }}
-                    </Await>
+                    {filteredDownloads.length > 0 ? (
+                        <List dataSource={filteredDownloads} renderItem={(item) => (
+                            <List.Item actions={[
+                                <Tooltip title={'发送到下载器'} key={'download'}>
+                                    <Button type={'primary'} icon={<CloudDownloadOutlined/>}
+                                            shape={'circle'}
+                                            onClick={() => setSelectedDownload(item)}/>
+                                </Tooltip>,
+                                <Tooltip title={'复制磁力链接'} key={'copy'}>
+                                    <Button type={'primary'} icon={<CopyOutlined/>} shape={'circle'}
+                                            onClick={() => onCopyClick(item)}/>
+                                </Tooltip>
+                            ]}>
+                                <List.Item.Meta title={item.name}
+                                                description={(
+                                                    <Space
+                                                        direction={responsive.lg ? 'horizontal' : 'vertical'}
+                                                        size={responsive.lg ? 0 : 'small'}>
+                                                        <div>
+                                                            <a href={item.url}><Tag>{item.source.site_name}</Tag></a>
+                                                            <Tag>{item.size}</Tag>
+                                                        </div>
+                                                        <div>
+                                                            {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
+                                                            {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
+                                                            {item.is_uncensored &&
+                                                                <Tag color={'green'} bordered={false}>无码</Tag>}
+                                                        </div>
+                                                        <div>{item.publish_date}</div>
+                                                    </Space>
+                                                )}/>
+                            </List.Item>
+                        )}/>
+                    ) : (
+                        <div className={'py-8 text-center text-[var(--ant-color-text-secondary)]'}>
+                            暂无资源
+                        </div>
+                    )}
                 </Card>
-                <Await promise={loaderData}>
-                    {(video: SearchVideoView | undefined) => {
-                        if (video?.comments && video.comments.length > 0) {
-                            const comments = video.comments.find((item) => item.source.site_id === commentSelected) || video.comments[0];
-                            return (
-                                <Card title={'评论'} className={'mt-4'} extra={(
-                                    <Segmented
-                                        onChange={(value: number) => setCommentSelected(value)}
-                                        options={video.comments.map((item) => ({
-                                            label: item.source.site_name,
-                                            value: item.source.site_id,
-                                        }))}
-                                    />
-                                )}>
-                                    <Comment data={comments.items}/>
-                                </Card>
-                            );
-                        }
-                        return <div></div>;
-                    }}
-                </Await>
+                {video.comments.length > 0 && (
+                    <Card title={'评论'} className={'mt-4'} extra={(
+                        <Segmented
+                            onChange={(value: number) => setCommentSelected(value)}
+                            options={video.comments.map((item) => ({
+                                label: item.source.site_name,
+                                value: item.source.site_id,
+                            }))}
+                        />
+                    )}>
+                        <Comment data={(video.comments.find((item) => item.source.site_id === commentSelected) || video.comments[0]).items}/>
+                    </Card>
+                )}
             </Col>
             <SubscribeModifyModal width={1100} {...subscribeModalProps}/>
             <DownloadModal open={!!selectedDownload}
                            download={selectedDownload}
                            onCancel={() => setSelectedDownload(undefined)}
                            onDownload={(item) => {
-                               if (!selectedVideo || !selectedVideo.num) {
+                               if (!video.num) {
                                    message.error('视频信息缺失，请重试');
                                    return;
                                }
-                               onDownload({...selectedVideo, num: selectedVideo.num}, item);
+                               onDownload({...video, num: video.num}, item);
                            }}
                            confirmLoading={onDownloading}/>
         </Row>
