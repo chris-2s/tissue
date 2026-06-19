@@ -47,7 +47,7 @@ class QBittorent:
             client = self._ensure_client()
             client.auth_log_in()
         except Exception as e:
-            logger.info("下载器连接失败")
+            logger.error("下载器连接失败")
             raise BizException(f'下载器连接失败: {e}')
 
     def auth(func):
@@ -56,7 +56,7 @@ class QBittorent:
                 self.login()
                 return func(self, *args, **kwargs)
             except Exception:
-                logger.info("登录信息失效，将尝试重新登录...")
+                logger.warning("登录信息失效，将尝试重新登录")
                 self.login()
                 return func(self, *args, **kwargs)
 

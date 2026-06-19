@@ -62,7 +62,7 @@ class SiteService(BaseService):
         for site in sites:
             spider = SpiderService.build_spider(site, include_cookies=False)
             if not spider:
-                logger.error(f"站点【{site.spider_key}】未注册，跳过测试")
+                logger.warning(f"站点【{site.spider_key}】未注册，跳过测试")
                 continue
             name = spider.name[0] + '*' * (len(spider.name) - 2) + spider.name[-1]
             logger.info(f"站点【{name}】连接性测试...")
@@ -71,7 +71,7 @@ class SiteService(BaseService):
                 self.db.commit()
                 logger.info(f"站点【{spider.name}】启用成功")
             else:
-                logger.error(f"站点【{name}】无法连接，请检查网络连接")
+                logger.warning(f"站点【{name}】无法连接，请检查网络连接")
 
         self._check_cookies()
 
@@ -82,7 +82,7 @@ class SiteService(BaseService):
         for site in sites:
             spider_instance = SpiderService.build_spider(site)
             if not spider_instance:
-                logger.error(f"站点【{site.spider_key}】未注册，跳过 Cookie 检查")
+                logger.warning(f"站点【{site.spider_key}】未注册，跳过 Cookie 检查")
                 continue
 
             if not spider_instance.session.cookies:

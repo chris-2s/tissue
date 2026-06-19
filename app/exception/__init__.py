@@ -21,5 +21,5 @@ def init(app: FastAPI):
 
     @app.exception_handler(Exception)
     def handle_exception(_, exc: Exception):
-        logger.error("未知错误，请查看控制台日志")
+        logger.error(f"未处理异常: {exc}")
         return Response('未知错误', status_code=500)

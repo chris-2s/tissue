@@ -85,33 +85,33 @@ class SubscribeService(BaseService):
 
             result = SpiderService(self.db).get_video(subscribe.num, include_comments=False)
             if not result:
-                logger.error("所有站点均未获取到影片")
+                logger.warning(f"订阅《{subscribe.num}》未从任何站点获取到影片")
                 continue
 
             def get_matched(item):
                 if subscribe.is_hd and not item.is_hd:
-                    logger.error(f"{item.name} 不匹配高清，已跳过")
+                    logger.debug(f"{item.name} 不匹配高清，已跳过")
                     return False
                 if subscribe.is_zh and not item.is_zh:
-                    logger.error(f"{item.name} 不匹配中文，已跳过")
+                    logger.debug(f"{item.name} 不匹配中文，已跳过")
                     return False
                 if subscribe.is_uncensored and not item.is_uncensored:
-                    logger.error(f"{item.name} 不匹配无码，已跳过")
+                    logger.debug(f"{item.name} 不匹配无码，已跳过")
                     return False
 
                 if subscribe.include_keyword and not re.search(subscribe.include_keyword, item.name, re.IGNORECASE):
-                    logger.error(f"{item.name} 不匹配包含关键字，已跳过")
+                    logger.debug(f"{item.name} 不匹配包含关键字，已跳过")
                     return False
 
                 if subscribe.exclude_keyword and re.search(subscribe.exclude_keyword, item.name, re.IGNORECASE):
-                    logger.error(f"{item.name} 匹配排除关键字，已跳过")
+                    logger.debug(f"{item.name} 匹配排除关键字，已跳过")
                     return False
 
                 return True
 
             result = list(filter(get_matched, result.downloads))
             if not result:
-                logger.error(f"未匹配到符合条件的影片")
+                logger.info(f"订阅《{subscribe.num}》未匹配到符合条件的影片")
                 continue
 
             logger.info(f"匹配到符合条件的影片{len(result)}部，将选择最新发布的影片")
@@ -122,8 +122,8 @@ class SubscribeService(BaseService):
                     logger.info(f"订阅《{subscribe.num}》已完成")
                     subscribe.update(self.db, {'status': 2})
                     self.db.commit()
-                except Exception as e:
-                    logger.error("下载任务创建失败")
+                except Exception:
+                    logger.error(f"订阅《{subscribe.num}》下载任务创建失败")
                     traceback.print_exc()
                     continue
 
@@ -159,7 +159,7 @@ class SubscribeService(BaseService):
                 logger.info(f"已更新订阅《{subscribe.num}》元数据")
                 self.db.add(subscribe)
             else:
-                logger.error(f"未找到订阅《{subscribe.num}》元数据")
+                logger.warning(f"未找到订阅《{subscribe.num}》元数据")
 
             time.sleep(randint(30, 60))
 

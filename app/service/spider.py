@@ -109,7 +109,7 @@ class SpiderService(BaseService):
     def _merge_video_info(self, metas: list[VideoDetail]) -> VideoDetail:
         meta = metas[0]
         if len(metas) >= 2:
-            logger.info("合并多个刮削信息...")
+            logger.debug("合并多个刮削信息")
             for key in meta.__dict__:
                 if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads',
                                                           'site_actors']:
@@ -125,7 +125,7 @@ class SpiderService(BaseService):
             meta.site_actors = [m.site_actors[0] for m in metas if m.site_actors]
             if meta.downloads:
                 meta.downloads.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
-            logger.info("信息合并成功")
+            logger.debug("信息合并成功")
         return meta
 
     def _get_spiders(self):
@@ -142,16 +142,16 @@ class SpiderService(BaseService):
                                     include_comments: bool):
         def __get_video_by_spider(spider: Spider):
             try:
-                logger.info(f"{spider.name} 开始刮削...")
+                logger.debug(f"{spider.name} 开始刮削")
                 videos = spider.get_info(number, include_downloads=include_downloads,
                                          include_previews=include_previews,
                                          include_comments=include_comments)
-                logger.info(f"{spider.name} 刮削成功")
+                logger.debug(f"{spider.name} 刮削成功")
                 if include_downloads:
-                    logger.info(f"{spider.name} 获取到{len(videos.downloads)}部影片")
+                    logger.debug(f"{spider.name} 获取到{len(videos.downloads)}部影片")
                 return videos
             except SpiderException as e:
-                logger.info(f"{spider.name} {e.message}")
+                logger.warning(f"{spider.name} {e.message}")
             except Exception:
                 logger.error(f'{spider.name} 未知错误，请检查网站连通性')
                 traceback.print_exc()
@@ -164,7 +164,7 @@ class SpiderService(BaseService):
     async def _search_actor_by_spiders(self, name: str):
         def __search_actor_by_spider(spider: Spider):
             try:
-                logger.info(f"{spider.name} 开始刮削演员...")
+                logger.debug(f"{spider.name} 开始刮削演员")
                 actors = spider.search_actor(name)
                 for actor in actors or []:
                     if not actor.thumb:
@@ -172,10 +172,10 @@ class SpiderService(BaseService):
                     thumb_info = spider.probe_image_info(actor.thumb)
                     if thumb_info:
                         actor.thumb_info = ImageInfo(**thumb_info)
-                logger.info(f"{spider.name} 演员刮削成功")
+                logger.debug(f"{spider.name} 演员刮削成功")
                 return actors
             except SpiderException as e:
-                logger.info(f"{spider.name} {e.message}")
+                logger.warning(f"{spider.name} {e.message}")
             except Exception:
                 logger.error(f'{spider.name} 演员刮削未知错误，请检查网站连通性')
                 traceback.print_exc()
@@ -195,12 +195,12 @@ class SpiderService(BaseService):
     async def _search_video_by_spiders(self, num: str):
         def __search_video_by_spider(spider: Spider):
             try:
-                logger.info(f"{spider.name} 开始搜索影片...")
+                logger.debug(f"{spider.name} 开始搜索影片")
                 videos = spider.search_video(num)
-                logger.info(f"{spider.name} 影片搜索成功")
+                logger.debug(f"{spider.name} 影片搜索成功")
                 return videos
             except SpiderException as e:
-                logger.info(f"{spider.name} {e.message}")
+                logger.warning(f"{spider.name} {e.message}")
             except Exception:
                 logger.error(f'{spider.name} 影片搜索未知错误，请检查网站连通性')
                 traceback.print_exc()

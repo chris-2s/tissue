@@ -113,7 +113,7 @@ class DownloadService(BaseService):
                     video_notify.size = 'N/A'
                     video_notify.message = '文件不存在'
                 video_notify.is_success = False
-                logger.error(f"影片刮削失败，{video_notify.message}")
+                logger.warning(f"影片整理失败：{video_notify.message}")
                 notify.send_video(video_notify)
 
         self.complete_download(torrent.hash, not has_error)

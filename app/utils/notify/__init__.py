@@ -19,21 +19,21 @@ def send_video(video: VideoNotify):
     try:
         notification = match_notification()
         notification.send_video(video)
-    except:
-        logger.error("消息发送失败：视频整理成功")
+    except Exception as e:
+        logger.warning(f"发送视频通知失败: {e}")
 
 
 def send_subscribe(subscribe: SubscribeNotify):
     try:
         notification = match_notification()
         notification.send_subscribe(subscribe)
-    except:
-        logger.error("消息发送失败：订阅下载成功")
+    except Exception as e:
+        logger.warning(f"发送订阅通知失败: {e}")
 
 
 def send_cookie(cookie: CookieNotify):
     try:
         notification = match_notification()
         notification.send_cookie(cookie)
-    except:
-        logger.error("消息发送失败：Cookie失效")
+    except Exception as e:
+        logger.warning(f"发送 Cookie 通知失败: {e}")

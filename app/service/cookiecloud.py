@@ -17,7 +17,7 @@ class CookieCloudService:
     def sync(self):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.info("CookieCloud 未启用")
+            logger.debug("CookieCloud 未启用，跳过同步")
             return
 
         if not setting.host or not setting.uuid or not setting.password:
@@ -62,7 +62,7 @@ class CookieCloudService:
     def push_cookie(self, cookies: list, domain: str):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.info("CookieCloud 未启用")
+            logger.debug("CookieCloud 未启用，跳过推送")
             return
 
         if not setting.host or not setting.uuid or not setting.password:
@@ -80,7 +80,7 @@ class CookieCloudService:
             decrypted_data[domain] = normalized_items
 
             if not cookie_cloud.update_cookie(decrypted_data):
-                logger.error("CookieCloud 推送失败")
+                logger.warning("CookieCloud 推送失败")
                 return
 
             logger.info(f"站点 {domain} cookie 推送成功")
@@ -91,7 +91,7 @@ class CookieCloudService:
     def delete_cookie_if_match(self, domain: str, expected_cookie_header: str | None):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.info("CookieCloud 未启用")
+            logger.debug("CookieCloud 未启用，跳过删除")
             return
 
         if not setting.host or not setting.uuid or not setting.password:
@@ -107,7 +107,7 @@ class CookieCloudService:
 
             cloud_items = decrypted_data.get(domain)
             if not cloud_items:
-                logger.info(f"CookieCloud 上未找到域名 {domain} 的 cookie")
+                logger.debug(f"CookieCloud 上未找到域名 {domain} 的 cookie")
                 return
 
             cloud_cookie_header = to_cookie_header(cookiecloud_items_to_cookies(cloud_items))
@@ -121,7 +121,7 @@ class CookieCloudService:
             if cookie_cloud.update_cookie(decrypted_data):
                 logger.info(f"站点 {domain} cookie 已从 CookieCloud 删除")
             else:
-                logger.error("CookieCloud 删除失败")
+                logger.warning("CookieCloud 删除失败")
 
         except Exception as e:
             logger.error(f"CookieCloud 条件删除失败: {e}")

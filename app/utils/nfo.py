@@ -41,8 +41,8 @@ def get_basic(video: str, include_actor: bool = False):
         nfo = VideoList(path=video, title=title.text, num=num.text, cover=cover.text, is_zh=is_zh,
                         is_uncensored=is_uncensored, actors=video_actors)
         return nfo
-    except Exception as e:
-        logger.error(f'{video} NFO文件读取失败')
+    except Exception:
+        logger.warning(f'{video} NFO文件读取失败')
         traceback.print_exc()
         return None
 
