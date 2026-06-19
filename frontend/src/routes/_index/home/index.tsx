@@ -1,7 +1,7 @@
 import Filter, {FilterField} from "./-components/filter.tsx";
 import {queryOptions, useQuery} from "@tanstack/react-query";
 import React from "react";
-import {Button, Col, Empty, Row} from "antd";
+import {Col, Row} from "antd";
 import VideoItem from "./-components/item.tsx";
 import Selector from "../../../components/Selector";
 import Slider from "../../../components/Slider";
@@ -73,8 +73,7 @@ function JavDB() {
         data: payload,
         isPending,
         isError,
-        refetch,
-        isFetching
+        refetch
     } = useQuery(homeQueryOptions(querySearch));
 
     const videos = payload?.items.filter((item) => (item.rank || 0) >= filter.rank) || [];
@@ -107,45 +106,42 @@ function JavDB() {
         },
     ]
 
+    let content: React.ReactNode;
+
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'榜单加载失败'}
+                description={'请检查站点配置、Cookie 或网络状态后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else {
+        content = (
+            <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
+                {videos.map((item) => (
+                    <Col key={item.url} span={24} md={12} lg={6}
+                         onClick={() => navigate({
+                               to: '/home/detail',
+                              search: {site_id: payload!.siteId, num: item.num, url: item.url}
+                          })}>
+                        <VideoItem item={item}/>
+                    </Col>
+                ))}
+            </Row>
+        );
+    }
+
     return (
         <div>
             <Filter initialValues={filter as unknown as Record<string, unknown>} onFilterChange={(values) => {
                 return navigate({search: values as never})
             }} fields={filterFields}/>
-            {isPending ? (
-                <RoutePendingState/>
-            ) : isError ? (
-                <RouteErrorState
-                    title={'榜单加载失败'}
-                    description={'请检查站点配置、Cookie 或网络状态后重试'}
-                    onRetry={async () => {
-                        await refetch();
-                    }}
-                />
-            ) : videos.length > 0 ? (
-                <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
-                    {videos.map((item) => (
-                        <Col key={item.url} span={24} md={12} lg={6}
-                             onClick={() => navigate({
-                                   to: '/home/detail',
-                                  search: {site_id: payload.siteId, num: item.num, url: item.url}
-                              })}>
-                            <VideoItem item={item}/>
-                        </Col>
-                    ))}
-                </Row>
-            ) : (
-                <div className={'mt-10'}>
-                    <Empty/>
-                    {isFetching && (
-                        <div className={'mt-4 text-center'}>
-                            <Button loading type={'default'}>
-                                正在刷新榜单
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            )}
+            {content}
         </div>
     )
 }
