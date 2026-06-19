@@ -1,25 +1,46 @@
+import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useRequest} from "ahooks";
 import * as api from "../../../apis/video";
-import {Card, Col, Empty, FloatButton, Row, Skeleton, Space, Tag, Tooltip} from "antd";
+import {Card, Col, Empty, FloatButton, Row, Space, Tag, Tooltip} from "antd";
 import VideoCover from "../../../components/VideoCover";
 import React, {useMemo, useState} from "react";
 import {createPortal} from "react-dom";
-import {FilterOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
+import {FilterOutlined, LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoFilterModal, {FilterParams} from "./-components/filter.tsx";
 import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
 })
 
+function videosQueryOptions() {
+    return queryOptions({
+        queryKey: ['videos'] as const,
+        staleTime: 30 * 1000,
+        gcTime: 5 * 60 * 1000,
+        retry: 1,
+        queryFn: () => api.getVideos()
+    });
+}
+
 function Video() {
 
-    const {data = [], loading, run, refresh} = useRequest(api.getVideos)
+    const queryClient = useQueryClient()
+    const {data = [], isPending, isError, refetch} = useQuery(videosQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
     const {navigate} = useRouter()
+    const floatButtonGroup = document.getElementsByClassName('index-float-button-group')[0]
+    const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
+        manual: true,
+        onSuccess: (refreshedVideos) => {
+            queryClient.setQueryData(['videos'], refreshedVideos)
+        }
+    })
 
     const actors = useMemo(() => {
         const actors: any[] = []
@@ -53,18 +74,24 @@ function Video() {
 
     const hasFilter = !!filterParams.title || !!filterParams.actors?.length
 
-    if (loading) {
-        return (
-            <Card>
-                <Skeleton active/>
-            </Card>
-        )
-    }
+    let content: React.ReactNode;
 
-    return (
-        <Row gutter={[15, 15]}>
-            {videos.length > 0 ? (
-                videos.map((video: any) => (
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'视频列表加载失败'}
+                description={'请检查网络后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else if (videos.length > 0) {
+        content = (
+            <Row gutter={[15, 15]}>
+                {videos.map((video: any) => (
                     <Col key={video.path} span={24} md={12} lg={6}>
                         <Card hoverable
                               size={"small"}
@@ -88,7 +115,7 @@ function Video() {
                                                    </Space>
                                                </div>
                                                <Tooltip title={'搜索'}>
-                                                   <div className={'ml-1'} onClick={(event) => {
+                                                   <div className={'ml-1'} onClick={() => {
                                                        return navigate({
                                                            to: '/home/detail',
                                                            search: {num: video.num}
@@ -102,24 +129,34 @@ function Video() {
                             />
                         </Card>
                     </Col>
-                ))
-            ) : (
+                ))}
+            </Row>
+        );
+    } else {
+        content = (
+            <Row gutter={[15, 15]}>
                 <Col span={24}>
                     <Card title={'视频'}>
                         <Empty
                             description={(<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
                     </Card>
                 </Col>
-            )}
+            </Row>
+        );
+    }
+
+    return (
+        <>
+            {content}
             <VideoDetail title={'编辑'}
                          mode={'video'}
                          width={1100}
                          path={selected}
                          open={!!selected}
                          onCancel={() => setSelected(undefined)}
-                         onOk={() => {
+                          onOk={() => {
                              setSelected(undefined)
-                             refresh()
+                             queryClient.invalidateQueries({queryKey: ['videos']})
                          }}
             />
             <VideoFilterModal open={filterOpen}
@@ -130,16 +167,15 @@ function Video() {
                                   setFilterParams(params)
                                   setFilterOpen(false)
                               }}/>
-            <>
-                {createPortal((
-                        <>
-                            <FloatButton icon={<RedoOutlined/>} onClick={() => run(true)}/>
-                            <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
-                                         onClick={() => setFilterOpen(true)}/>
-                        </>
-                    ), document.getElementsByClassName('index-float-button-group')[0]
-                )}
-            </>
-        </Row>
+            {floatButtonGroup && createPortal((
+                    <>
+                        <FloatButton icon={refreshing ? <LoadingOutlined/> : <RedoOutlined/>}
+                                     onClick={() => runForceRefresh()}/>
+                        <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
+                                     onClick={() => setFilterOpen(true)}/>
+                    </>
+                ), floatButtonGroup
+            )}
+        </>
     )
 }

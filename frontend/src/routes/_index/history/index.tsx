@@ -1,40 +1,63 @@
+import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Card, Input, message, Modal, Table, Tag} from "antd";
 import {ColumnsType} from "antd/lib/table";
 import * as api from "../../../apis/history";
-import {useDebounce, useRequest} from "ahooks";
 import dayjs from "dayjs";
-import React, {useMemo, useState} from "react";
+import {useRequest} from "ahooks";
+import React, {useEffect, useState} from "react";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import More from "../../../components/More";
-import {createFileRoute} from "@tanstack/react-router";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
+import {createFileRoute, useNavigate} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 import {TransModeOptions} from "../../../utils/constants.ts";
+import type {PagedResponse} from "../../../types/video.ts";
 
 export const Route = createFileRoute('/_index/history/')({
     component: History,
 })
 
+type HistorySearch = {
+    page?: number;
+    limit?: number;
+    keyword?: string;
+};
+
+function historiesQueryOptions(search: HistorySearch) {
+    const page = Number(search.page || 1);
+    const limit = Number(search.limit || 20);
+    const keyword = (search.keyword || '').trim();
+
+    return queryOptions({
+        queryKey: ['histories', {page, limit, keyword}] as const,
+        staleTime: 30 * 1000,
+        gcTime: 5 * 60 * 1000,
+        retry: 1,
+        queryFn: () => api.getHistories({page, limit, keyword: keyword || undefined}) as Promise<PagedResponse<any[]>>,
+    });
+}
+
 function History() {
-
-    const {data = [], loading, refresh} = useRequest(api.getHistories, {})
+    const navigate = useNavigate()
+    const queryClient = useQueryClient()
+    const search = Route.useSearch() as HistorySearch
+    const page = Number(search.page || 1)
+    const limit = Number(search.limit || 20)
+    const keyword = (search.keyword || '').trim()
+    const [inputValue, setInputValue] = useState(keyword)
     const [selected, setSelected] = useState<any | undefined>()
-    const [keyword, setKeyword] = useState<string>()
-    const keywordDebounce = useDebounce(keyword, {wait: 1000})
+    const {data, isPending, isError, refetch} = useQuery(historiesQueryOptions(search))
 
-    const realData = useMemo(() => {
-        return data.filter((item: any) => {
-            return !keywordDebounce ||
-                item.num?.indexOf(keywordDebounce) > -1 ||
-                item.source_path?.indexOf(keywordDebounce) > -1 ||
-                item.dest_path?.indexOf(keywordDebounce) > -1
-        })
-    }, [data, keywordDebounce])
+    useEffect(() => {
+        setInputValue(keyword)
+    }, [keyword])
 
     const {run: onDelete} = useRequest(api.deleteHistory, {
         manual: true,
         onSuccess: () => {
-            refresh()
             message.success("删除成功")
+            queryClient.invalidateQueries({queryKey: ['histories']})
         }
     })
 
@@ -122,11 +145,68 @@ function History() {
         }
     }
 
+    function handleSearch(value: string) {
+        const nextKeyword = value.trim()
+        navigate({
+            search: {
+                page: 1,
+                limit,
+                keyword: nextKeyword || undefined
+            } as never
+        })
+    }
+
+    let content: React.ReactNode;
+
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'历史记录加载失败'}
+                description={'请检查网络后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else {
+        content = (
+            <Table
+                rowKey={'id'}
+                scroll={{x: 'max-content'}}
+                columns={columns}
+                dataSource={data?.data || []}
+                pagination={{
+                    current: data?.page || page,
+                    pageSize: data?.limit || limit,
+                    total: data?.total || 0,
+                    showSizeChanger: true,
+                    onChange: (nextPage, nextPageSize) => {
+                        navigate({
+                            search: {
+                                page: nextPage,
+                                limit: nextPageSize,
+                                keyword: keyword || undefined
+                            } as never
+                        })
+                    }
+                }}
+            />
+        );
+    }
+
     return (
         <Card title={'历史记录'}
-              extra={(<Input.Search value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={'搜索'}/>)}>
-            <Table rowKey={'id'} scroll={{x: 'max-content'}} columns={columns} loading={loading}
-                   dataSource={realData}/>
+              extra={(
+                  <Input.Search
+                      value={inputValue}
+                      onChange={e => setInputValue(e.target.value)}
+                      onSearch={handleSearch}
+                      placeholder={'搜索'}
+                  />
+              )}>
+            {content}
             <VideoDetail title={'重新整理'}
                          mode={'history'}
                          transMode={selected?.status ? 'move' : selected?.trans_mode}
@@ -134,12 +214,11 @@ function History() {
                          path={selected?.status ? selected?.dest_path : selected?.source_path}
                          open={!!selected}
                          onCancel={() => setSelected(undefined)}
-                         onOk={() => {
+                          onOk={() => {
                              setSelected(undefined)
-                             refresh()
+                             queryClient.invalidateQueries({queryKey: ['histories']})
                          }}
             />
         </Card>
     )
 }
-

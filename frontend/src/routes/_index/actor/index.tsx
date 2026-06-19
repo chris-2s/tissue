@@ -1,7 +1,10 @@
+import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect} from "react";
-import {Col, Empty, Pagination, Row, Skeleton} from "antd";
+import {Col, Empty, Pagination, Row} from "antd";
 import * as api from "../../../apis/home.ts";
-import {Await, createFileRoute, useNavigate} from "@tanstack/react-router";
+import {createFileRoute, type ErrorComponentProps, useNavigate, useRouter} from "@tanstack/react-router";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
 import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {PagedResponse, SiteVideo} from "../../../types/video.ts";
@@ -15,18 +18,56 @@ type ActorSearch = {
 
 type ActorPageResponse = PagedResponse<SiteVideo[]>;
 
+function actorQueryOptions(search: ActorSearch) {
+    return queryOptions({
+        queryKey: ['actorVideos', search] as const,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        retry: 0,
+        queryFn: () => api.getActor(search)
+    });
+}
+
+function ActorError(props: ErrorComponentProps) {
+    const router = useRouter();
+
+    return (
+        <RouteErrorState
+            title={'演员作品加载失败'}
+            description={'请检查网络或站点状态后重试'}
+            onRetry={async () => {
+                props.reset();
+                await router.invalidate({
+                    filter: (route) => route.routeId === '/_index/actor/',
+                    sync: true
+                });
+            }}
+        />
+    );
+}
+
 export const Route = createFileRoute('/_index/actor/')({
     component: Actor,
-    loaderDeps: ({search}) => search as ActorSearch,
-    loader: async ({deps}) => ({
-        data: api.getActor({...deps}).catch(() => ({success: true, data: []} as ActorPageResponse))
+    pendingComponent: RoutePendingState,
+    errorComponent: ActorError,
+    pendingMs: 200,
+    pendingMinMs: 300,
+    loaderDeps: ({search}) => ({
+        ...(search as ActorSearch),
+        page: Number((search as ActorSearch).page || 1)
     }),
-    staleTime: Infinity
+    loader: ({deps, context}) => context.queryClient.ensureQueryData(actorQueryOptions(deps as ActorSearch))
 })
 
 function Actor() {
-    const {data} = Route.useLoaderData()
     const search = Route.useSearch() as ActorSearch
+    const normalizedSearch: ActorSearch = {
+        ...search,
+        page: Number(search.page || 1)
+    }
+    const {data: pageData} = useSuspenseQuery(actorQueryOptions(normalizedSearch))
     const navigate = useNavigate()
     const appDispatch = useDispatch<Dispatch>().app
 
@@ -37,37 +78,32 @@ function Actor() {
         }
     }, [appDispatch])
 
+    const videos = pageData.data || []
+
     return (
         <div>
-            <Await promise={data} fallback={(
-                <Skeleton active/>
-            )}>
-                {(pageData: ActorPageResponse = {success: true, data: []}) => {
-                    const videos = pageData.data || []
-                    return videos.length > 0 ? (
-                        <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
-                            {videos.map((item) => (
-                                <Col key={item.url} span={24} md={12} lg={6}
-                                 onClick={() => navigate({
-                                          to: '/home/detail',
-                                          search: {site_id: search.site_id, num: item.num, url: item.url}
-                                      })}>
-                                    <VideoItem item={item}/>
-                                </Col>
-                            ))}
-                            <div className={'w-full flex justify-center'}>
-                                <Pagination pageSize={pageData.limit} current={pageData.page} total={pageData.total}
-                                            showSizeChanger={false}
-                                            onChange={(page) => {
-                                                navigate({search: {...search, page} as never})
-                                            }}/>
-                            </div>
-                        </Row>
-                    ) : (
-                        <Empty className={'mt-10'}/>
-                    )
-                }}
-            </Await>
+            {videos.length > 0 ? (
+                <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
+                    {videos.map((item) => (
+                        <Col key={item.url} span={24} md={12} lg={6}
+                             onClick={() => navigate({
+                                  to: '/home/detail',
+                                  search: {site_id: normalizedSearch.site_id, num: item.num, url: item.url}
+                              })}>
+                            <VideoItem item={item}/>
+                        </Col>
+                    ))}
+                    <div className={'w-full flex justify-center'}>
+                        <Pagination pageSize={pageData.limit} current={pageData.page} total={pageData.total}
+                                    showSizeChanger={false}
+                                    onChange={(page) => {
+                                        navigate({search: {...normalizedSearch, page} as never})
+                                    }}/>
+                    </div>
+                </Row>
+            ) : (
+                <Empty className={'mt-10'}/>
+            )}
         </div>
     )
 }

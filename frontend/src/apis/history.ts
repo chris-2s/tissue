@@ -1,9 +1,16 @@
 import {request} from "../utils/requests";
 
-export async function getHistories() {
+export interface GetHistoriesParams {
+    page?: number;
+    limit?: number;
+    keyword?: string;
+}
+
+export async function getHistories(params: GetHistoriesParams = {}) {
     const response = await request.request({
         url: '/history/',
-        method: 'get'
+        method: 'get',
+        params
     })
     return response.data
 }
