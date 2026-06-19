@@ -44,6 +44,11 @@ type DetailSearch = homeApi.GetDetailParams;
 function detailQueryOptions(search: DetailSearch) {
     return queryOptions({
         queryKey: ['videoDetail', search] as const,
+        staleTime: 10 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        retry: 0,
         queryFn: async (): Promise<SearchVideoView> => {
             const request = ('site_id' in search && 'url' in search)
                 ? homeApi.getDetail(search as homeApi.GetSiteDetailParams)
@@ -58,10 +63,6 @@ function detailQueryOptions(search: DetailSearch) {
     });
 }
 
-function DetailPending() {
-    return <RoutePendingState variant={'detail'}/>;
-}
-
 function DetailError(props: ErrorComponentProps) {
     const router = useRouter();
 
@@ -69,7 +70,6 @@ function DetailError(props: ErrorComponentProps) {
         <RouteErrorState
             title={'详情加载失败'}
             description={'请检查网络或数据源状态后重试。'}
-            error={props.error instanceof Error ? props.error : new Error('详情加载失败')}
             onRetry={async () => {
                 props.reset();
                 await router.invalidate({
@@ -82,7 +82,7 @@ function DetailError(props: ErrorComponentProps) {
 
 export const Route = createFileRoute('/_index/home/detail')({
     component: Detail,
-    pendingComponent: DetailPending,
+    pendingComponent: RoutePendingState,
     errorComponent: DetailError,
     pendingMs: 200,
     pendingMinMs: 300,

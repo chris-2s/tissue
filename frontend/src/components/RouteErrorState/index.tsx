@@ -1,40 +1,32 @@
-import {Button, Card, Col, Result, Row, Typography} from "antd";
+import {ReloadOutlined} from "@ant-design/icons";
+import {Button, Typography} from "antd";
 import React from "react";
 
-const {Text} = Typography;
+const {Paragraph, Title} = Typography;
 
 interface RouteErrorStateProps {
     title: string;
     description: string;
-    error?: Error | null;
     onRetry: () => void | Promise<void>;
 }
 
 function RouteErrorState(props: RouteErrorStateProps) {
-    const {title, description, error, onRetry} = props;
+    const {title, description, onRetry} = props;
 
     return (
-        <Row gutter={[15, 15]}>
-            <Col span={24}>
-                <Card>
-                    <Result
-                        status={'error'}
-                        title={title}
-                        subTitle={description}
-                        extra={(
-                            <Button type={'primary'} onClick={() => void onRetry()}>
-                                重试
-                            </Button>
-                        )}
-                    />
-                    {error?.message && (
-                        <div className={'mt-4 text-center'}>
-                            <Text type={'secondary'}>{error.message}</Text>
-                        </div>
-                    )}
-                </Card>
-            </Col>
-        </Row>
+        <div className={'flex flex-col items-center py-10 text-center'}>
+            <Button
+                type={'primary'}
+                shape={'circle'}
+                size={'large'}
+                icon={<ReloadOutlined/>}
+                onClick={() => void onRetry()}
+            />
+            <Title level={4} className={'!mt-4 !mb-2'}>{title}</Title>
+            <Paragraph type={'secondary'} className={'!mb-0'}>
+                {description}
+            </Paragraph>
+        </div>
     );
 }
 
