@@ -9,6 +9,7 @@ import {useSelector} from "react-redux";
 
 import {ConfigProvider, theme} from "antd";
 import {StyleProvider} from '@ant-design/cssinjs';
+import type {QueryClient} from "@tanstack/react-query";
 import {RootState} from "../models";
 import {createRootRouteWithContext, Outlet} from "@tanstack/react-router";
 
@@ -19,6 +20,7 @@ dayjs.locale('zh-cn')
 
 interface MyRouteContext {
     userToken?: string
+    queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<MyRouteContext>()({

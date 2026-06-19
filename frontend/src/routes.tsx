@@ -14,10 +14,15 @@ import {
     GlobalOutlined,
 } from "@ant-design/icons";
 import {createRouter} from "@tanstack/react-router";
+import {queryClient} from "./queryClient.ts";
 import {routeTree} from "./routeTree.gen.ts";
 
 export const router = createRouter({
     routeTree,
+    context: {
+        userToken: undefined,
+        queryClient
+    },
     scrollRestoration: true
 })
 

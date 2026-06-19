@@ -11,6 +11,7 @@ import {
     Tag,
     Tooltip
 } from "antd";
+import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect, useState} from "react";
 import {
     CarryOutOutlined,
@@ -38,6 +39,24 @@ import ActorsModal from "./-components/actorsModal.tsx";
 import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
 
 type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
+type DetailSearch = homeApi.GetDetailParams;
+
+function detailQueryOptions(search: DetailSearch) {
+    return queryOptions({
+        queryKey: ['videoDetail', search] as const,
+        queryFn: async (): Promise<SearchVideoView> => {
+            const request = ('site_id' in search && 'url' in search)
+                ? homeApi.getDetail(search as homeApi.GetSiteDetailParams)
+                : subscribeApi.searchVideo({num: (search as homeApi.GetNumberDetailParams).num});
+            const data = await request;
+
+            return {
+                ...data,
+                actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
+            };
+        }
+    });
+}
 
 function DetailPending() {
     return <RoutePendingState variant={'detail'}/>;
@@ -68,24 +87,16 @@ export const Route = createFileRoute('/_index/home/detail')({
     pendingMs: 200,
     pendingMinMs: 300,
     loaderDeps: ({search}) => search,
-    loader: async ({deps}) => {
-        const request = ('site_id' in (deps as Record<string, unknown>) && 'url' in (deps as Record<string, unknown>))
-            ? homeApi.getDetail(deps as homeApi.GetSiteDetailParams)
-            : subscribeApi.searchVideo({num: (deps as homeApi.GetNumberDetailParams).num});
-        const data = await request;
-
-        return {
-            ...data,
-            actors: data.actors.map((item) => item.name).filter(Boolean).join(", ")
-        } as SearchVideoView;
+    loader: ({deps, context}) => {
+        return context.queryClient.ensureQueryData(detailQueryOptions(deps as DetailSearch));
     }
 });
 
 function Detail() {
     const router = useRouter();
     const responsive = useResponsive();
-    const search = Route.useSearch() as homeApi.GetDetailParams;
-    const video = Route.useLoaderData();
+    const search = Route.useSearch() as DetailSearch;
+    const {data: video, isFetching, refetch} = useSuspenseQuery(detailQueryOptions(search));
     const appDispatch = useDispatch<Dispatch>().app;
 
     const [filter, setFilter] = useState({isHd: false, isZh: false, isUncensored: false});
@@ -93,7 +104,6 @@ function Detail() {
     const [commentSelected, setCommentSelected] = useState<number>();
     const [selectedDownload, setSelectedDownload] = useState<VideoDownload>();
     const [actorsModalOpen, setActorsModalOpen] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         appDispatch.setCanBack(true);
@@ -101,6 +111,14 @@ function Detail() {
             appDispatch.setCanBack(false);
         };
     }, [appDispatch]);
+
+    useEffect(() => {
+        setPreviewSelected(video.previews[0]?.source.site_id);
+    }, [video.previews]);
+
+    useEffect(() => {
+        setCommentSelected(video.comments[0]?.source.site_id);
+    }, [video.comments]);
 
     const {setOpen: setSubscribeOpen, modalProps: subscribeModalProps} = useFormModal({
         service: subscribeApi.modifySubscribe,
@@ -230,18 +248,6 @@ function Detail() {
     ));
     const isSearchMode = !('site_id' in search && 'url' in search);
 
-    async function onRefresh() {
-        setRefreshing(true);
-        try {
-            await router.invalidate({
-                filter: (route) => route.routeId === '/_index/home/detail',
-                sync: true
-            });
-        } finally {
-            setRefreshing(false);
-        }
-    }
-
     return (
         <Row gutter={[15, 15]}>
             <Col span={24} lg={8} md={12}>
@@ -257,8 +263,8 @@ function Detail() {
                         <Tooltip title={'刷新'}>
                             <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'}
                                     className={'ml-4'}
-                                    loading={refreshing}
-                                    onClick={() => void onRefresh()}/>
+                                    loading={isFetching}
+                                    onClick={() => void refetch()}/>
                         </Tooltip>
                         {!isSearchMode && (
                             <Tooltip title={'搜索'}>
@@ -287,6 +293,7 @@ function Detail() {
                 {video.previews.length > 0 && (
                     <Card title={'预览'} className={'mb-4'} extra={(
                         <Segmented
+                            value={previewSelected}
                             onChange={(value: number) => setPreviewSelected(value)}
                             options={video.previews.map((item) => ({
                                 label: item.source.site_name,
@@ -349,6 +356,7 @@ function Detail() {
                 {video.comments.length > 0 && (
                     <Card title={'评论'} className={'mt-4'} extra={(
                         <Segmented
+                            value={commentSelected}
                             onChange={(value: number) => setCommentSelected(value)}
                             options={video.comments.map((item) => ({
                                 label: item.source.site_name,
