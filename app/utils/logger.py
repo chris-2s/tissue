@@ -2,7 +2,7 @@ import inspect
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import click
 
@@ -29,25 +29,30 @@ class LoggerManager:
 
     def __init__(self):
         log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
+        log_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.logger = logging.getLogger(log_path.stem)
         self.logger.setLevel(logging.INFO)
+        self.logger.propagate = False
+
+        if self.logger.handlers:
+            return
 
         # 终端日志
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
-        console_formatter = CustomFormatter(f"%(leveltext)s%(message)s")
+        console_formatter = CustomFormatter(f"%(leveltext)s%(asctime)s - %(message)s")
         console_handler.setFormatter(console_formatter)
         self.logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(filename=log_path,
-                                           mode='w',
+                                           mode='a',
                                            maxBytes=5 * 1024 * 1024,
                                            backupCount=3,
                                            encoding='utf-8')
         file_handler.setLevel(logging.INFO)
-        console_formatter = CustomFormatter(f"【%(levelname)s】%(asctime)s - %(message)s")
-        file_handler.setFormatter(console_formatter)
+        file_formatter = CustomFormatter(f"【%(levelname)s】%(asctime)s - %(message)s")
+        file_handler.setFormatter(file_formatter)
         self.logger.addHandler(file_handler)
 
     def log(self, method: str, msg: str, *args, **kwargs):

@@ -156,7 +156,12 @@ function Header(props: Props) {
                    onCancel={() => setLogOpen(false)}
                    footer={null}
                    destroyOnClose
-                   width={1000}
+                   width={responsive.lg ? 1000 : 'calc(100vw - 16px)'}
+                   styles={{
+                       body: {
+                           padding: responsive.lg ? 24 : 12,
+                       }
+                   }}
                    centered
             >
                 <Log/>

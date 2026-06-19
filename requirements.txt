@@ -32,7 +32,6 @@ six==1.17.0
 sniffio==1.3.1
 SQLAlchemy==2.0.37
 starlette==0.45.3
-tailer==0.4.1
 typing_extensions==4.12.2
 tzlocal==5.2
 urllib3==2.3.0
