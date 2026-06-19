@@ -1,58 +1,108 @@
-import {Button, Card, message, Table, Tag} from "antd";
-import {ColumnsType} from "antd/lib/table";
+import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
+import {Button, Card, Empty, List, message, Space, Tag, Typography} from "antd";
 import dayjs from "dayjs";
 import * as api from "../../../apis/schedule";
 import {useRequest} from "ahooks";
-import React from "react";
+import React, {useState} from "react";
 import {createFileRoute} from "@tanstack/react-router";
+import RoutePendingState from "../../../components/RoutePendingState";
+import RouteErrorState from "../../../components/RouteErrorState";
 
 export const Route = createFileRoute('/_index/schedule/')({
     component: Schedule,
 })
 
-function Schedule() {
+function schedulesQueryOptions() {
+    return queryOptions({
+        queryKey: ['schedules'] as const,
+        staleTime: 0,
+        gcTime: 5 * 60 * 1000,
+        retry: 1,
+        queryFn: api.getSchedules
+    });
+}
 
-    const {data = [], loading, refresh} = useRequest(api.getSchedules, {})
+function Schedule() {
+    const queryClient = useQueryClient()
+    const [firingKey, setFiringKey] = useState<string>()
+
+    const {data = [], isPending, isError, refetch} = useQuery(schedulesQueryOptions())
     const {run: onFire, loading: onFiring} = useRequest(api.fireSchedule, {
         manual: true,
         onSuccess: () => {
             message.success('手动执行成功')
-            refresh()
+            queryClient.invalidateQueries({queryKey: ['schedules']})
+            setFiringKey(undefined)
+        },
+        onError: () => {
+            setFiringKey(undefined)
         }
     })
 
-    const columns: ColumnsType<any> = [
-        {
-            title: '任务',
-            dataIndex: 'name'
-        },
-        {
-            title: '状态',
-            dataIndex: 'status',
-            render: (value) => (
-                value ? (<Tag color={"success"}>运行中</Tag>) : (<Tag color={'warning'}>等待</Tag>)
-            )
-        },
-        {
-            title: '下次执行',
-            dataIndex: 'next_run_time',
-            render: (value) => dayjs(value).format('lll')
-        },
-        {
-            title: '操作',
-            dataIndex: 'operations',
-            render: (_, record: any) => (
-                <span>
-                    <Button type={'primary'} onClick={() => onFire(record.key)} loading={onFiring}>手动执行</Button>
-                </span>
-            )
-        }
-    ]
+    let content: React.ReactNode;
+
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'任务列表加载失败'}
+                description={'请检查网络后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else if (data.length === 0) {
+        content = <Empty description={'暂无任务'}/>;
+    } else {
+        content = (
+            <List
+                grid={{gutter: 16, xl: 3, lg: 2, md: 2, xs: 1}}
+                dataSource={data}
+                renderItem={(item: any) => (
+                    <List.Item>
+                        <Card
+                            size={'small'}
+                            bordered={false}
+                            style={{width: '100%', background: 'var(--ant-color-fill-tertiary)'}}
+                        >
+                            <Space direction={'vertical'} size={'middle'} style={{width: '100%'}}>
+                                <div>
+                                    <Typography.Title level={5} style={{margin: 0}}>
+                                        {item.name}
+                                    </Typography.Title>
+                                </div>
+                                <div className={'flex items-center justify-between gap-3'}>
+                                    <span>状态</span>
+                                    {item.status ? <Tag color={'success'}>运行中</Tag> : <Tag color={'warning'}>等待</Tag>}
+                                </div>
+                                <div className={'flex items-center justify-between gap-3'}>
+                                    <span>下次执行</span>
+                                    <span>{dayjs(item.next_run_time).format('lll')}</span>
+                                </div>
+                                <Button
+                                    type={'primary'}
+                                    block
+                                    onClick={() => {
+                                        setFiringKey(item.key)
+                                        onFire(item.key)
+                                    }}
+                                    loading={onFiring && firingKey === item.key}
+                                >
+                                    手动执行
+                                </Button>
+                            </Space>
+                        </Card>
+                    </List.Item>
+                )}
+            />
+        );
+    }
 
     return (
         <Card title={'任务列表'}>
-            <Table rowKey={'key'} columns={columns} dataSource={data} loading={loading} pagination={false}/>
+            {content}
         </Card>
     )
 }
-

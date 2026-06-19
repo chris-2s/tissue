@@ -1,9 +1,12 @@
+import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Card, Collapse, Empty, Input, List, message, Modal, Space, Tag, theme, Tooltip} from "antd";
 import * as api from "../../../apis/download";
 import {useDebounce, useRequest} from "ahooks";
 import {FileDoneOutlined, FolderViewOutlined} from "@ant-design/icons";
 import React, {useMemo, useState} from "react";
 import IconButton from "../../../components/IconButton";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
 import {createFileRoute, Link} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 
@@ -13,10 +16,21 @@ export const Route = createFileRoute('/_index/download/')({
     component: Download,
 })
 
+function downloadsQueryOptions() {
+    return queryOptions({
+        queryKey: ['downloads'] as const,
+        staleTime: 0,
+        gcTime: 60 * 1000,
+        retry: 1,
+        queryFn: api.getDownloads
+    });
+}
+
 function Download() {
 
     const {token} = useToken()
-    const {data = [], loading, refresh} = useRequest(api.getDownloads)
+    const queryClient = useQueryClient()
+    const {data = [], isPending, isError, refetch} = useQuery(downloadsQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
     const [keyword, setKeyword] = useState<string>()
     const keywordDebounce = useDebounce(keyword, {wait: 1000})
@@ -36,7 +50,7 @@ function Download() {
         manual: true,
         onSuccess: () => {
             message.success("标记成功")
-            refresh()
+            queryClient.invalidateQueries({queryKey: ['downloads']})
         }
     })
 
@@ -83,14 +97,30 @@ function Download() {
         }
     ))
 
+    let content: React.ReactNode;
+
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'下载列表加载失败'}
+                description={'请检查网络后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else if (realData.length > 0) {
+        content = <Collapse items={items} ghost={true}/>;
+    } else {
+        content = <Empty description={(<span>无完成下载，<Link to={'/setting/download'}>配置下载</Link></span>)}/>;
+    }
+
     return (
-        <Card title={'下载列表'} loading={loading}
+        <Card title={'下载列表'}
               extra={(<Input.Search value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={'搜索'}/>)}>
-            {realData.length > 0 ? (
-                <Collapse items={items} ghost={true}/>
-            ) : (
-                <Empty description={(<span>无完成下载，<Link to={'/setting/download'}>配置下载</Link></span>)}/>
-            )}
+            {content}
             <VideoDetail title={'下载整理'}
                          mode={'download'}
                          width={1100}
@@ -99,10 +129,9 @@ function Download() {
                          onCancel={() => setSelected(undefined)}
                          onOk={() => {
                              setSelected(undefined)
-                             refresh()
+                             queryClient.invalidateQueries({queryKey: ['downloads']})
                          }}
             />
         </Card>
     )
 }
-

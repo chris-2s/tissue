@@ -1,5 +1,6 @@
+import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {createFileRoute, Link} from "@tanstack/react-router";
-import {Badge, Button, Card, Empty, FloatButton, List, message, Skeleton, Space, Tag, theme} from "antd";
+import {Badge, Button, Card, Empty, FloatButton, List, message, Space, Tag, theme} from "antd";
 import ModifyModal from "./-components/modifyModal.tsx";
 import LoginModal from "./-components/loginModal.tsx";
 import {useFormModal} from "../../../utils/useFormModal.ts";
@@ -7,34 +8,49 @@ import * as api from "../../../apis/site.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
 import {createPortal} from "react-dom";
-import {KeyOutlined, RedoOutlined} from "@ant-design/icons";
+import {KeyOutlined, LoadingOutlined, RedoOutlined} from "@ant-design/icons";
 import React, {useState} from "react";
+import RouteErrorState from "../../../components/RouteErrorState";
+import RoutePendingState from "../../../components/RoutePendingState";
 
 
 export const Route = createFileRoute('/_index/site/')({
     component: Site
 })
 
+function sitesQueryOptions() {
+    return queryOptions({
+        queryKey: ['sites'] as const,
+        staleTime: 0,
+        gcTime: 5 * 60 * 1000,
+        retry: 1,
+        queryFn: api.getSites
+    });
+}
+
 function Site() {
 
     const {token} = theme.useToken()
+    const queryClient = useQueryClient()
+    const floatButtonGroup = document.getElementsByClassName('index-float-button-group')[0]
 
-    const {data, refresh, loading} = useRequest(api.getSites, {})
+    const {data = [], isPending, isError, refetch} = useQuery(sitesQueryOptions())
 
     const {modalProps, setOpen} = useFormModal({
         service: api.modifySite,
         onOk: () => {
             setOpen(false)
-            refresh()
+            queryClient.invalidateQueries({queryKey: ['sites']})
         }
     })
 
     const [loginSite, setLoginSite] = useState<{id: number, name: string} | null>(null)
 
-    const {run: onTesting} = useRequest(api.testingSits, {
+    const {run: onTesting, loading: testing} = useRequest(api.testingSits, {
         manual: true,
         onSuccess: () => {
             message.success("站点刷新提交成功")
+            queryClient.invalidateQueries({queryKey: ['sites']})
         }
     })
 
@@ -93,41 +109,58 @@ function Site() {
         )
     }
 
-    if (loading) {
-        return (
-            <Card>
-                <Skeleton active/>
+    let content: React.ReactNode;
+
+    if (isPending) {
+        content = <RoutePendingState/>;
+    } else if (isError) {
+        content = (
+            <RouteErrorState
+                title={'站点列表加载失败'}
+                description={'请检查网络后重试'}
+                onRetry={async () => {
+                    await refetch();
+                }}
+            />
+        );
+    } else if (data.length > 0) {
+        content = (
+            <List grid={{gutter: 16, xxl: 4, xl: 4, lg: 4, md: 2, xs: 1}}
+                  dataSource={data}
+                  renderItem={renderItem}/>
+        );
+    } else {
+        content = (
+            <Card title={'站点'}>
+                <Empty description={(
+                    <div>
+                        <div>无可用站点</div>
+                        <div>请检查网络连接后 <a onClick={() => onTesting()}>刷新站点</a></div>
+                    </div>
+                )}/>
             </Card>
-        )
+        );
     }
 
     return (
         <>
-            {(data && data.length > 0) ? (
-                <List grid={{gutter: 16, xxl: 4, xl: 4, lg: 4, md: 2, xs: 1}}
-                      dataSource={data}
-                      renderItem={renderItem}/>
-            ) : (
-                <Card title={'站点'}>
-                    <Empty description={(
-                        <div>
-                            <div>无可用站点</div>
-                            <div>请检查网络连接后 <a onClick={() => onTesting()}>刷新站点</a></div>
-                        </div>
-                    )}/>
-                </Card>
-            )}
+            {content}
             <ModifyModal {...modalProps} />
             <LoginModal 
                 siteId={loginSite?.id ?? 0}
                 siteName={loginSite?.name ?? ''}
                 open={loginSite !== null}
                 onClose={() => setLoginSite(null)}
-                onSuccess={refresh}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({queryKey: ['sites']})
+                }}
             />
-            {createPortal((
+            {floatButtonGroup && createPortal((
                     <>
-                        <FloatButton icon={<RedoOutlined/>} onClick={() => onTesting()}/>
+                        <FloatButton
+                            icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
+                            onClick={() => onTesting()}
+                        />
                     </>
                 ), document.getElementsByClassName('index-float-button-group')[0]
             )}
