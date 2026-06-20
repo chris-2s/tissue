@@ -10,7 +10,7 @@ const browserGlobals = Object.fromEntries(
 
 module.exports = [
     {
-        ignores: ['dist'],
+        ignores: ['dist', '.tanstack', 'src/routeTree.gen.ts'],
     },
     {
         files: ['**/*.{ts,tsx}'],

@@ -155,29 +155,29 @@ const IndexHomeDetailRoute = IndexHomeDetailRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/setting': typeof IndexSettingRouteRouteWithChildren
   '/': typeof IndexIndexRoute
-  '/login': typeof LoginIndexRoute
+  '/setting': typeof IndexSettingRouteRouteWithChildren
+  '/login/': typeof LoginIndexRoute
   '/home/detail': typeof IndexHomeDetailRoute
   '/setting/app': typeof IndexSettingAppRoute
   '/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
-  '/about': typeof IndexAboutIndexRoute
-  '/actor': typeof IndexActorIndexRoute
-  '/download': typeof IndexDownloadIndexRoute
-  '/file': typeof IndexFileIndexRoute
-  '/history': typeof IndexHistoryIndexRoute
-  '/home': typeof IndexHomeIndexRoute
-  '/menu': typeof IndexMenuIndexRoute
-  '/schedule': typeof IndexScheduleIndexRoute
-  '/search': typeof IndexSearchIndexRoute
+  '/about/': typeof IndexAboutIndexRoute
+  '/actor/': typeof IndexActorIndexRoute
+  '/download/': typeof IndexDownloadIndexRoute
+  '/file/': typeof IndexFileIndexRoute
+  '/history/': typeof IndexHistoryIndexRoute
+  '/home/': typeof IndexHomeIndexRoute
+  '/menu/': typeof IndexMenuIndexRoute
+  '/schedule/': typeof IndexScheduleIndexRoute
+  '/search/': typeof IndexSearchIndexRoute
   '/setting/': typeof IndexSettingIndexRoute
-  '/site': typeof IndexSiteIndexRoute
-  '/subscribe': typeof IndexSubscribeIndexRoute
-  '/user': typeof IndexUserIndexRoute
-  '/video': typeof IndexVideoIndexRoute
+  '/site/': typeof IndexSiteIndexRoute
+  '/subscribe/': typeof IndexSubscribeIndexRoute
+  '/user/': typeof IndexUserIndexRoute
+  '/video/': typeof IndexVideoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexIndexRoute
@@ -233,29 +233,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/setting'
     | '/'
-    | '/login'
+    | '/setting'
+    | '/login/'
     | '/home/detail'
     | '/setting/app'
     | '/setting/cookiecloud'
     | '/setting/download'
     | '/setting/file'
     | '/setting/notify'
-    | '/about'
-    | '/actor'
-    | '/download'
-    | '/file'
-    | '/history'
-    | '/home'
-    | '/menu'
-    | '/schedule'
-    | '/search'
+    | '/about/'
+    | '/actor/'
+    | '/download/'
+    | '/file/'
+    | '/history/'
+    | '/home/'
+    | '/menu/'
+    | '/schedule/'
+    | '/search/'
     | '/setting/'
-    | '/site'
-    | '/subscribe'
-    | '/user'
-    | '/video'
+    | '/site/'
+    | '/subscribe/'
+    | '/user/'
+    | '/video/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -318,14 +318,14 @@ declare module '@tanstack/react-router' {
     '/_index': {
       id: '/_index'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof IndexRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login/': {
       id: '/login/'
       path: '/login'
-      fullPath: '/login'
+      fullPath: '/login/'
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -346,28 +346,28 @@ declare module '@tanstack/react-router' {
     '/_index/video/': {
       id: '/_index/video/'
       path: '/video'
-      fullPath: '/video'
+      fullPath: '/video/'
       preLoaderRoute: typeof IndexVideoIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/user/': {
       id: '/_index/user/'
       path: '/user'
-      fullPath: '/user'
+      fullPath: '/user/'
       preLoaderRoute: typeof IndexUserIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/subscribe/': {
       id: '/_index/subscribe/'
       path: '/subscribe'
-      fullPath: '/subscribe'
+      fullPath: '/subscribe/'
       preLoaderRoute: typeof IndexSubscribeIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/site/': {
       id: '/_index/site/'
       path: '/site'
-      fullPath: '/site'
+      fullPath: '/site/'
       preLoaderRoute: typeof IndexSiteIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
@@ -381,63 +381,63 @@ declare module '@tanstack/react-router' {
     '/_index/search/': {
       id: '/_index/search/'
       path: '/search'
-      fullPath: '/search'
+      fullPath: '/search/'
       preLoaderRoute: typeof IndexSearchIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/schedule/': {
       id: '/_index/schedule/'
       path: '/schedule'
-      fullPath: '/schedule'
+      fullPath: '/schedule/'
       preLoaderRoute: typeof IndexScheduleIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/menu/': {
       id: '/_index/menu/'
       path: '/menu'
-      fullPath: '/menu'
+      fullPath: '/menu/'
       preLoaderRoute: typeof IndexMenuIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/home/': {
       id: '/_index/home/'
       path: '/home'
-      fullPath: '/home'
+      fullPath: '/home/'
       preLoaderRoute: typeof IndexHomeIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/history/': {
       id: '/_index/history/'
       path: '/history'
-      fullPath: '/history'
+      fullPath: '/history/'
       preLoaderRoute: typeof IndexHistoryIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/file/': {
       id: '/_index/file/'
       path: '/file'
-      fullPath: '/file'
+      fullPath: '/file/'
       preLoaderRoute: typeof IndexFileIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/download/': {
       id: '/_index/download/'
       path: '/download'
-      fullPath: '/download'
+      fullPath: '/download/'
       preLoaderRoute: typeof IndexDownloadIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/actor/': {
       id: '/_index/actor/'
       path: '/actor'
-      fullPath: '/actor'
+      fullPath: '/actor/'
       preLoaderRoute: typeof IndexActorIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
     '/_index/about/': {
       id: '/_index/about/'
       path: '/about'
-      fullPath: '/about'
+      fullPath: '/about/'
       preLoaderRoute: typeof IndexAboutIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }

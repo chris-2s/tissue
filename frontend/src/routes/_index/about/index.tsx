@@ -66,4 +66,3 @@ function About() {
         </Card>
     )
 }
-

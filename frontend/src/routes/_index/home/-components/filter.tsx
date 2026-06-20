@@ -4,7 +4,7 @@ import {Col, Row} from "antd";
 export interface FilterField {
     dataIndex: string,
     label: string,
-    component: React.ReactElement
+    component: React.ReactElement<{ value?: unknown; onChange?: (value: unknown) => void }>
     span?: { xs?: number, md?: number, lg?: number }
 }
 
