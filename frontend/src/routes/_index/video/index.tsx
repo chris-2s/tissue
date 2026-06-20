@@ -105,12 +105,12 @@ function Video() {
                                                     style={{scrollbarWidth: 'none'}}>
                                                    <Space size={[0, 'small']} className={'flex-1'}>
                                                        {video.is_zh && (
-                                                           <Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                                           <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
                                                        {video.is_uncensored && (
-                                                           <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                                           <Tag color={'green'} variant={'filled'}>无码</Tag>)}
                                                        {video.actors.map((actor: any) => (
                                                            <Tag key={actor.name} color={'purple'}
-                                                                bordered={false}>{actor.name}</Tag>
+                                                                variant={'filled'}>{actor.name}</Tag>
                                                        ))}
                                                    </Space>
                                                </div>

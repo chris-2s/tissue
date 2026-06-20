@@ -64,10 +64,10 @@ function Schedule() {
                     <List.Item>
                         <Card
                             size={'small'}
-                            bordered={false}
+                            variant={'borderless'}
                             style={{width: '100%', background: 'var(--ant-color-fill-tertiary)'}}
                         >
-                            <Space direction={'vertical'} size={'middle'} style={{width: '100%'}}>
+                            <Space orientation={'vertical'} size={'middle'} style={{width: '100%'}}>
                                 <div>
                                     <Typography.Title level={5} style={{margin: 0}}>
                                         {item.name}

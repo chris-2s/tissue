@@ -15,7 +15,7 @@ function User() {
     const {userInfo} = useSelector((state: RootState) => state.auth)
 
     return (
-        <Space direction={'vertical'} style={{width: '100%'}}>
+        <Space orientation={'vertical'} style={{width: '100%'}}>
             <UserInfo/>
             {userInfo?.is_admin && (
                 <UserList/>

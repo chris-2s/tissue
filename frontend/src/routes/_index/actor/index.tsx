@@ -7,7 +7,6 @@ import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
-import type {PagedResponse, SiteVideo} from "../../../types/video.ts";
 import type {Dispatch} from "../../../models";
 
 type ActorSearch = {
@@ -15,8 +14,6 @@ type ActorSearch = {
     code: string;
     page?: number;
 };
-
-type ActorPageResponse = PagedResponse<SiteVideo[]>;
 
 function actorQueryOptions(search: ActorSearch) {
     return queryOptions({

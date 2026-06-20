@@ -1,5 +1,5 @@
 import React from "react";
-import {Badge, Rate, Space, theme, Tooltip} from "antd";
+import {Badge, Rate, theme, Tooltip} from "antd";
 import VideoCover from "../../../../components/VideoCover";
 import {SearchOutlined} from "@ant-design/icons";
 import {useRouter} from "@tanstack/react-router";

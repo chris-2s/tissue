@@ -104,7 +104,7 @@ function Header(props: Props) {
                     <div className={'text-base'} style={{color: token.colorText}}>{userInfo.name}</div>
                     <div className={'text-xs'} style={{color: token.colorTextSecondary}}>{userInfo.username}</div>
                 </div>
-                <Divider style={{margin: 0}} type={'horizontal'}/>
+                <Divider style={{margin: 0}}/>
                 {menu}
             </div>
         )
@@ -143,7 +143,7 @@ function Header(props: Props) {
                             <CurrentTheme.icon style={{fontSize: token.sizeLG}}/>
                         </IconButton>
                     </Dropdown>
-                    <Dropdown arrow menu={{items: userItems, onClick: onUserClick}} dropdownRender={renderDropdown}>
+                    <Dropdown arrow menu={{items: userItems, onClick: onUserClick}} popupRender={renderDropdown}>
                         <IconButton>
                             <UserOutlined
                                 style={{fontSize: token.sizeLG, color: pin ? token.colorPrimary : undefined}}/>
@@ -155,14 +155,22 @@ function Header(props: Props) {
                    open={logOpen}
                    onCancel={() => setLogOpen(false)}
                    footer={null}
-                   destroyOnClose
+                   destroyOnHidden
                    width={responsive.lg ? 1000 : 'calc(100vw - 16px)'}
+                   style={responsive.lg ? undefined : {
+                       top: 'max(12px, env(safe-area-inset-top))',
+                   }}
                    styles={{
                        body: {
                            padding: responsive.lg ? 24 : 12,
+                           maxHeight: responsive.lg
+                               ? undefined
+                               : 'calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)) - 72px)',
+                           paddingBottom: responsive.lg ? 24 : 'max(12px, env(safe-area-inset-bottom))',
+                           overflowY: 'auto',
                        }
                    }}
-                   centered
+                   centered={responsive.lg}
             >
                 <Log/>
             </Modal>

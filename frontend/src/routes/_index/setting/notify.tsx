@@ -1,4 +1,3 @@
-import {useEffect} from "react";
 import {Button, Form, message, Select, Skeleton} from "antd";
 import {useRequest} from "ahooks";
 import * as api from "../../../apis/setting.ts";
@@ -63,4 +62,3 @@ function SettingNotify() {
         )
     )
 }
-

@@ -45,7 +45,7 @@ function Websites(props: Props) {
             const newValue = [...(value || []), editInputValue];
             onChange?.(newValue);
             setEditInputValue('');
-        } catch (e) {
+        } catch {
             setEditInputValue('')
             setInputVisible(false)
         }
@@ -63,7 +63,7 @@ function Websites(props: Props) {
     return (
         <Space size={[0, 8]} wrap>
             <>
-                {value?.map((tag, index) => (
+                {value?.map((tag) => (
                     <Tag key={tag}
                          closable={!readonly}
                          style={{userSelect: 'none'}}

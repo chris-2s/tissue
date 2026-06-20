@@ -1,6 +1,5 @@
 import Styles from "./editor.module.css";
 import VideoCover from "./index";
-import IconButton from "../IconButton";
 import React, {useEffect, useState} from "react";
 import {EditOutlined} from "@ant-design/icons";
 import {Input, Modal, theme} from "antd";

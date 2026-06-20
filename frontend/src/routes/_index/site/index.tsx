@@ -1,5 +1,5 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {createFileRoute, Link} from "@tanstack/react-router";
+import {createFileRoute} from "@tanstack/react-router";
 import {Badge, Button, Card, Empty, FloatButton, List, message, Space, Tag, theme} from "antd";
 import ModifyModal from "./-components/modifyModal.tsx";
 import LoginModal from "./-components/loginModal.tsx";
@@ -66,23 +66,23 @@ function Site() {
                     <Card size={'default'}
                           title={(
                               <div className={'flex items-center'}>
-                                  <Tag bordered={false}>{item.priority}</Tag>
+                                  <Tag variant={'filled'}>{item.priority}</Tag>
                                   <div>{item.name}</div>
                               </div>
                           )}
                           className={'cursor-pointer'}
                           onClick={() => setOpen(true, item)}
                     >
-                        <Space direction={"vertical"} size={'large'}>
+                        <Space orientation={"vertical"} size={'large'}>
                             <div style={{color: token.colorTextSecondary}}>
                                 <span>{item.alternate_host || '未设置替代域名'}</span>
                             </div>
                             <div>
-                                <Tag color={'blue'} bordered={false}>元数据</Tag>
-                                {item.capabilities?.supports_downloads && <Tag color={'green'} bordered={false}>下载</Tag>}
-                                {item.capabilities?.supports_ranking && <Tag color={'gold'} bordered={false}>榜单</Tag>}
-                                {item.capabilities?.supports_actor && <Tag color={'purple'} bordered={false}>演员页</Tag>}
-                                {item.capabilities?.supports_login && <Tag color={'cyan'} bordered={false}>登录</Tag>}
+                                <Tag color={'blue'} variant={'filled'}>元数据</Tag>
+                                {item.capabilities?.supports_downloads && <Tag color={'green'} variant={'filled'}>下载</Tag>}
+                                {item.capabilities?.supports_ranking && <Tag color={'gold'} variant={'filled'}>榜单</Tag>}
+                                {item.capabilities?.supports_actor && <Tag color={'purple'} variant={'filled'}>演员页</Tag>}
+                                {item.capabilities?.supports_login && <Tag color={'cyan'} variant={'filled'}>登录</Tag>}
                             </div>
                             <div>
                                 {item.capabilities?.supports_login ? (

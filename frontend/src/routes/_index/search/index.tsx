@@ -233,7 +233,7 @@ function Search() {
         );
     } else {
         content = result.groups.length > 0 ? (
-            <Space direction={'vertical'} size={16} className={'w-full'}>
+            <Space orientation={'vertical'} size={16} className={'w-full'}>
                 {result.groups.map((group) => (
                     <div key={group.siteId}
                          className={'rounded-xl p-4'}

@@ -278,7 +278,7 @@ function Log() {
                                     marginBottom: 8,
                                 }}>
                                     <Space size={[8, 8]} wrap>
-                                        <Tag color={tagColorMap[item.level]} bordered={false}>{item.level}</Tag>
+                                        <Tag color={tagColorMap[item.level]} variant={'filled'}>{item.level}</Tag>
                                         {item.time && (
                                             <span style={{color: token.colorTextSecondary, fontSize: 12}}>
                                                 {item.time}

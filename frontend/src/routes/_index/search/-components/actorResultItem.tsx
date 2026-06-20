@@ -26,7 +26,7 @@ function ActorResultItem(props: ActorResultItemProps) {
                     </Avatar>
                 )}
                 title={item.name}
-                description={item.site_name ? <Tag bordered={false}>{item.site_name}</Tag> : undefined}
+                description={item.site_name ? <Tag variant={'filled'}>{item.site_name}</Tag> : undefined}
             />
         </List.Item>
     );

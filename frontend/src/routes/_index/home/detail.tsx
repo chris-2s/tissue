@@ -337,10 +337,10 @@ function Detail() {
                                                             <Tag>{item.size}</Tag>
                                                         </div>
                                                         <div>
-                                                            {item.is_hd && <Tag color={'red'} bordered={false}>高清</Tag>}
-                                                            {item.is_zh && <Tag color={'blue'} bordered={false}>中文</Tag>}
+                                                            {item.is_hd && <Tag color={'red'} variant={'filled'}>高清</Tag>}
+                                                            {item.is_zh && <Tag color={'blue'} variant={'filled'}>中文</Tag>}
                                                             {item.is_uncensored &&
-                                                                <Tag color={'green'} bordered={false}>无码</Tag>}
+                                                                <Tag color={'green'} variant={'filled'}>无码</Tag>}
                                                         </div>
                                                         <div>{item.publish_date}</div>
                                                     </Space>

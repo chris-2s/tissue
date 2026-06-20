@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_index/setting/file')({
     component: SettingFile
 })
 
-function SettingFile(props: { data?: any }) {
+function SettingFile() {
 
     const [form] = Form.useForm()
 
@@ -53,4 +53,3 @@ function SettingFile(props: { data?: any }) {
         )
     )
 }
-

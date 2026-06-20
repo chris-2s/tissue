@@ -48,7 +48,7 @@ function ModifyModal(props: Props) {
             id && <Button key={'delete'} danger onClick={handleDelete}>删除</Button>,
             <Button key={'scrape'} onClick={props.onCancel}>取消</Button>,
             <Button key={'save'} type={"primary"} loading={props.confirmLoading}
-                    onClick={props.onOk}>确定</Button>,
+                    onClick={() => props.onOk?.()}>确定</Button>,
         ]}>
             <Form form={form} disabled={true} layout={'vertical'}>
                 <Form.Item noStyle name={'id'}>

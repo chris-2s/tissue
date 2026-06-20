@@ -25,8 +25,8 @@ function VideoActors(props: Props) {
                 return message.error("该演员已存在")
             }
             onChange?.([...(value || []), data])
-        } else if (editMode == 'edit') {
-            value!![selected!!] = data
+        } else if (editMode == 'edit' && value && selected !== undefined) {
+            value[selected] = data
             onChange?.(value && [...value])
         }
         setEditMode(undefined)

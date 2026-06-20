@@ -1,7 +1,5 @@
-import React, {useEffect, useState} from "react";
-import {Col, GetProp, Row} from "antd";
-
-type ColSpan = GetProp<typeof Col, 'span'>
+import React, {useState} from "react";
+import {Col, Row} from "antd";
 
 export interface FilterField {
     dataIndex: string,

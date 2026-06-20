@@ -34,7 +34,7 @@ function LoginModal(props: LoginModalProps) {
             })
             setCaptchaImg(`data:image/png;base64,${response.captcha}`)
         },
-        onError: (e) => {
+        onError: () => {
             onClose()
         }
     })
@@ -46,7 +46,7 @@ function LoginModal(props: LoginModalProps) {
             onSuccess()
             handleClose()
         },
-        onError: (e) => {
+        onError: () => {
             getLoginPage(siteId)
         }
     })
@@ -88,7 +88,7 @@ function LoginModal(props: LoginModalProps) {
             title={`登录 ${siteName}`}
             onCancel={handleClose}
             footer={null}
-            destroyOnClose
+            destroyOnHidden
         >
             <Form form={form} layout={'vertical'} onFinish={handleFinish}>
                 <Form.Item label={'验证码'}>

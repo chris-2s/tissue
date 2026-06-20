@@ -1,5 +1,5 @@
-import React, {HTMLProps, useEffect, useMemo} from "react";
-import {Empty, Space, Tag, Tooltip} from "antd";
+import React, {HTMLProps, useMemo} from "react";
+import {Empty, Tag, Tooltip} from "antd";
 import Styles from "./index.module.css";
 
 import * as api from "../../apis/video";
@@ -37,9 +37,9 @@ function VideoCover(props: Props) {
                     <Tooltip title={(
                         <div>
                             {libraryMatched.is_zh && (
-                                <Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
                             {libraryMatched.is_uncensored && (
-                                <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                <Tag color={'green'} variant={'filled'}>无码</Tag>)}
                         </div>
                     )}>
                         <Tag icon={<UnorderedListOutlined/>} className={Styles.library}>

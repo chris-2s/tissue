@@ -12,7 +12,7 @@ function ActorsModal(props: Props) {
 
     return (
         <Modal {...otherProps} title={'演员'} footer={null} centered>
-            <Space direction="vertical">
+            <Space orientation="vertical">
                 {actors?.map((site) => (
                     <div key={site.source.site_id}>
                         <div className={'font-extrabold mb-2'}>{site.source.site_name}</div>

@@ -107,7 +107,7 @@ function VideoDetail(props: Props) {
         <Modal {...otherProps} footer={[
             mode === 'video' && (<>
                 <Button onClick={handleDelete} danger loading={onDeleting}>删除</Button>
-                <Divider type={'vertical'}/>
+                <Divider orientation={'vertical'}/>
             </>),
             <Button key={'scrape'} onClick={handleScrape} loading={onScraping}>刮削</Button>,
             <Button key={'save'} type={"primary"} loading={onSaving} onClick={() => form.submit()}>确定</Button>,

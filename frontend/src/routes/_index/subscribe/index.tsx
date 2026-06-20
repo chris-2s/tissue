@@ -87,14 +87,14 @@ function Subscribe() {
                                            <div className={'flex'}>
                                                <Space size={[0, 'small']} wrap className={'flex-1'}>
                                                    {subscribe.premiered && (
-                                                       <Tag bordered={false}>{subscribe.premiered}</Tag>
+                                                       <Tag variant={'filled'}>{subscribe.premiered}</Tag>
                                                    )}
                                                    {subscribe.is_hd && (
-                                                       <Tag color={'red'} bordered={false}>高清</Tag>)}
+                                                       <Tag color={'red'} variant={'filled'}>高清</Tag>)}
                                                    {subscribe.is_zh && (
-                                                       <Tag color={'blue'} bordered={false}>中文</Tag>)}
+                                                       <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
                                                    {subscribe.is_uncensored && (
-                                                       <Tag color={'green'} bordered={false}>无码</Tag>)}
+                                                       <Tag color={'green'} variant={'filled'}>无码</Tag>)}
                                                </Space>
                                                <Tooltip title={'搜索'}>
                                                    <div className={'px-2'} onClick={() => {

@@ -6,9 +6,12 @@ interface Params {
     onOk: (data: any) => void
 }
 
-export interface FormModalProps extends ModalProps {
+export interface FormModalProps extends Omit<ModalProps, 'onOk' | 'onCancel' | 'confirmLoading'> {
     form?: FormInstance
     initValues?: any
+    onOk?: () => void | Promise<void>
+    onCancel?: () => void
+    confirmLoading?: boolean
 }
 
 export function useFormModal(params: Params) {
@@ -35,7 +38,7 @@ export function useFormModal(params: Params) {
             params.onOk(response.data)
             setValues({})
             form.resetFields()
-        } catch (e) {
+        } catch {
 
         } finally {
             setConfirmLoading(false)

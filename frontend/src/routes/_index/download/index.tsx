@@ -61,7 +61,7 @@ function Download() {
             children: (
                 <List itemLayout="horizontal"
                       dataSource={torrent.files}
-                      renderItem={(item: any, index) => (
+                      renderItem={(item: any) => (
                           <List.Item actions={[
                               <Tooltip title={'整理'}>
                                   <IconButton onClick={() => {

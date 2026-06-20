@@ -33,6 +33,10 @@ body {
     margin-inline-end: 3px !important;
 }
 
+.ant-tag {
+    margin-inline-end: 8px;
+}
+
 .yarl__counter, .yarl__toolbar {
     padding-top: env(safe-area-inset-top) !important;
     padding-left: env(safe-area-inset-left) !important;

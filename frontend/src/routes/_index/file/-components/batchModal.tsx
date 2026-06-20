@@ -1,4 +1,4 @@
-import {Input, Modal, ModalProps, Space, Switch, Table, Tag, Tooltip} from "antd";
+import {Input, Modal, ModalProps, Switch, Table, Tag, Tooltip} from "antd";
 import React, {useEffect, useState} from "react";
 import {useRequest} from "ahooks";
 import * as api from "../../../../apis/file";
@@ -64,7 +64,7 @@ function BatchModal(props: Props) {
             const item = {...video, ...response.data.data}
             await videoApi.saveVideo(item, 'file')
             video.processStatus = 2
-        } catch (err) {
+        } catch {
             video.processStatus = 3
         } finally {
             setData([...data])

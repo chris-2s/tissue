@@ -1,4 +1,4 @@
-import {GetProps, Input, InputNumber, Slider as AntSlider} from "antd";
+import {GetProps, Input, Slider as AntSlider} from "antd";
 import {useEffect, useState} from "react";
 
 type SliderProps = GetProps<typeof AntSlider>

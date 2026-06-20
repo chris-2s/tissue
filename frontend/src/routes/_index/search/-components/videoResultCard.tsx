@@ -38,7 +38,7 @@ function VideoResultCard(props: VideoResultCardProps) {
                     <div className={'flex-1'}>{item.publish_date}</div>
                     <Space size={[4, 4]} wrap>
                         {item.site_names.map((siteName) => (
-                            <Tag bordered={false} key={siteName}>{siteName}</Tag>
+                            <Tag variant={'filled'} key={siteName}>{siteName}</Tag>
                         ))}
                     </Space>
                 </div>
