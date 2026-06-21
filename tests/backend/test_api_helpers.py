@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 from app.api.common import build_proxy_headers, get_versions
 from app.api.home import _build_log_event, _format_sse, _read_last_lines
+from version import APP_VERSION
 
 
 def test_build_proxy_headers_uses_request_values_and_fallback_referer():
@@ -58,7 +59,7 @@ def test_get_versions_uses_remote_version_when_regex_matches(monkeypatch):
 
     result = get_versions()
 
-    assert result.data == {"current": "1.11.3", "latest": "9.9.9"}
+    assert result.data == {"current": APP_VERSION[1:], "latest": "9.9.9"}
 
 
 def test_get_versions_falls_back_to_current_when_regex_missing(monkeypatch):
@@ -70,4 +71,4 @@ def test_get_versions_falls_back_to_current_when_regex_missing(monkeypatch):
 
     result = get_versions()
 
-    assert result.data == {"current": "1.11.3", "latest": "1.11.3"}
+    assert result.data == {"current": APP_VERSION[1:], "latest": APP_VERSION[1:]}
