@@ -3,7 +3,7 @@ name = "tissue"
 version = "1.11.3"
 description = "Teacher material scraping backend and web app."
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "alembic==1.18.4",
     "apscheduler==3.11.0",
