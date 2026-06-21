@@ -74,10 +74,39 @@ docker run \
 
 所以将两个路径的共同父级映射到容器中会是更好的做法。
 
+### 开发说明
+
+后端 Python 依赖现在使用 `uv` 管理，锁文件为 `uv.lock`。
+
+本地初始化依赖：
+
+```shell
+uv sync
+```
+
+本地启动后端：
+
+```shell
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+执行数据库迁移：
+
+```shell
+uv run alembic upgrade head
+```
+
+如果需要自己构建 Docker 镜像：
+
+```shell
+docker build -t tissue:local .
+```
+
+当前 `Dockerfile` 使用 multi-stage build：`builder` 阶段负责生成后端虚拟环境，`runtime` 阶段只保留运行所需内容，不会额外产出第二个发布镜像。
+
 ### Talk is cheap, show me the view
 
 <img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/e5707b21-2737-4fb6-839e-a213318eddf3">
 <img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/4597df98-87bf-40a6-805f-37dc0b5e02ad">
 <img width="1682" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/ac11e3c0-7631-40cb-bef6-7074fe3bbc2f">
-
 

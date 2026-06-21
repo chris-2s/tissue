@@ -8,4 +8,4 @@ chown -R tissue:tissue /app
 umask ${UMASK}
 
 nginx
-gosu tissue:tissue uv run --frozen alembic upgrade head && gosu tissue:tissue uv run --frozen uvicorn app.main:app --log-level warning
+gosu tissue:tissue /app/.venv/bin/alembic upgrade head && gosu tissue:tissue /app/.venv/bin/uvicorn app.main:app --log-level warning
