@@ -1,0 +1,61 @@
+name: Tissue Dev CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["dev"]
+    paths:
+      - ".github/workflows/dev-ci.yml"
+      - "app/**"
+      - "frontend/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".python-version"
+  pull_request:
+    branches: ["dev"]
+    paths:
+      - ".github/workflows/dev-ci.yml"
+      - "app/**"
+      - "frontend/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".python-version"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Dev CI Checks
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Run backend tests
+        run: uv sync --locked && uv run pytest tests/backend
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+
+      - name: Run frontend tests
+        run: cd frontend && npm run test
+
+      - name: Run frontend typecheck
+        run: cd frontend && npx tsc --noEmit

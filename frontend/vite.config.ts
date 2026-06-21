@@ -6,4 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [tanstackRouter({target: 'react', autoCodeSplitting: false}), tailwindcss(), react()],
+    test: {
+        environment: 'node',
+        include: ['src/**/*.test.ts'],
+    },
 })
