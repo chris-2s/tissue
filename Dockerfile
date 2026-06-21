@@ -1,4 +1,4 @@
-FROM python:3.13.5-slim-bullseye AS builder
+FROM python:3.13-slim-bookworm AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.11.21 /uv /uvx /bin/
 
 ENV UV_LINK_MODE=copy \
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md /app/
 RUN uv sync --frozen --no-dev
 
-FROM python:3.13.5-slim-bullseye AS runtime
+FROM python:3.13-slim-bookworm AS runtime
 LABEL authors="Chris"
 
 ENV LANG="C.UTF-8" \
