@@ -48,7 +48,7 @@ export const auth = createModel<RootModel>()({
                 const token = response.data.data
                 Cookies.set('userToken', token, params.remember ? {expires: 365} : {})
                 dispatch.auth.setToken(token)
-                await router.invalidate()
+                await router.navigate({to: '/'})
             } finally {
                 dispatch.auth.setLogging(false)
             }
@@ -57,7 +57,7 @@ export const auth = createModel<RootModel>()({
             Cookies.remove("userToken")
             dispatch.app.setPin('')
             dispatch.auth.setToken(undefined)
-            await router.invalidate()
+            await router.navigate({to: '/login'})
         },
         async getInfo() {
             const response = await api.getInfo()

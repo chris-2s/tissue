@@ -1,6 +1,6 @@
 # Agent Guide (tissue)
 
-This repo is a FastAPI + SQLite backend with a Vite/React frontend. In Docker, Nginx serves the built frontend and reverse-proxies `/api/*` to the backend.
+This repo is a FastAPI + SQLite backend with a Vite/React frontend. Python dependencies are managed with `uv`. In Docker, Nginx serves the built frontend and reverse-proxies `/api/*` to the backend.
 
 ## Repo Map
 
@@ -15,22 +15,21 @@ This repo is a FastAPI + SQLite backend with a Vite/React frontend. In Docker, N
 
 ### Backend (Python)
 
-Python deps are pinned in `requirements.txt`. There is no dedicated lint/test tool configured in this repo (no `pyproject.toml`, `ruff`, `black`, `pytest`, etc.).
+Python deps are declared in `pyproject.toml` and pinned in `uv.lock`. There is no dedicated lint/test tool configured in this repo (no `ruff`, `black`, `pytest`, etc.).
 
 - Install deps (local dev)
-  - `python -m venv .venv && source .venv/bin/activate`
-  - `pip install -r requirements.txt`
+  - `uv sync`
 
 - Run API server (local dev)
-  - `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
+  - `uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
 
 - DB migrations
-  - Apply latest: `alembic upgrade head`
-  - Create revision (manual edits likely needed): `alembic revision -m "message"`
-  - Autogenerate (requires models importable): `alembic revision --autogenerate -m "message"`
+  - Apply latest: `uv run alembic upgrade head`
+  - Create revision (manual edits likely needed): `uv run alembic revision -m "message"`
+  - Autogenerate (requires models importable): `uv run alembic revision --autogenerate -m "message"`
 
 - Basic “does it run” checks (since no linter/test suite is present)
-  - Import/bytecode sanity: `python -m compileall app`
+  - Import/bytecode sanity: `uv run python -m compileall app`
 
 ### Frontend (Vite + React)
 
