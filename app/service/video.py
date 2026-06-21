@@ -1,3 +1,4 @@
+import errno
 import os
 import shutil
 from typing import List, Optional
@@ -28,6 +29,12 @@ video_cache = LRUCache(maxsize=1)
 class VideoService(BaseService):
 
     subtitle_formats = {'.ass', '.srt'}
+    trans_mode_labels = {
+        'copy': '复制',
+        'move': '移动',
+        'hardlink': '硬连接',
+        'symlink': '软连接',
+    }
 
     @cached(cache=video_cache, key=lambda self: 'videos')
     def get_videos(self) -> List[VideoList]:
@@ -145,14 +152,7 @@ class VideoService(BaseService):
                 if trans_mode == 'move':
                     os.remove(video.path)
             else:
-                if trans_mode == 'move':
-                    logger.info(f"开始移动影片《{video.num}》...")
-                    shutil.move(video.path, video_path)
-                    logger.info(f"移动影片完成: {video_path}")
-                else:
-                    logger.info(f"开始复制影片...")
-                    shutil.copy(video.path, video_path)
-                    logger.info(f"复制影片完成: {video_path}")
+                self.transfer_file(video.path, video_path, trans_mode, f"影片《{video.num}》")
             self.trans_subtitles(video.path, video_path, subtitle_paths, trans_mode)
             utils.remove_empty_directory(video.path)
 
@@ -168,6 +168,32 @@ class VideoService(BaseService):
 
         logger.info(f"影片保存完成")
         return video_path
+
+    def transfer_file(self, source_path: str, dest_path: str, trans_mode: str, file_label: str):
+        trans_label = self.trans_mode_labels.get(trans_mode, trans_mode)
+
+        try:
+            if trans_mode == 'move':
+                logger.info(f"开始{trans_label}{file_label}...")
+                shutil.move(source_path, dest_path)
+            elif trans_mode == 'hardlink':
+                logger.info(f"开始创建{file_label}硬连接...")
+                os.link(source_path, dest_path)
+            elif trans_mode == 'symlink':
+                logger.info(f"开始创建{file_label}软连接...")
+                os.symlink(source_path, dest_path)
+            else:
+                logger.info(f"开始{trans_label}{file_label}...")
+                shutil.copy(source_path, dest_path)
+        except OSError as exc:
+            if trans_mode == 'hardlink' and exc.errno == errno.EXDEV:
+                raise BizException('硬连接仅支持同一磁盘内的目录，跨盘时请改用复制或移动') from exc
+            raise
+
+        if trans_mode in {'hardlink', 'symlink'}:
+            logger.info(f"{file_label}{trans_label}创建完成: {dest_path}")
+        else:
+            logger.info(f"{trans_label}{file_label}完成: {dest_path}")
 
     def delete_video(self, path):
         if not os.path.exists(path):
@@ -253,14 +279,12 @@ class VideoService(BaseService):
                     os.remove(subtitle_path)
                 continue
 
-            if trans_mode == 'move':
-                logger.info(f"开始移动字幕：{os.path.basename(subtitle_path)}")
-                shutil.move(subtitle_path, dest_subtitle_path)
-                logger.info(f"移动字幕完成：{dest_subtitle_path}")
-            else:
-                logger.info(f"开始复制字幕：{os.path.basename(subtitle_path)}")
-                shutil.copy(subtitle_path, dest_subtitle_path)
-                logger.info(f"复制字幕完成：{dest_subtitle_path}")
+            self.transfer_file(
+                subtitle_path,
+                dest_subtitle_path,
+                trans_mode,
+                f"字幕《{os.path.basename(subtitle_path)}》"
+            )
 
     def delete_subtitles(self, video_path: str):
         folder_path = os.path.dirname(video_path)

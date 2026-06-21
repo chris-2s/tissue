@@ -44,7 +44,7 @@ function SettingDownload() {
                     <Form.Item label={'密码'} name={'password'}>
                         <Input.Password autoComplete={'new-password'}/>
                     </Form.Item>
-                    <Form.Item label={'转移模式'} name={'trans_mode'} tooltip={'手动或自动转移使用的转移模式'}>
+                    <Form.Item label={'转移模式'} name={'trans_mode'} tooltip={'手动或自动转移使用的转移模式，硬连接仅支持同一磁盘内的目录，软连接可跨盘但依赖原文件存在'}>
                         <Select>
                             {TransModeOptions.map(i => (<Select.Option key={i.value}>{i.name}</Select.Option>))}
                         </Select>

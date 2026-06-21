@@ -1,10 +1,11 @@
-import {Input, Modal, ModalProps, Switch, Table, Tag, Tooltip} from "antd";
+import {Form, Input, Modal, ModalProps, Select, Switch, Table, Tag, Tooltip} from "antd";
 import React, {useEffect, useState} from "react";
 import {useRequest} from "ahooks";
 import * as api from "../../../../apis/file";
 import * as videoApi from "../../../../apis/video.ts";
 import {ColumnsType} from "antd/lib/table";
 import {CheckCircleOutlined, CloseCircleOutlined, SyncOutlined} from "@ant-design/icons";
+import {ManualTransModeOptions} from "../../../../utils/constants.ts";
 
 
 interface Props extends ModalProps {
@@ -15,9 +16,11 @@ function BatchModal(props: Props) {
 
     const {files, ...otherProps} = props
     const [data, setData] = useState<any[]>([])
+    const [transMode, setTransMode] = useState<string>('system')
 
     useEffect(() => {
         if (props.open && files) {
+            setTransMode('system')
             run(files)
         }
     }, [props.open, files]);
@@ -62,7 +65,7 @@ function BatchModal(props: Props) {
             delete response.data.data.is_uncensored
             delete response.data.data.path
             const item = {...video, ...response.data.data}
-            await videoApi.saveVideo(item, 'file')
+            await videoApi.saveVideo(item, 'file', transMode === 'system' ? undefined : transMode)
             video.processStatus = 2
         } catch {
             video.processStatus = 3
@@ -119,6 +122,16 @@ function BatchModal(props: Props) {
 
     return (
         <Modal title={'选中文件'} width={800} onOk={onSave} confirmLoading={onSaving} {...otherProps}>
+            <Form layout={'vertical'}>
+                <Form.Item label={'转移模式'} tooltip={'默认按系统设置处理，也可仅本次批量整理手动指定'}>
+                    <Select value={transMode} className={'w-52'} onChange={setTransMode}
+                            placeholder={'转移模式'}>
+                        {ManualTransModeOptions.map(i => (
+                            <Select.Option key={i.value} value={i.value}>{i.name}</Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+            </Form>
             <Table rowKey={'path'} size={'small'} columns={columns} dataSource={data} pagination={false}
                    loading={loading} scroll={{x: 'max-content'}}/>
         </Modal>

@@ -39,7 +39,7 @@ function SettingFile() {
                     <Form.Item label={'文件路径'} name={'path'}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'转移模式'} name={'trans_mode'}>
+                    <Form.Item label={'转移模式'} name={'trans_mode'} tooltip={'硬连接仅支持同一磁盘内的目录，软连接可跨盘但依赖原文件存在'}>
                         <Select>
                             {TransModeOptions.map(i => (<Select.Option key={i.value}>{i.name}</Select.Option>))}
                         </Select>

@@ -18,6 +18,7 @@ import Styles from "./index.module.css";
 import Websites from "../Websites";
 import VideoActors from "../VideoActors";
 import VideoCoverEditor from "../VideoCover/editor.tsx";
+import {ManualTransModeOptions} from "../../utils/constants.ts";
 
 
 interface Props extends ModalProps {
@@ -30,6 +31,7 @@ function VideoDetail(props: Props) {
 
     const {path, mode, transMode, onOk, ...otherProps} = props
     const [form] = Form.useForm()
+    const allowManualTransMode = mode === 'file' || mode === 'download'
 
     const {run: onLoad, loading} = useRequest(loadVideoDetail, {
         manual: true,
@@ -82,8 +84,14 @@ function VideoDetail(props: Props) {
     }
 
     function handleSave(value: any) {
+        const selectedTransMode = value.trans_mode_override
+        delete value.trans_mode_override
         value.path = path
-        return onSave(value, mode, transMode)
+        return onSave(
+            value,
+            mode,
+            allowManualTransMode ? (selectedTransMode === 'system' ? undefined : selectedTransMode) : transMode
+        )
     }
 
     function handleDelete() {
@@ -132,6 +140,18 @@ function VideoDetail(props: Props) {
                         </Col>
                         <Col span={24} md={14} lg={14}>
                             <Row gutter={[15, 15]}>
+                                {allowManualTransMode && (
+                                    <Col span={24}>
+                                        <Form.Item name={'trans_mode_override'} label={'转移模式'} initialValue={'system'}
+                                                   tooltip={'默认按系统设置处理，也可仅本次手动指定'}>
+                                            <Select>
+                                                {ManualTransModeOptions.map(i => (
+                                                    <Select.Option key={i.value} value={i.value}>{i.name}</Select.Option>
+                                                ))}
+                                            </Select>
+                                        </Form.Item>
+                                    </Col>
+                                )}
                                 <Col span={8}>
                                     <Form.Item name={'num'} label={'番号'}
                                                rules={[{required: true, message: '请输入番号'}]}>
