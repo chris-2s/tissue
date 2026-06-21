@@ -4,13 +4,13 @@ import * as api from "../../../apis/video";
 import {Card, Col, Empty, FloatButton, Row, Space, Tag, Tooltip} from "antd";
 import VideoCover from "../../../components/VideoCover";
 import React, {useMemo, useState} from "react";
-import {createPortal} from "react-dom";
 import {FilterOutlined, LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoFilterModal, {FilterParams} from "./-components/filter.tsx";
 import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
+import PageFloatButtons from "../../../components/PageFloatButtons";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
@@ -34,7 +34,6 @@ function Video() {
     const [filterOpen, setFilterOpen] = useState(false)
     const [filterParams, setFilterParams] = useState<FilterParams>({})
     const {navigate} = useRouter()
-    const floatButtonGroup = document.getElementsByClassName('index-float-button-group')[0]
     const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
         manual: true,
         onSuccess: (refreshedVideos) => {
@@ -73,6 +72,14 @@ function Video() {
     }, [filterParams, data])
 
     const hasFilter = !!filterParams.title || !!filterParams.actors?.length
+    const floatButtons = useMemo(() => (
+        <>
+            <FloatButton icon={refreshing ? <LoadingOutlined/> : <RedoOutlined/>}
+                         onClick={() => runForceRefresh()}/>
+            <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
+                         onClick={() => setFilterOpen(true)}/>
+        </>
+    ), [hasFilter, refreshing, runForceRefresh])
 
     let content: React.ReactNode;
 
@@ -148,6 +155,7 @@ function Video() {
     return (
         <>
             {content}
+            <PageFloatButtons>{floatButtons}</PageFloatButtons>
             <VideoDetail title={'编辑'}
                          mode={'video'}
                          width={1100}
@@ -167,15 +175,6 @@ function Video() {
                                   setFilterParams(params)
                                   setFilterOpen(false)
                               }}/>
-            {floatButtonGroup && createPortal((
-                    <>
-                        <FloatButton icon={refreshing ? <LoadingOutlined/> : <RedoOutlined/>}
-                                     onClick={() => runForceRefresh()}/>
-                        <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
-                                     onClick={() => setFilterOpen(true)}/>
-                    </>
-                ), floatButtonGroup
-            )}
         </>
     )
 }

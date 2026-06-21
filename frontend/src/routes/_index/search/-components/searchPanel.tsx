@@ -1,6 +1,5 @@
 import {Avatar, Button, Input, Typography, theme} from "antd";
 import {
-    HistoryOutlined,
     SearchOutlined,
     UserOutlined,
     VideoCameraOutlined
@@ -101,19 +100,18 @@ function SearchPanel(props: SearchPanelProps) {
                             </Button>
                         )}
                     </div>
-                    <div className={'mt-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap'}>
+                    <div className={'mt-3 flex flex-wrap gap-2'}>
                         {histories.length ? histories.map((item) => (
                             <Button
                                 key={item}
                                 type={'default'}
                                 size={'small'}
                                 shape={'round'}
-                                icon={<HistoryOutlined/>}
                                 title={item}
-                                className={'w-full min-w-0 px-2 sm:w-auto sm:max-w-full'}
+                                className={'h-auto max-w-full whitespace-normal break-all px-2 py-1 text-left'}
                                 onClick={() => handlePickHistory(item)}
                             >
-                                <span className={'block truncate'}>{item}</span>
+                                <span className={'block whitespace-normal break-all'}>{item}</span>
                             </Button>
                         )) : (
                             <Text type={'secondary'}>暂无历史记录</Text>

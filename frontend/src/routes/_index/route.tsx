@@ -33,7 +33,7 @@ function RouteLayout() {
     const dispatch = useDispatch<Dispatch>().auth
 
     const visible = useVisibility()
-    const pin = useSelector((state: RootState) => state.app?.pin)
+    const {pin, floatButtons} = useSelector((state: RootState) => state.app)
     const [pinVisible, setPinVisible] = useState(false)
 
     useEffect(() => {
@@ -103,6 +103,7 @@ function RouteLayout() {
                             <div style={{padding: responsive.md ? 16 : 12}}>
                                 <Outlet/>
                                 <FloatButton.Group className={'index-float-button-group'}>
+                                    {floatButtons}
                                     <FloatButton.BackTop/>
                                 </FloatButton.Group>
                             </div>

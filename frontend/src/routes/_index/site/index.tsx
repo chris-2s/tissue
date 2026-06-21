@@ -7,11 +7,11 @@ import {useFormModal} from "../../../utils/useFormModal.ts";
 import * as api from "../../../apis/site.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
-import {createPortal} from "react-dom";
 import {KeyOutlined, LoadingOutlined, RedoOutlined} from "@ant-design/icons";
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
+import PageFloatButtons from "../../../components/PageFloatButtons";
 
 
 export const Route = createFileRoute('/_index/site/')({
@@ -32,7 +32,6 @@ function Site() {
 
     const {token} = theme.useToken()
     const queryClient = useQueryClient()
-    const floatButtonGroup = document.getElementsByClassName('index-float-button-group')[0]
 
     const {data = [], isPending, isError, refetch} = useQuery(sitesQueryOptions())
 
@@ -53,6 +52,12 @@ function Site() {
             queryClient.invalidateQueries({queryKey: ['sites']})
         }
     })
+    const floatButtons = useMemo(() => (
+        <FloatButton
+            icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
+            onClick={() => onTesting()}
+        />
+    ), [onTesting, testing])
 
     const handleRefreshCookie = (item: SiteItem) => {
         setLoginSite({ id: item.id, name: item.name })
@@ -145,6 +150,7 @@ function Site() {
     return (
         <>
             {content}
+            <PageFloatButtons>{floatButtons}</PageFloatButtons>
             <ModifyModal {...modalProps} />
             <LoginModal 
                 siteId={loginSite?.id ?? 0}
@@ -155,15 +161,6 @@ function Site() {
                     queryClient.invalidateQueries({queryKey: ['sites']})
                 }}
             />
-            {floatButtonGroup && createPortal((
-                    <>
-                        <FloatButton
-                            icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
-                            onClick={() => onTesting()}
-                        />
-                    </>
-                ), document.getElementsByClassName('index-float-button-group')[0]
-            )}
         </>
     )
 }

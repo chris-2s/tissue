@@ -1,10 +1,9 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Card, Col, Empty, FloatButton, Input, message, Row, Space, Tag, Tooltip} from "antd";
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./-components/modifyModal.tsx";
-import {createPortal} from "react-dom";
 import {HistoryOutlined, PlusOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoCover from "../../../components/VideoCover";
 import RouteErrorState from "../../../components/RouteErrorState";
@@ -12,6 +11,7 @@ import RoutePendingState from "../../../components/RoutePendingState";
 import {useFormModal} from "../../../utils/useFormModal.ts";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
 import HistoryModal from "./-components/historyModal.tsx";
+import PageFloatButtons from "../../../components/PageFloatButtons";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -31,7 +31,6 @@ function Subscribe() {
 
     const navigate = useNavigate()
     const queryClient = useQueryClient()
-    const floatButtonGroup = document.getElementsByClassName('index-float-button-group')[0]
     const {data = [], isPending, isError, refetch} = useQuery(subscribesQueryOptions())
     const [filter, setFilter] = useState<string>()
     const {setOpen, modalProps} = useFormModal({
@@ -43,6 +42,12 @@ function Subscribe() {
     })
 
     const [historyModalOpen, setHistoryModalOpen] = useState(false)
+    const floatButtons = useMemo(() => (
+        <>
+            <FloatButton icon={<PlusOutlined/>} type={'primary'} onClick={() => setOpen(true)}/>
+            <FloatButton icon={<HistoryOutlined/>} onClick={() => setHistoryModalOpen(true)}/>
+        </>
+    ), [setOpen])
 
     const {run: onDelete} = useRequest(api.deleteSubscribe, {
         manual: true,
@@ -135,6 +140,7 @@ function Subscribe() {
                 </Col>
             </Row>
             {content}
+            <PageFloatButtons>{floatButtons}</PageFloatButtons>
             <ModifyModal width={1100}
                          onDelete={onDelete}
                          {...modalProps} />
@@ -145,11 +151,6 @@ function Subscribe() {
                               setHistoryModalOpen(false)
                           }}
             />
-            {floatButtonGroup && createPortal((<>
-                    <FloatButton icon={<PlusOutlined/>} type={'primary'} onClick={() => setOpen(true)}/>
-                    <FloatButton icon={<HistoryOutlined/>} onClick={() => setHistoryModalOpen(true)}/>
-                </>), floatButtonGroup
-            )}
         </div>
     )
 }

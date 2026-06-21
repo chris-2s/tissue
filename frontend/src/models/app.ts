@@ -1,7 +1,7 @@
 import {createModel} from "@rematch/core";
+import type {ReactNode} from "react";
 import {RootModel} from "./index";
 import {themes} from "../utils/constants";
-
 
 export const app = createModel<RootModel>()({
     state: {
@@ -9,6 +9,7 @@ export const app = createModel<RootModel>()({
         goodBoy: localStorage.getItem('goodBoy') == '1' || false,
         canBack: false,
         pin: localStorage.getItem('pin'),
+        floatButtons: null as ReactNode,
     },
     reducers: {
         setThemeMode(state, payload: string) {
@@ -29,6 +30,12 @@ export const app = createModel<RootModel>()({
                 localStorage.removeItem('pin')
             }
             return {...state, pin: payload}
+        },
+        setFloatButtons(state, payload: ReactNode) {
+            return {...state, floatButtons: payload}
+        },
+        clearFloatButtons(state) {
+            return {...state, floatButtons: null}
         },
     },
 });
