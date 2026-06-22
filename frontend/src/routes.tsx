@@ -12,6 +12,7 @@ import {
     UserOutlined,
     VideoCameraOutlined,
     GlobalOutlined,
+    WomanOutlined,
 } from "@ant-design/icons";
 import {createRouter} from "@tanstack/react-router";
 import {queryClient} from "./queryClient.ts";
@@ -82,7 +83,7 @@ export default [
             {
                 title: '演员',
                 path: '/actor-favorite',
-                icon: (<UserOutlined/>),
+                icon: (<WomanOutlined />),
             },
             {
                 title: '搜索',

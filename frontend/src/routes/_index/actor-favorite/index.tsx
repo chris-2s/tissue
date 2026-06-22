@@ -66,6 +66,7 @@ function ActorFavoritePage() {
                     <Col key={favorite.id} span={24} md={12} lg={8}>
                         <Card
                             hoverable
+                            size={'small'}
                             actions={[
                                 <Button key={'open'}
                                         type={'link'}
@@ -86,8 +87,8 @@ function ActorFavoritePage() {
                                 </Button>
                             ]}
                         >
-                            <div className={'flex gap-4'}>
-                                <div className={'h-24 w-24 overflow-hidden rounded-lg bg-black/5'}>
+                            <div className={'flex gap-3'}>
+                                <div className={'h-[72px] w-[72px] overflow-hidden rounded-lg bg-black/5'}>
                                     {favorite.actor.thumb ? (
                                         <img
                                             className={'h-full w-full object-cover'}
@@ -96,7 +97,7 @@ function ActorFavoritePage() {
                                         />
                                     ) : (
                                         <div className={'flex h-full items-center justify-center'}>
-                                            <Avatar size={72} icon={<UserOutlined/>}/>
+                                            <Avatar size={56} icon={<UserOutlined/>}/>
                                         </div>
                                     )}
                                 </div>
@@ -106,15 +107,14 @@ function ActorFavoritePage() {
                                         <Tag variant={'filled'}>{favorite.actor.source.site_name}</Tag>
                                     </Space>
                                     {aliasText ? (
-                                        <Paragraph type={'secondary'} className={'!mb-2 !mt-2'} ellipsis={{rows: 2}}>
+                                        <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
                                             别名：{aliasText}
                                         </Paragraph>
                                     ) : (
-                                        <Paragraph type={'secondary'} className={'!mb-2 !mt-2'}>
+                                        <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
                                             暂无别名信息
                                         </Paragraph>
                                     )}
-                                    <Text type={'secondary'}>{favorite.actor_code}</Text>
                                 </div>
                             </div>
                         </Card>

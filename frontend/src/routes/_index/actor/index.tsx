@@ -1,7 +1,7 @@
 import {Avatar, Button, Card, Col, Empty, Pagination, Row, Space, Tag, Tooltip, Typography, message} from "antd";
 import {HeartFilled, HeartOutlined, UserOutlined} from "@ant-design/icons";
 import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import * as actorApi from "../../../apis/actor.ts";
 import * as videoApi from "../../../apis/video.ts";
 import {createFileRoute, type ErrorComponentProps, useNavigate, useRouter} from "@tanstack/react-router";
@@ -69,10 +69,11 @@ function Actor() {
         ...search,
         page: Number(search.page || 1)
     };
-    const {data: actorPage, refetch} = useSuspenseQuery(actorQueryOptions(normalizedSearch));
+    const {data: actorPage, refetch, isFetching} = useSuspenseQuery(actorQueryOptions(normalizedSearch));
     const navigate = useNavigate();
     const appDispatch = useDispatch<Dispatch>().app;
     const responsive = useResponsive();
+    const [favoriteRefreshing, setFavoriteRefreshing] = useState(false);
 
     useEffect(() => {
         appDispatch.setCanBack(true);
@@ -86,6 +87,10 @@ function Actor() {
         onSuccess: async () => {
             message.success('演员收藏成功');
             await refetch();
+            setFavoriteRefreshing(false);
+        },
+        onError: () => {
+            setFavoriteRefreshing(false);
         }
     });
 
@@ -94,21 +99,27 @@ function Actor() {
         onSuccess: async () => {
             message.success('已取消收藏');
             await refetch();
+            setFavoriteRefreshing(false);
+        },
+        onError: () => {
+            setFavoriteRefreshing(false);
         }
     });
 
     const actor = actorPage.actor;
     const videos = actorPage.page.data || [];
     const aliasText = actor.alias.filter(Boolean).join(' / ');
-    const favoriteLoading = creatingFavorite || deletingFavorite;
+    const favoriteLoading = creatingFavorite || deletingFavorite || favoriteRefreshing || isFetching;
 
     async function onFavoriteToggle() {
+        setFavoriteRefreshing(true);
         if (actorPage.is_favorite) {
             const favorites = await actorApi.getActorFavorites();
             const favorite = favorites.find((item) => (
                 item.site_id === normalizedSearch.site_id && item.actor_code === normalizedSearch.code
             ));
             if (!favorite) {
+                setFavoriteRefreshing(false);
                 message.error('未找到对应收藏记录');
                 return;
             }
@@ -156,8 +167,9 @@ function Actor() {
                         </div>
                     </Space>
                     <Button
-                        type={actorPage.is_favorite ? 'default' : 'primary'}
-                        icon={actorPage.is_favorite ? <HeartFilled/> : <HeartOutlined/>}
+                        type={'primary'}
+                        danger={actorPage.is_favorite}
+                        icon={actorPage.is_favorite ? <HeartFilled style={{color: '#ff4d4f'}}/> : <HeartOutlined/>}
                         loading={favoriteLoading}
                         onClick={() => void onFavoriteToggle()}
                     >
