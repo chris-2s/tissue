@@ -11,6 +11,7 @@ from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem,
 from app.schema.actor import Actor
 from app.schema.home import SiteVideo
 from app.schema.r import Page
+from app.utils.media_matcher import detect_flags_with_tag_priority
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -143,15 +144,19 @@ class JavBusSpider(Spider):
             download.name = parts[0].text.strip()
             download.magnet = parts[0].get('href')
 
-            title = parts[0].text.strip()
-            if '无码' in title or '破解' in title or 'uncensored' in title:
-                download.is_uncensored = True
-
+            tags = []
             for tag in parts[1:]:
                 if tag.text == '高清':
                     download.is_hd = True
-                if tag.text == '字幕':
-                    download.is_zh = True
+                if tag.text:
+                    tags.append(tag.text)
+
+            zh_result, uncensored_result = detect_flags_with_tag_priority(
+                texts=[('download_name', download.name)],
+                tags=tags,
+            )
+            download.is_zh = zh_result.value
+            download.is_uncensored = uncensored_result.value
 
             size_element = item.xpath("./td[2]/a")[0]
             download.size = size_element.text.strip()
@@ -193,8 +198,11 @@ class JavBusSpider(Spider):
             site_video.publish_date = datetime.strptime(info_element.xpath('./date')[1].text, "%Y-%m-%d").date()
 
             tag_str = info_element.xpath('./div[@class="item-tag"]/button/text()')
-            if tag_str:
-                site_video.isZh = "字幕" in tag_str
+            zh_result, _ = detect_flags_with_tag_priority(
+                texts=[('title', site_video.title), ('num', site_video.num)],
+                tags=tag_str,
+            )
+            site_video.isZh = zh_result.value
 
             site_video.url = video.get('href')
             site_video.source = self.source_ref()

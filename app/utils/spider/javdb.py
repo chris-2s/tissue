@@ -20,6 +20,7 @@ from app.utils.cookies import (
     cookies_to_cookiecloud_items,
     to_cookie_header,
 )
+from app.utils.media_matcher import detect_flags_with_tag_priority
 from app.utils.spider.spider import Session, Spider
 from app.utils.spider.spider_exception import SpiderException
 
@@ -258,23 +259,23 @@ class JavDBSpider(Spider):
             download.name = parts[0].text.strip()
             download.magnet = parts.get('href')
 
-            name = parts.xpath("./span[1]")
-            if name:
-                if '-U.无码破解' in name[0].text:
-                    download.is_uncensored = True
-                if '-UC.无码破解' in name[0].text:
-                    download.is_zh = True
-                    download.is_uncensored = True
-
             size = parts.xpath("./span[2]")
             if size:
                 download.size = size[0].text.split(',')[0].strip()
 
+            tags = []
             for tag in parts.xpath('./div[@class="tags"]/span'):
                 if tag.text == '高清':
                     download.is_hd = True
-                if tag.text == '字幕':
-                    download.is_zh = True
+                if tag.text:
+                    tags.append(tag.text)
+
+            zh_result, uncensored_result = detect_flags_with_tag_priority(
+                texts=[('download_name', download.name)],
+                tags=tags,
+            )
+            download.is_zh = zh_result.value
+            download.is_uncensored = uncensored_result.value
 
             publish_date = item.xpath(".//span[@class='time']")
             if publish_date:
@@ -305,8 +306,11 @@ class JavDBSpider(Spider):
             ranking.url = urljoin(self.host, video.get('href'))
 
             tag_str = video.xpath('./div[contains(@class, "tags")]/span/text()')
-            if tag_str:
-                ranking.isZh = ('中字' in tag_str[0])
+            zh_result, _ = detect_flags_with_tag_priority(
+                texts=[('title', ranking.title), ('num', ranking.num)],
+                tags=tag_str,
+            )
+            ranking.isZh = zh_result.value
 
             ranking.source = self.source_ref()
             result.append(ranking)
