@@ -1,7 +1,6 @@
 import re
 import time
 import traceback
-from datetime import datetime
 from random import randint
 
 from fastapi import Depends
@@ -145,32 +144,8 @@ class SubscribeService(BaseService):
         subscribe_notify = subscribe_notify.model_copy(update=link.model_dump())
         notify.send_subscribe(subscribe_notify)
 
-    def do_subscribe_meta_update(self):
-        subscribes = self.get_subscribes()
-        logger.info(f"获取到{len(subscribes)}个订阅")
-        for subscribe in subscribes:
-            info = SpiderService(self.db).get_video_info(subscribe.num)
-            if info:
-                subscribe.cover = info.cover or subscribe.cover
-                subscribe.title = info.title or subscribe.title
-                subscribe.premiered = datetime.strptime(info.premiered,
-                                                        '%Y-%m-%d').date() if info.premiered else subscribe.premiered
-                subscribe.actors = ', '.join([i.name for i in info.actors]) if info.actors else subscribe.actors
-                logger.info(f"已更新订阅《{subscribe.num}》元数据")
-                self.db.add(subscribe)
-            else:
-                logger.warning(f"未找到订阅《{subscribe.num}》元数据")
-
-            time.sleep(randint(30, 60))
-
     @classmethod
     def job_subscribe(cls):
         with SessionFactory() as db:
             SubscribeService(db).do_subscribe()
-            db.commit()
-
-    @classmethod
-    def job_subscribe_meta_update(cls):
-        with SessionFactory() as db:
-            SubscribeService(db).do_subscribe_meta_update()
             db.commit()

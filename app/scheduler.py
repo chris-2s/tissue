@@ -6,6 +6,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
 from app.schema import Setting
+from app.service.actor_favorite import ActorFavoriteService
 from app.service.cookiecloud import CookieCloudService
 from app.service.download import DownloadService
 from app.service.job import clean_cache
@@ -30,10 +31,10 @@ class Scheduler:
                          name='订阅下载',
                          job=SubscribeService.job_subscribe,
                          interval=400, jitter=30 * 60),
-        'subscribe_meta_update': Job(key='subscribe_meta_update',
-                                     name='订阅元数据更新',
-                                     job=SubscribeService.job_subscribe_meta_update,
-                                     interval=100 * 60, jitter=6 * 60 * 60),
+        'actor_favorite_thumb_update': Job(key='actor_favorite_thumb_update',
+                                           name='演员收藏头像刷新',
+                                           job=ActorFavoriteService.job_refresh_missing_thumb,
+                                           interval=100 * 60, jitter=6 * 60 * 60),
         'scrape_download': Job(key='scrape_download',
                                name='整理已完成下载',
                                job=DownloadService.job_scrape_download,
@@ -63,7 +64,7 @@ class Scheduler:
         self.scheduler.start()
 
         self.add('subscribe')
-        self.add('subscribe_meta_update')
+        self.add('actor_favorite_thumb_update')
         self.add('clean_cache')
         self.add('refresh_available_sites')
 
