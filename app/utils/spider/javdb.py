@@ -340,7 +340,7 @@ class JavDBSpider(Spider):
 
         meta_elements = section.xpath('.//span[@class="section-meta"]')
         for element in meta_elements:
-            total_matched = re.match('(\d+) 部影片', element.text)
+            total_matched = re.match(r'(\d+) 部影片', element.text)
             if total_matched:
                 pages.total = int(total_matched.group(1))
 
