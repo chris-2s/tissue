@@ -1,3 +1,4 @@
+import type * as actorApi from "../../../apis/actor.ts";
 import type * as searchApi from "../../../apis/search.ts";
 import type {
     SearchMode,
@@ -13,7 +14,7 @@ export function normalizeSearch(search: SearchRouteSearch): { mode: SearchMode; 
     };
 }
 
-export function groupActors(actors: searchApi.ActorSearchItem[]): SearchResultGroup[] {
+export function groupActors(actors: actorApi.ActorSearchItem[]): SearchResultGroup[] {
     const groupMap = new Map<number, SearchResultGroup>();
 
     for (const actor of actors) {

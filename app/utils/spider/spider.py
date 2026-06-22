@@ -8,6 +8,7 @@ from PIL import Image, ImageFile
 
 from app.schema.setting import Setting
 from app.schema.home import SiteVideo
+from app.schema.actor import ActorPage
 from app.schema.video import SourceRef
 from app.utils.cookies import apply_cookie_header_to_jar
 
@@ -153,6 +154,9 @@ class Spider:
         pass
 
     def search_actor(self, name: str):
+        raise NotImplementedError
+
+    def get_actor_page(self, code: str, page: int) -> ActorPage:
         raise NotImplementedError
 
     def search_video(self, num: str) -> list[SiteVideo]:

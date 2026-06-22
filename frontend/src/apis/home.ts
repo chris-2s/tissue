@@ -1,5 +1,5 @@
 import {request} from "../utils/requests";
-import type {PagedResponse, SiteVideo, VideoDetail} from "../types/video";
+import type {SiteVideo, VideoDetail} from "../types/video";
 
 export interface GetRankingsParams {
     site_id: number;
@@ -19,12 +19,6 @@ export interface GetSiteDetailParams {
 
 export type GetDetailParams = GetNumberDetailParams | GetSiteDetailParams;
 
-export interface GetActorParams {
-    site_id: number;
-    code: string;
-    page?: number;
-}
-
 export async function getRankings(params: GetRankingsParams): Promise<SiteVideo[]> {
     const response = await request.request({
         url: '/home/ranking',
@@ -38,15 +32,6 @@ export async function getRankings(params: GetRankingsParams): Promise<SiteVideo[
 export async function getDetail(params: GetDetailParams): Promise<VideoDetail> {
     const response = await request.request({
         url: '/home/detail',
-        method: 'get',
-        params: params
-    })
-    return response.data
-}
-
-export async function getActor(params: GetActorParams): Promise<PagedResponse<SiteVideo[]>> {
-    const response = await request.request({
-        url: '/home/actor',
         method: 'get',
         params: params
     })

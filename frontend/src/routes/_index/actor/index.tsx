@@ -1,13 +1,18 @@
+import {Avatar, Button, Card, Col, Empty, Pagination, Row, Space, Tag, Tooltip, Typography, message} from "antd";
+import {HeartFilled, HeartOutlined, UserOutlined} from "@ant-design/icons";
 import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect} from "react";
-import {Col, Empty, Pagination, Row} from "antd";
-import * as api from "../../../apis/home.ts";
+import * as actorApi from "../../../apis/actor.ts";
+import * as videoApi from "../../../apis/video.ts";
 import {createFileRoute, type ErrorComponentProps, useNavigate, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {Dispatch} from "../../../models";
+import {useRequest, useResponsive} from "ahooks";
+
+const {Paragraph, Text, Title} = Typography;
 
 type ActorSearch = {
     site_id: number;
@@ -17,13 +22,13 @@ type ActorSearch = {
 
 function actorQueryOptions(search: ActorSearch) {
     return queryOptions({
-        queryKey: ['actorVideos', search] as const,
+        queryKey: ['actorPage', search] as const,
         staleTime: 10 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
         retry: 0,
-        queryFn: () => api.getActor(search)
+        queryFn: () => actorApi.getActorPage(search)
     });
 }
 
@@ -56,53 +61,137 @@ export const Route = createFileRoute('/_index/actor/')({
         page: Number((search as ActorSearch).page || 1)
     }),
     loader: ({deps, context}) => context.queryClient.ensureQueryData(actorQueryOptions(deps as ActorSearch))
-})
+});
 
 function Actor() {
-    const search = Route.useSearch() as ActorSearch
+    const search = Route.useSearch() as ActorSearch;
     const normalizedSearch: ActorSearch = {
         ...search,
         page: Number(search.page || 1)
-    }
-    const {data: pageData} = useSuspenseQuery(actorQueryOptions(normalizedSearch))
-    const navigate = useNavigate()
-    const appDispatch = useDispatch<Dispatch>().app
+    };
+    const {data: actorPage, refetch} = useSuspenseQuery(actorQueryOptions(normalizedSearch));
+    const navigate = useNavigate();
+    const appDispatch = useDispatch<Dispatch>().app;
+    const responsive = useResponsive();
 
     useEffect(() => {
-        appDispatch.setCanBack(true)
+        appDispatch.setCanBack(true);
         return () => {
-            appDispatch.setCanBack(false)
-        }
-    }, [appDispatch])
+            appDispatch.setCanBack(false);
+        };
+    }, [appDispatch]);
 
-    const videos = pageData.data || []
+    const {run: onCreateFavorite, loading: creatingFavorite} = useRequest(actorApi.createActorFavorite, {
+        manual: true,
+        onSuccess: async () => {
+            message.success('演员收藏成功');
+            await refetch();
+        }
+    });
+
+    const {run: onDeleteFavorite, loading: deletingFavorite} = useRequest(actorApi.deleteActorFavorite, {
+        manual: true,
+        onSuccess: async () => {
+            message.success('已取消收藏');
+            await refetch();
+        }
+    });
+
+    const actor = actorPage.actor;
+    const videos = actorPage.page.data || [];
+    const aliasText = actor.alias.filter(Boolean).join(' / ');
+    const favoriteLoading = creatingFavorite || deletingFavorite;
+
+    async function onFavoriteToggle() {
+        if (actorPage.is_favorite) {
+            const favorites = await actorApi.getActorFavorites();
+            const favorite = favorites.find((item) => (
+                item.site_id === normalizedSearch.site_id && item.actor_code === normalizedSearch.code
+            ));
+            if (!favorite) {
+                message.error('未找到对应收藏记录');
+                return;
+            }
+            onDeleteFavorite(favorite.id);
+            return;
+        }
+
+        onCreateFavorite({
+            site_id: normalizedSearch.site_id,
+            actor_code: normalizedSearch.code,
+            actor_name: actor.name,
+            actor_thumb: actor.thumb,
+            actor_alias: actor.alias || [],
+        });
+    }
 
     return (
         <div>
+            <Card className={'mb-4'}>
+                <div className={'flex flex-col gap-4 md:flex-row md:items-center md:justify-between'}>
+                    <Space size={16} align={'start'}>
+                        {actor.thumb ? (
+                            <Avatar size={responsive.md ? 88 : 72} src={videoApi.getVideoCover(actor.thumb)}/>
+                        ) : (
+                            <Avatar size={responsive.md ? 88 : 72} icon={<UserOutlined/>}/>
+                        )}
+                        <div>
+                            <Space wrap size={[8, 8]}>
+                                <Title level={4} className={'!mb-0'}>
+                                    {actor.name || actor.code || '未知演员'}
+                                </Title>
+                                <Tag color={'purple'} variant={'filled'}>{actor.source.site_name}</Tag>
+                            </Space>
+                            {aliasText ? (
+                                <Tooltip title={aliasText}>
+                                    <Paragraph type={'secondary'} className={'!mb-0 !mt-2'}>
+                                        别名：{aliasText}
+                                    </Paragraph>
+                                </Tooltip>
+                            ) : (
+                                <Text type={'secondary'} className={'block mt-2'}>
+                                    暂无别名信息
+                                </Text>
+                            )}
+                        </div>
+                    </Space>
+                    <Button
+                        type={actorPage.is_favorite ? 'default' : 'primary'}
+                        icon={actorPage.is_favorite ? <HeartFilled/> : <HeartOutlined/>}
+                        loading={favoriteLoading}
+                        onClick={() => void onFavoriteToggle()}
+                    >
+                        {actorPage.is_favorite ? '取消收藏' : '加入收藏'}
+                    </Button>
+                </div>
+            </Card>
+
             {videos.length > 0 ? (
                 <Row className={'mt-2 cursor-pointer'} gutter={[12, 12]}>
                     {videos.map((item) => (
                         <Col key={item.url} span={24} md={12} lg={6}
                              onClick={() => navigate({
-                                  to: '/home/detail',
-                                  search: {site_id: normalizedSearch.site_id, num: item.num, url: item.url}
-                              })}>
+                                 to: '/home/detail',
+                                 search: {site_id: normalizedSearch.site_id, num: item.num, url: item.url}
+                             })}>
                             <VideoItem item={item}/>
                         </Col>
                     ))}
                     <div className={'w-full flex justify-center'}>
-                        <Pagination pageSize={pageData.limit} current={pageData.page} total={pageData.total}
+                        <Pagination pageSize={actorPage.page.limit}
+                                    current={actorPage.page.page}
+                                    total={actorPage.page.total}
                                     showSizeChanger={false}
                                     onChange={(page) => {
-                                        navigate({search: {...normalizedSearch, page} as never})
+                                        navigate({search: {...normalizedSearch, page} as never});
                                     }}/>
                     </div>
                 </Row>
             ) : (
-                <Empty className={'mt-10'}/>
+                <Empty className={'mt-10'} description={'暂无作品'}/>
             )}
         </div>
-    )
+    );
 }
 
-export default Actor
+export default Actor;

@@ -11,7 +11,7 @@ from lxml import etree
 from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoCommentItem, \
     VideoComment, VideoSiteActor
-from app.schema.actor import Actor
+from app.schema.actor import Actor, ActorPage
 from app.schema.home import SiteVideo
 from app.schema.r import Page
 from app.utils.cookies import (
@@ -323,7 +323,7 @@ class JavDBSpider(Spider):
 
         return self._get_video(html)
 
-    def get_actor_videos(self, code: str, page: int):
+    def get_actor_page(self, code: str, page: int):
         url = urljoin(self.host, f'/actors/{code}')
         response = self.session.get(url, params={'page': page})
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
@@ -346,14 +346,36 @@ class JavDBSpider(Spider):
 
         pages.data = self._get_video(html)
 
-        return pages
+        actor = Actor(code=code, source=self.source_ref())
+        title = html.xpath('//title/text()')
+        if title:
+            actor.name = title[0].split(' | ')[0].strip()
+
+        if actor.name:
+            actors = self._search_actor_results(actor.name)
+            actor = next((item for item in actors if item.code == code), actor)
+
+        if not actor.thumb:
+            fallback_actors = self._parse_actor_elements(html.xpath('//div[@id="actors"]/div/a'))
+            fallback_actor = next((item for item in fallback_actors if item.code == code), None)
+            if fallback_actor:
+                actor = fallback_actor
+
+        actor.code = code
+        actor.source = self.source_ref()
+
+        return ActorPage(actor=actor, page=pages)
 
     def search_actor(self, name: str):
+        return self._search_actor_results(name)
+
+    def _search_actor_results(self, name: str):
         url = urljoin(self.host, f'/search?q={name}&f=actor')
         response = self.session.get(url)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
+        return self._parse_actor_elements(html.xpath('//div[@id="actors"]/div/a'))
 
-        actors_element = html.xpath('//div[@id="actors"]/div/a')
+    def _parse_actor_elements(self, actors_element):
         actors = []
         for actor_element in actors_element:
             actor_names = [name.strip() for name in actor_element.get('title').split(',')]

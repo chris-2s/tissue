@@ -80,6 +80,11 @@ export default [
                 icon: (<CarryOutOutlined/>),
             },
             {
+                title: '演员',
+                path: '/actor-favorite',
+                icon: (<UserOutlined/>),
+            },
+            {
                 title: '搜索',
                 path: '/search',
                 icon: (<SearchOutlined/>),

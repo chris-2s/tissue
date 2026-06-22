@@ -11,3 +11,4 @@ from .site import *
 from .cookie import *
 from .home import *
 from .history import *
+from .actor import *

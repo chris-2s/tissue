@@ -12,6 +12,7 @@ import {
 import {queryOptions, useQuery} from "@tanstack/react-query";
 import React, {useMemo, useState} from "react";
 import {createFileRoute, useRouter} from "@tanstack/react-router";
+import * as actorApi from "../../../apis/actor.ts";
 import * as searchApi from "../../../apis/search.ts";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
@@ -48,7 +49,7 @@ function searchQueryOptions(search: SearchRouteSearch) {
             }
 
             if (normalized.mode === 'actor') {
-                const actors = await searchApi.searchActors(normalized.keyword);
+                const actors = await actorApi.searchActors(normalized.keyword);
                 return {
                     mode: normalized.mode,
                     keyword: normalized.keyword,

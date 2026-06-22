@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 
 from app.exception import BizException
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoSiteActor
-from app.schema.actor import Actor
+from app.schema.actor import Actor, ActorPage
 from app.schema.home import SiteVideo
 from app.schema.r import Page
 from app.utils.media_matcher import detect_flags_with_tag_priority
@@ -210,7 +210,7 @@ class JavBusSpider(Spider):
 
         return result
 
-    def get_actor_videos(self, code: str, page: int):
+    def get_actor_page(self, code: str, page: int):
         url = urljoin(self.host, f'/star/{code}/{page}')
         response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
         html = etree.HTML(response.text)
@@ -225,14 +225,33 @@ class JavBusSpider(Spider):
         pages.total = total
         pages.data = self._parse_movie_boxes(html)
 
-        return pages
+        actor = Actor(code=code, source=self.source_ref())
+        actor_name = html.xpath('//title/text()')
+        if actor_name:
+            actor.name = actor_name[0].split(' - ')[0].strip()
+
+        if actor.name:
+            actors = self._search_actor_results(actor.name)
+            actor = next((item for item in actors if item.code == code), actor)
+
+        if not actor.thumb:
+            fallback_actors = self._parse_actor_elements(html.xpath('//a[contains(@class,"avatar-box")]'))
+            fallback_actor = next((item for item in fallback_actors if item.code == code), None)
+            if fallback_actor:
+                actor = fallback_actor
+
+        return ActorPage(actor=actor, page=pages)
 
     def search_actor(self, name: str):
+        return self._search_actor_results(name)
+
+    def _search_actor_results(self, name: str):
         url = urljoin(self.host, f'/searchstar/{name}')
         response = self.session.get(url, allow_redirects=False)
         html = etree.HTML(response.text)
+        return self._parse_actor_elements(html.xpath('//a[contains(@class,"avatar-box")]'))
 
-        actors_element = html.xpath('//a[contains(@class,"avatar-box")]')
+    def _parse_actor_elements(self, actors_element):
         actors = []
         for actor_element in actors_element:
             avatar_element = actor_element.xpath('./div/img')[0]

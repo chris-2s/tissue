@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 from app.db import get_db
 from app.db.models import Site
 from app.schema import SiteCapabilities, SpiderKey, VideoDetail
-from app.schema.actor import Actor, ImageInfo
+from app.schema.actor import Actor, ActorPage, ImageInfo
 from app.schema.home import SiteVideo
 from app.service.base import BaseService
 from app.utils import cache
@@ -19,6 +19,7 @@ from app.utils.logger import logger
 from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
 from app.utils.spider.spider import Spider
 from app.utils.spider.spider_exception import SpiderException
+from app.exception import BizException
 
 
 def get_spider_service(db: Session = Depends(get_db)):
@@ -249,11 +250,11 @@ class SpiderService(BaseService):
         return spider.get_info(num=num, url=url, include_downloads=True,
                                include_previews=True, include_comments=True)
 
-    def get_actor_videos(self, site_id: int, code: str, page: int):
+    def get_actor_page(self, site_id: int, code: str, page: int) -> ActorPage:
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_actor:
-            return []
-        return spider.get_actor_videos(code, page)
+            raise BizException("当前站点不支持演员页")
+        return spider.get_actor_page(code, page)
 
     def search_actor(self, name: str):
         logger.info(f"开始刮削演员《{name}》")

@@ -62,12 +62,6 @@ def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_serv
 def search_video(num: str, service=Depends(get_spider_service)):
     return R.list(service.search_video(num))
 
-
-@router.get('/actor')
-def get_actor_videos(site_id: int, code: str, page: int = 1, service=Depends(get_spider_service)):
-    return R.pages(service.get_actor_videos(site_id, code, page))
-
-
 @router.get('/log')
 async def get_logs(request: Request):
     log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
