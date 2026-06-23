@@ -19,6 +19,14 @@
     height: 100%;
 }
 
+.avatar {
+    border-radius: 9999px;
+}
+
+.avatar:before {
+    padding-top: 100%;
+}
+
 .blur {
     backdrop-filter: blur(5px);
     z-index: 1;

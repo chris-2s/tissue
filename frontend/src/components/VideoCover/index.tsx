@@ -10,10 +10,11 @@ import {UnorderedListOutlined} from "@ant-design/icons";
 
 interface Props extends HTMLProps<any> {
     num?: string
+    avatar?: boolean
 }
 
 function VideoCover(props: Props) {
-    const {src, num = undefined, ...otherProps} = props
+    const {src, num = undefined, avatar = false, className, ...otherProps} = props
     const {goodBoy} = useSelector((state: RootState) => state.app)
     const videos = useSelector((state: RootState) => state.auth?.videos)
 
@@ -23,10 +24,13 @@ function VideoCover(props: Props) {
     }, [videos, num])
 
     return (
-        <div className={Styles.videoCoverContainer} {...otherProps}>
+        <div
+            className={`${Styles.videoCoverContainer} ${avatar ? Styles.avatar : ''} ${className || ''}`.trim()}
+            {...otherProps}
+        >
             {(src && goodBoy) && <div className={Styles.blur}/>}
             {src ? (
-                <LazyLoadImage className={'object-contain'} src={api.getVideoCover(src)}/>
+                <LazyLoadImage className={avatar ? 'h-full w-full object-cover' : 'object-contain'} src={api.getVideoCover(src)}/>
             ) : (
                 <div className={'flex justify-center items-center'}>
                     <Empty description={'暂无图片'}/>

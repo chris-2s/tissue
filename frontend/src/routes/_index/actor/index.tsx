@@ -3,10 +3,10 @@ import {HeartFilled, HeartOutlined, UserOutlined} from "@ant-design/icons";
 import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect, useState} from "react";
 import * as actorApi from "../../../apis/actor.ts";
-import * as videoApi from "../../../apis/video.ts";
 import {createFileRoute, type ErrorComponentProps, useNavigate, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
+import VideoCover from "../../../components/VideoCover";
 import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {Dispatch} from "../../../models";
@@ -142,7 +142,14 @@ function Actor() {
                 <div className={'flex flex-col gap-4 md:flex-row md:items-center md:justify-between'}>
                     <Space size={16} align={'start'}>
                         {actor.thumb ? (
-                            <Avatar size={responsive.md ? 88 : 72} src={videoApi.getVideoCover(actor.thumb)}/>
+                            <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} overflow-hidden rounded-full bg-black/5`}>
+                                <VideoCover
+                                    className={'h-full w-full'}
+                                    src={actor.thumb}
+                                    num={actor.code}
+                                    avatar
+                                />
+                            </div>
                         ) : (
                             <Avatar size={responsive.md ? 88 : 72} icon={<UserOutlined/>}/>
                         )}

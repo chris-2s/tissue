@@ -1,13 +1,13 @@
-import {Avatar, Button, Card, Col, Empty, Row, Space, Tag, Typography, message} from "antd";
-import {DeleteOutlined, RightOutlined, UserOutlined} from "@ant-design/icons";
+import {Button, Card, Col, Empty, Row, Space, Tag, Typography, message} from "antd";
+import {DeleteOutlined, RightOutlined} from "@ant-design/icons";
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import React from "react";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
 import {useRequest} from "ahooks";
 import * as actorApi from "../../../apis/actor.ts";
-import * as videoApi from "../../../apis/video.ts";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
+import VideoCover from "../../../components/VideoCover";
 
 const {Paragraph, Text} = Typography;
 
@@ -88,18 +88,13 @@ function ActorFavoritePage() {
                             ]}
                         >
                             <div className={'flex gap-3'}>
-                                <div className={'h-[72px] w-[72px] overflow-hidden rounded-lg bg-black/5'}>
-                                    {favorite.actor.thumb ? (
-                                        <img
-                                            className={'h-full w-full object-cover'}
-                                            src={videoApi.getVideoCover(favorite.actor.thumb)}
-                                            alt={favorite.actor.name || favorite.actor_code}
-                                        />
-                                    ) : (
-                                        <div className={'flex h-full items-center justify-center'}>
-                                            <Avatar size={56} icon={<UserOutlined/>}/>
-                                        </div>
-                                    )}
+                                <div className={'h-[72px] w-[72px] overflow-hidden rounded-full bg-black/5'}>
+                                    <VideoCover
+                                        className={'h-full w-full'}
+                                        src={favorite.actor.thumb}
+                                        num={favorite.actor_code}
+                                        avatar
+                                    />
                                 </div>
                                 <div className={'min-w-0 flex-1'}>
                                     <Space wrap size={[8, 8]}>

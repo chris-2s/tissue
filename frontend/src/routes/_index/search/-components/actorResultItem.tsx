@@ -1,8 +1,7 @@
 import {Avatar, List, Tag} from "antd";
 import {UserOutlined} from "@ant-design/icons";
 import React from "react";
-import {LazyLoadImage} from "react-lazy-load-image-component";
-import * as videoApi from "../../../../apis/video.ts";
+import VideoCover from "../../../../components/VideoCover";
 import type {ActorCandidate} from "./types";
 
 interface ActorResultItemProps {
@@ -18,7 +17,7 @@ function ActorResultItem(props: ActorResultItemProps) {
             <List.Item.Meta
                 avatar={item.thumb ? (
                     <div className={'h-14 w-14 overflow-hidden rounded-full bg-black/5'}>
-                        <LazyLoadImage className={'h-full w-full object-contain'} src={videoApi.getVideoCover(item.thumb)}/>
+                        <VideoCover className={'h-full w-full'} src={item.thumb} num={item.code} avatar/>
                     </div>
                 ) : (
                     <Avatar size={56} icon={<UserOutlined/>}>
