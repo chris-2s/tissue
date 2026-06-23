@@ -272,23 +272,3 @@ class SpiderService(BaseService):
     def search_video(self, num: str):
         logger.info(f"开始搜索影片《{num}》")
         return asyncio.run(self._search_video_by_spiders(num))
-
-    def get_cookies_by_url(self, url: str) -> str | None:
-        """根据视频 URL 获取对应站点的 cookie"""
-        parsed = urlparse(url)
-        host = parsed.netloc
-
-        sites = self.db.query(Site).all()
-
-        for site in sites:
-            spider_class = self.get_spider_class(site.spider_key)
-            if not spider_class or not spider_class.origin_host:
-                continue
-
-            origin_parsed = urlparse(site.alternate_host or spider_class.origin_host)
-            origin_domain = origin_parsed.netloc.lstrip('www.')
-
-            if host.endswith(origin_domain) or origin_domain.endswith(host):
-                return site.cookies
-
-        return None

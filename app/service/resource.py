@@ -180,7 +180,7 @@ class ResourceService(BaseService):
 
         return status_code, response_headers, body_generator()
 
-    def get_cookies_by_url(self, url: str) -> str | None:
+    def _get_cookies_by_url(self, url: str) -> str | None:
         parsed = urlparse(url)
         host = parsed.netloc
         sites = self.db.query(Site).all()
@@ -199,7 +199,7 @@ class ResourceService(BaseService):
 
     async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
         headers = self._build_proxy_headers(request, url)
-        cookie_str = self.get_cookies_by_url(url)
+        cookie_str = self._get_cookies_by_url(url)
 
         if is_m3u8(url):
             try:

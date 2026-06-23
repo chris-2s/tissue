@@ -1,4 +1,4 @@
-from urllib.parse import urljoin, urlparse, quote
+from urllib.parse import urlencode, urljoin, urlparse
 
 
 def fix_m3u8_paths(m3u8_content: str, video_url: str, base_url: str) -> str:
@@ -18,7 +18,7 @@ def fix_m3u8_paths(m3u8_content: str, video_url: str, base_url: str) -> str:
         if line and not line.startswith('#'):
             if not line.startswith('http'):
                 line = urljoin(base_path, line)
-            line = f"{proxy_path}?url={quote(line)}"
+            line = f"{proxy_path}?{urlencode({'url': line, 'base_url': base_url})}"
         fixed_lines.append(line)
 
     return '\n'.join(fixed_lines)

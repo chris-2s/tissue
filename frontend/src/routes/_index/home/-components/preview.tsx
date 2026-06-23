@@ -10,6 +10,12 @@ import Video from "yet-another-react-lightbox/plugins/video";
 import type {VideoPreviewItem} from "../../../../types/video";
 import {IMAGE_TYPES} from "../../../../constants/image";
 
+function getTrailerSourceType(url: string) {
+    return url.toLowerCase().includes('.m3u8')
+        ? 'application/vnd.apple.mpegurl'
+        : 'video/mp4';
+}
+
 function Preview(props: { data: VideoPreviewItem[] }) {
     const {data} = props;
     const [openPreview, setOpenPreview] = useState(false);
@@ -23,7 +29,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
                 sources: [
                     {
                         src: api.getVideoTrailer(item.url || ''),
-                        type: 'video/mp4',
+                        type: getTrailerSourceType(item.url || ''),
                     },
                 ],
             }
