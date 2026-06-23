@@ -142,7 +142,7 @@ function Actor() {
                 <div className={'flex flex-col gap-4 md:flex-row md:items-center md:justify-between'}>
                     <Space size={16} align={'start'}>
                         {actor.thumb ? (
-                            <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} overflow-hidden rounded-full bg-black/5`}>
+                            <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} bg-black/5`}>
                                 <VideoCover
                                     className={'h-full w-full'}
                                     src={actor.thumb}

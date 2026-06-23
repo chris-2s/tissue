@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Callable
 
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
@@ -23,6 +24,8 @@ class Job(BaseModel):
     running: int = 0
     jitter: int = 0
     immediate: bool = False
+    max_instances: int = 1
+    misfire_grace_time: int = 300
 
 
 class Scheduler:
@@ -58,7 +61,14 @@ class Scheduler:
     }
 
     def __init__(self):
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = BackgroundScheduler(
+            executors={'default': ThreadPoolExecutor(max_workers=3)},
+            job_defaults={
+                'coalesce': True,
+                'max_instances': 1,
+                'misfire_grace_time': 300,
+            }
+        )
 
     def init(self):
         self.scheduler.start()
@@ -92,6 +102,8 @@ class Scheduler:
                                id=job.key,
                                name=job.name,
                                args=[job.key],
+                               max_instances=job.max_instances,
+                               misfire_grace_time=job.misfire_grace_time,
                                replace_existing=True, **job_kwargs)
 
     def remove(self, key: str):

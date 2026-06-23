@@ -69,7 +69,10 @@ class ActorFavoriteService(BaseService):
                 raise BizException('收藏对应站点不存在')
             source = schema.SourceRef(site_id=model.site_id, spider_key=site.spider_key, site_name=site.spider_key)
         else:
-            source = spider.source_ref()
+            try:
+                source = spider.source_ref()
+            finally:
+                spider.close()
 
         actor_alias = self._load_alias(model.actor_alias)
         actor = schema.Actor(

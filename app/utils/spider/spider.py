@@ -68,6 +68,15 @@ class Spider:
             self._load_cookies(cookies)
             self._ensure_valid_cookies()
 
+    def close(self):
+        self.session.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def source_ref(self) -> SourceRef:
         if self.site_id is None or self.key is None or self.name is None:
             raise ValueError('Spider source fields are incomplete')

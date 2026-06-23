@@ -64,14 +64,17 @@ class SiteService(BaseService):
             if not spider:
                 logger.warning(f"站点【{site.spider_key}】未注册，跳过测试")
                 continue
-            name = spider.name[0] + '*' * (len(spider.name) - 2) + spider.name[-1]
-            logger.info(f"站点【{name}】连接性测试...")
-            if spider.testing():
-                site.update(self.db, {'status': 1})
-                self.db.commit()
-                logger.info(f"站点【{spider.name}】启用成功")
-            else:
-                logger.warning(f"站点【{name}】无法连接，请检查网络连接")
+            try:
+                name = spider.name[0] + '*' * (len(spider.name) - 2) + spider.name[-1]
+                logger.info(f"站点【{name}】连接性测试...")
+                if spider.testing():
+                    site.update(self.db, {'status': 1})
+                    self.db.commit()
+                    logger.info(f"站点【{spider.name}】启用成功")
+                else:
+                    logger.warning(f"站点【{name}】无法连接，请检查网络连接")
+            finally:
+                spider.close()
 
         self._check_cookies()
 
@@ -84,22 +87,24 @@ class SiteService(BaseService):
             if not spider_instance:
                 logger.warning(f"站点【{site.spider_key}】未注册，跳过 Cookie 检查")
                 continue
+            try:
+                if not spider_instance.session.cookies:
+                    domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
+                    stale_cookie_header = site.cookies
+                    cookie_notify = CookieNotify(
+                        site_name=spider_instance.name,
+                        domain=domain,
+                        message="Cookie已失效，请重新登录"
+                    )
+                    notify.send_cookie(cookie_notify)
 
-            if not spider_instance.session.cookies:
-                domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
-                stale_cookie_header = site.cookies
-                cookie_notify = CookieNotify(
-                    site_name=spider_instance.name,
-                    domain=domain,
-                    message="Cookie已失效，请重新登录"
-                )
-                notify.send_cookie(cookie_notify)
+                    CookieCloudService().delete_cookie_if_match(domain, stale_cookie_header)
 
-                CookieCloudService().delete_cookie_if_match(domain, stale_cookie_header)
-
-                site.cookies = None
-                self.db.commit()
-                logger.warning(f"站点【{spider_instance.name}】Cookie已失效并清除")
+                    site.cookies = None
+                    self.db.commit()
+                    logger.warning(f"站点【{spider_instance.name}】Cookie已失效并清除")
+            finally:
+                spider_instance.close()
 
     def get_login_page(self, site_id: int) -> dict:
         site = self.db.query(Site).get(site_id)
@@ -111,6 +116,7 @@ class SiteService(BaseService):
         if not spider:
             raise BizException("站点类型不存在")
         if not spider.supports_login:
+            spider.close()
             raise BizException("该站点暂不支持登录")
 
         try:
@@ -119,6 +125,8 @@ class SiteService(BaseService):
             raise BizException("该站点暂不支持登录")
         except Exception as e:
             raise BizException(f"获取登录页失败: {str(e)}")
+        finally:
+            spider.close()
 
     def submit_login(self, site_id: int, data: schema.LoginSubmit):
         from urllib.parse import urlparse
@@ -132,6 +140,7 @@ class SiteService(BaseService):
         if not spider:
             raise BizException("站点类型不存在")
         if not spider.supports_login:
+            spider.close()
             raise BizException("该站点暂不支持登录")
 
         try:
@@ -156,6 +165,8 @@ class SiteService(BaseService):
             CookieCloudService().push_cookie(cookie_list, domain)
         except Exception:
             pass
+        finally:
+            spider.close()
 
     @classmethod
     def job_testing_sites(cls):

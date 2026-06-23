@@ -1,6 +1,7 @@
 from pathlib import Path
-from sqlalchemy import create_engine, QueuePool
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.db.models import Base, User
 from app.middleware.requestvars import g
@@ -13,12 +14,8 @@ if not db_path.exists():
 engine = create_engine(f'sqlite:///{db_path}/app.db',
                        pool_pre_ping=True,
                        echo=False,
-                       poolclass=QueuePool,
-                       pool_size=1024,
-                       pool_recycle=3600,
-                       pool_timeout=180,
-                       max_overflow=10,
-                       connect_args={"timeout": 60},
+                       poolclass=NullPool,
+                       connect_args={"timeout": 60, "check_same_thread": False},
                        )
 
 SessionFactory = sessionmaker(bind=engine, autocommit=False)

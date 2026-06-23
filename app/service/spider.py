@@ -139,6 +139,14 @@ class SpiderService(BaseService):
             spiders.append(spider)
         return spiders
 
+    @staticmethod
+    def _close_spiders(spiders: list[Spider]):
+        for spider in spiders:
+            try:
+                spider.close()
+            except Exception:
+                logger.debug(f"{spider.name} 会话关闭失败")
+
     async def _get_video_by_spiders(self, number: str, include_downloads: bool, include_previews: bool,
                                     include_comments: bool):
         def __get_video_by_spider(spider: Spider):
@@ -159,8 +167,11 @@ class SpiderService(BaseService):
                 return None
 
         spiders = self._get_spiders()
-        tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
-        return list(filter(lambda item: item, await asyncio.gather(*tasks)))
+        try:
+            tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
+            return list(filter(lambda item: item, await asyncio.gather(*tasks)))
+        finally:
+            self._close_spiders(spiders)
 
     async def _search_actor_by_spiders(self, name: str):
         def __search_actor_by_spider(spider: Spider):
@@ -183,15 +194,18 @@ class SpiderService(BaseService):
                 return None
 
         spiders = [spider for spider in self._get_spiders() if spider.supports_actor]
-        tasks = [run_in_threadpool(__search_actor_by_spider, spider=spider) for spider in spiders]
-        results = await asyncio.gather(*tasks)
+        try:
+            tasks = [run_in_threadpool(__search_actor_by_spider, spider=spider) for spider in spiders]
+            results = await asyncio.gather(*tasks)
 
-        actors: list[Actor] = []
-        for result in results:
-            if not result:
-                continue
-            actors.extend(result)
-        return actors
+            actors: list[Actor] = []
+            for result in results:
+                if not result:
+                    continue
+                actors.extend(result)
+            return actors
+        finally:
+            self._close_spiders(spiders)
 
     async def _search_video_by_spiders(self, num: str):
         def __search_video_by_spider(spider: Spider):
@@ -208,15 +222,18 @@ class SpiderService(BaseService):
                 return None
 
         spiders = self._get_spiders()
-        tasks = [run_in_threadpool(__search_video_by_spider, spider=spider) for spider in spiders]
-        results = await asyncio.gather(*tasks)
+        try:
+            tasks = [run_in_threadpool(__search_video_by_spider, spider=spider) for spider in spiders]
+            results = await asyncio.gather(*tasks)
 
-        videos: list[SiteVideo] = []
-        for result in results:
-            if not result:
-                continue
-            videos.extend(result)
-        return videos
+            videos: list[SiteVideo] = []
+            for result in results:
+                if not result:
+                    continue
+                videos.extend(result)
+            return videos
+        finally:
+            self._close_spiders(spiders)
 
     def get_video_info(self, number: str):
         meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
@@ -241,20 +258,29 @@ class SpiderService(BaseService):
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_ranking:
             return None
-        return spider.get_ranking(video_type, cycle)
+        try:
+            return spider.get_ranking(video_type, cycle)
+        finally:
+            spider.close()
 
     def get_detail(self, site_id: int, num: str, url: str):
         spider = self.build_spider_by_site_id(site_id)
         if not spider:
             return None
-        return spider.get_info(num=num, url=url, include_downloads=True,
-                               include_previews=True, include_comments=True)
+        try:
+            return spider.get_info(num=num, url=url, include_downloads=True,
+                                   include_previews=True, include_comments=True)
+        finally:
+            spider.close()
 
     def get_actor_page(self, site_id: int, code: str, page: int) -> ActorPage:
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_actor:
             raise BizException("当前站点不支持演员页")
-        return spider.get_actor_page(code, page)
+        try:
+            return spider.get_actor_page(code, page)
+        finally:
+            spider.close()
 
     def search_actor(self, name: str):
         logger.info(f"开始刮削演员《{name}》")
