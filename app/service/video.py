@@ -154,7 +154,7 @@ class VideoService(BaseService):
 
         if video.cover:
             logger.info(f"生成封面及水印图片")
-            cover_result = ResourceService.get_cached_image(video.cover, 'cover')
+            cover_result = ResourceService.fetch_image_file(video.cover, 'cover')
             if cover_result.file_path and os.path.exists(cover_result.file_path):
                 with open(cover_result.file_path, 'rb') as file:
                     cover_data = file.read()

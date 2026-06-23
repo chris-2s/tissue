@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get("/image")
 def proxy_image(url: str, request: Request, image_type: ImageCacheType = 'cover'):
-    image = ResourceService.get_cached_image(url, image_type)
+    image = ResourceService.fetch_image_file(url, image_type)
     if image.file_path:
         if image.etag and request.headers.get('if-none-match') == image.etag:
             return Response(

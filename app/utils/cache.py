@@ -14,8 +14,9 @@ CACHE_LAYOUT_VERSION = '2'
 cache_version_file = cache_path / '.cache_version'
 CACHE_IMAGE_PARENTS = ('cover', 'avatar')
 
-COVER_SUCCESS_TTL_SECONDS = 7 * 24 * 60 * 60
-COVER_STALE_FALLBACK_TTL_SECONDS = 60 * 60
+IMAGE_SUCCESS_TTL_SECONDS = 30 * 24 * 60 * 60
+IMAGE_STALE_FALLBACK_TTL_SECONDS = 60 * 60
+IMAGE_RETENTION_SECONDS = 30 * 24 * 60 * 60
 NEGATIVE_TTL_BY_STATUS = {
     403: 30 * 60,
     404: 6 * 60 * 60,
@@ -146,7 +147,7 @@ def get_cache_lookup(parent: str, path: str) -> CacheLookup:
     )
 
 
-def write_success_cache(parent: str, path: str, content: bytes, content_type: str, ttl_seconds: int = COVER_SUCCESS_TTL_SECONDS):
+def write_success_cache(parent: str, path: str, content: bytes, content_type: str, ttl_seconds: int = IMAGE_SUCCESS_TTL_SECONDS):
     now = int(time.time())
     data_path = get_cache_data_path(parent, path)
     metadata_path = get_cache_metadata_path(parent, path)
@@ -157,7 +158,6 @@ def write_success_cache(parent: str, path: str, content: bytes, content_type: st
         'content_length': len(content),
         'created_at': now,
         'expires_at': now + ttl_seconds,
-        'last_accessed_at': now,
     }
     _write_bytes_atomic(data_path, content)
     _write_json_atomic(metadata_path, metadata)
@@ -176,7 +176,6 @@ def write_negative_cache(parent: str, path: str, error_code: int | None, ttl_sec
         'error_code': error_code or 502,
         'created_at': now,
         'expires_at': now + ttl_seconds,
-        'last_accessed_at': now,
     })
 
 
@@ -188,7 +187,6 @@ def extend_cache_expiry(parent: str, path: str, ttl_seconds: int):
 
     now = int(time.time())
     metadata['expires_at'] = now + ttl_seconds
-    metadata['last_accessed_at'] = now
     _write_json_atomic(metadata_path, metadata)
 
 
@@ -232,7 +230,25 @@ def cleanup_expired_cache(parents: tuple[str, ...] = CACHE_IMAGE_PARENTS) -> dic
                 continue
 
             expires_at = metadata.get('expires_at')
-            if not isinstance(expires_at, (int, float)) or int(expires_at) <= now:
+            if not isinstance(expires_at, (int, float)):
+                metadata_path.unlink(missing_ok=True)
+                result['removed_metadata'] += 1
+                if data_path.exists():
+                    data_path.unlink(missing_ok=True)
+                    result['removed_data'] += 1
+                continue
+
+            cache_status = metadata.get('status')
+            expires_at = int(expires_at)
+            should_remove = False
+            if cache_status == 'negative':
+                should_remove = expires_at <= now
+            elif cache_status == 'hit':
+                should_remove = (expires_at + IMAGE_RETENTION_SECONDS) <= now
+            else:
+                should_remove = True
+
+            if should_remove:
                 metadata_path.unlink(missing_ok=True)
                 result['removed_metadata'] += 1
                 if data_path.exists():

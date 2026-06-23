@@ -39,7 +39,7 @@ class ResourceService(BaseService):
     IMAGE_CLIENT_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60
 
     @staticmethod
-    def get_cached_image(url: str, image_type: ImageCacheType) -> ImageResult:
+    def fetch_image_file(url: str, image_type: ImageCacheType) -> ImageResult:
         component = urlparse(url)
         lookup = cache.get_cache_lookup(image_type, url)
         stale_path = None
@@ -77,7 +77,7 @@ class ResourceService(BaseService):
             )
 
         if stale_path is not None:
-            cache.extend_cache_expiry(image_type, url, cache.COVER_STALE_FALLBACK_TTL_SECONDS)
+            cache.extend_cache_expiry(image_type, url, cache.IMAGE_STALE_FALLBACK_TTL_SECONDS)
             return ImageResult(
                 file_path=stale_path,
                 media_type=stale_media_type,
@@ -89,11 +89,11 @@ class ResourceService(BaseService):
         return ImageResult(file_path=None, media_type=None, status_code=status_code or 502)
 
     @staticmethod
-    def get_image_bytes(url: str | None, image_type: ImageCacheType) -> bytes | None:
+    def fetch_image_bytes(url: str | None, image_type: ImageCacheType) -> bytes | None:
         if not url:
             return None
 
-        image = ResourceService.get_cached_image(url, image_type)
+        image = ResourceService.fetch_image_file(url, image_type)
         if not image.file_path:
             return None
 
@@ -104,7 +104,7 @@ class ResourceService(BaseService):
             return None
 
     @staticmethod
-    def build_proxy_headers(request: Request, url: str) -> dict[str, str]:
+    def _build_proxy_headers(request: Request, url: str) -> dict[str, str]:
         headers: dict[str, str] = {}
         range_header = request.headers.get("Range")
         user_agent = request.headers.get("User-Agent")
@@ -123,7 +123,7 @@ class ResourceService(BaseService):
         return headers
 
     @staticmethod
-    def fetch_m3u8_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None) -> tuple[str, dict[str, str]]:
+    def _fetch_m3u8_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None) -> tuple[str, dict[str, str]]:
         request_headers = {k: v for k, v in headers.items() if k.lower() != "range"}
         if cookie_str:
             request_headers["Cookie"] = cookie_str
@@ -139,7 +139,7 @@ class ResourceService(BaseService):
         return response.text, dict(response.headers)
 
     @staticmethod
-    def stream_binary_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None):
+    def _stream_binary_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None):
         request_headers = dict(headers)
         if cookie_str:
             request_headers["Cookie"] = cookie_str
@@ -198,12 +198,12 @@ class ResourceService(BaseService):
         return None
 
     async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
-        headers = self.build_proxy_headers(request, url)
+        headers = self._build_proxy_headers(request, url)
         cookie_str = self.get_cookies_by_url(url)
 
         if is_m3u8(url):
             try:
-                m3u8_text, upstream_headers = await run_in_threadpool(self.fetch_m3u8_via_cffi, url, headers, cookie_str)
+                m3u8_text, upstream_headers = await run_in_threadpool(self._fetch_m3u8_via_cffi, url, headers, cookie_str)
             except Exception as exc:
                 status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
                 logger.warning("代理 m3u8 失败: %s %s", status_code, url)
@@ -215,7 +215,7 @@ class ResourceService(BaseService):
             return Response(content=m3u8_content.encode('utf-8'), media_type=media_type)
 
         try:
-            status_code, response_headers, body = await run_in_threadpool(self.stream_binary_via_cffi, url, headers, cookie_str)
+            status_code, response_headers, body = await run_in_threadpool(self._stream_binary_via_cffi, url, headers, cookie_str)
         except Exception as exc:
             status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
             logger.warning("代理视频流失败: %s %s", status_code, url)

@@ -28,7 +28,7 @@ class Telegram(Base):
 大小：{video.size}
 消息: <tg-spoiler>{video.message}</tg-spoiler>
 '''
-        picture = ResourceService.get_image_bytes(video.cover, 'cover')
+        picture = ResourceService.fetch_image_bytes(video.cover, 'cover')
         _, ext_name = os.path.splitext(video.cover)
         self.send(content, picture=picture, picture_name=f'cover{ext_name}')
 
@@ -48,7 +48,7 @@ class Telegram(Base):
 日期：{subscribe.publish_date}
 标签：<tg-spoiler>{', '.join(tags)}</tg-spoiler>
         '''
-        picture = ResourceService.get_image_bytes(subscribe.cover, 'cover')
+        picture = ResourceService.fetch_image_bytes(subscribe.cover, 'cover')
         _, ext_name = os.path.splitext(subscribe.cover)
         self.send(content, picture=picture, picture_name=f'cover{ext_name}')
 
