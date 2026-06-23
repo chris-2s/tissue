@@ -8,6 +8,7 @@ import "yet-another-react-lightbox/plugins/counter.css";
 import {Counter, Zoom} from "yet-another-react-lightbox/plugins";
 import Video from "yet-another-react-lightbox/plugins/video";
 import type {VideoPreviewItem} from "../../../../types/video";
+import {IMAGE_TYPES} from "../../../../constants/image";
 
 function Preview(props: { data: VideoPreviewItem[] }) {
     const {data} = props;
@@ -18,7 +19,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
         item.type === "video" ? (
             {
                 type: "video" as const,
-                poster: api.getVideoCover(item.thumb || ''),
+                poster: api.getImageUrl(item.thumb || '', IMAGE_TYPES.COVER),
                 sources: [
                     {
                         src: api.getVideoTrailer(item.url || ''),
@@ -28,7 +29,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
             }
         ) : (
             {
-                src: api.getVideoCover(item.url || '')
+                src: api.getImageUrl(item.url || '', IMAGE_TYPES.COVER)
             }
         )
     ));

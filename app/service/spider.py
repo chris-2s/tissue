@@ -2,7 +2,6 @@ import asyncio
 import traceback
 from datetime import datetime
 from typing import Type
-from urllib.parse import urlparse
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -14,7 +13,6 @@ from app.schema import SiteCapabilities, SpiderKey, VideoDetail
 from app.schema.actor import Actor, ActorPage, ImageInfo
 from app.schema.home import SiteVideo
 from app.service.base import BaseService
-from app.utils import cache
 from app.utils.logger import logger
 from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
 from app.utils.spider.spider import Spider
@@ -88,24 +86,6 @@ class SpiderService(BaseService):
         if not site:
             return None
         return self.build_spider(site, include_cookies=include_cookies)
-
-    @staticmethod
-    def get_video_cover(url: str):
-        component = urlparse(url)
-
-        cached = cache.get_cache_file('cover', url)
-        if cached is not None:
-            return cached
-
-        match component.hostname:
-            case 'c0.jdbstatic.com':
-                response = JavDBSpider.get_cover(url)
-            case _:
-                response = Spider.get_cover(url)
-
-        if response:
-            cache.cache_file('cover', url, response)
-        return response
 
     def _merge_video_info(self, metas: list[VideoDetail]) -> VideoDetail:
         meta = metas[0]

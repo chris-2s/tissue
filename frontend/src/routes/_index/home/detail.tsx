@@ -27,7 +27,8 @@ import * as homeApi from "../../../apis/home";
 import * as subscribeApi from "../../../apis/subscribe";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
-import VideoCover from "../../../components/VideoCover";
+import RemoteImage from "../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../constants/image";
 import Websites from "../../../components/Websites";
 import type {Dispatch} from "../../../models";
 import type {VideoDetail, VideoDownload} from "../../../types/video";
@@ -253,7 +254,7 @@ function Detail() {
             <Col span={24} lg={8} md={12}>
                 <Card>
                     <div className={'my-4 rounded-lg overflow-hidden'}>
-                        <VideoCover src={video.cover} num={video.num}/>
+                        <RemoteImage src={video.cover} num={video.num} imageType={IMAGE_TYPES.COVER}/>
                     </div>
                     <div className={'text-center'}>
                         <Tooltip title={'添加订阅'}>

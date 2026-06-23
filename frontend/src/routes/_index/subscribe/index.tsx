@@ -5,7 +5,8 @@ import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./-components/modifyModal.tsx";
 import {HistoryOutlined, PlusOutlined, SearchOutlined} from "@ant-design/icons";
-import VideoCover from "../../../components/VideoCover";
+import RemoteImage from "../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../constants/image";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import {useFormModal} from "../../../utils/useFormModal.ts";
@@ -84,7 +85,7 @@ function Subscribe() {
                     <Col key={subscribe.id} span={24} md={12} lg={6}>
                         <Card hoverable
                               size={"small"}
-                              cover={(<VideoCover src={subscribe.cover} num={subscribe.num}/>)}
+                              cover={(<RemoteImage src={subscribe.cover} num={subscribe.num} imageType={IMAGE_TYPES.COVER}/>)}
                               onClick={() => setOpen(true, subscribe)}
                         >
                             <Card.Meta title={subscribe.title || subscribe.num}

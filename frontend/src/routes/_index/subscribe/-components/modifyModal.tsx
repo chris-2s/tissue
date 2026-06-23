@@ -3,7 +3,7 @@ import * as api from "../../../../apis/video";
 import {useRequest} from "ahooks";
 import React from "react";
 import {FormModalProps} from "../../../../utils/useFormModal.ts";
-import VideoCoverEditor from "../../../../components/VideoCover/editor.tsx";
+import RemoteImageEditor from "../../../../components/RemoteImage/editor.tsx";
 import DatePicker from "../../../../components/DatePicker";
 
 interface Props extends FormModalProps {
@@ -57,7 +57,7 @@ function ModifyModal(props: Props) {
                 <Row gutter={[15, 15]}>
                     <Col span={24} md={11} lg={11}>
                         <Form.Item noStyle name={'cover'}>
-                            <VideoCoverEditor disabled={true}/>
+                            <RemoteImageEditor disabled={true}/>
                         </Form.Item>
                     </Col>
                     <Col span={24} md={13} lg={13}>

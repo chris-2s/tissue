@@ -47,7 +47,7 @@ function VideoActors(props: Props) {
                         <Tooltip title={actor?.name} key={actor.name}>
                             <Avatar style={{cursor: 'pointer'}}
                                     size={"large"}
-                                    src={actor?.thumb && api.getVideoCover(actor.thumb)}
+                                    src={actor?.thumb && api.getImageUrl(actor.thumb, 'avatar')}
                                     onClick={() => {
                                         setEditMode('edit')
                                         setSelected(index)

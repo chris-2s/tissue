@@ -10,7 +10,7 @@ from app.schema import Setting
 from app.service.actor_favorite import ActorFavoriteService
 from app.service.cookiecloud import CookieCloudService
 from app.service.download import DownloadService
-from app.service.job import clean_cache
+from app.service.resource import ResourceService
 from app.service.site import SiteService
 from app.service.subscribe import SubscribeService
 from app.utils.logger import logger
@@ -46,10 +46,10 @@ class Scheduler:
                                         name='删除已整理下载',
                                         job=DownloadService.job_delete_complete_download,
                                         interval=5),
-        'clean_cache': Job(key='clean_cache',
-                           name='清理缓存',
-                           job=clean_cache,
-                           interval=7 * 24 * 60),
+        'clean_image_cache': Job(key='clean_image_cache',
+                                 name='清理图片缓存',
+                                 job=ResourceService.job_clean_cache,
+                                 interval=12 * 60, jitter=60),
         'refresh_available_sites': Job(key='refresh_available_sites',
                                        name='刷新可用站点',
                                        job=SiteService.job_testing_sites,
@@ -75,7 +75,7 @@ class Scheduler:
 
         self.add('subscribe')
         self.add('actor_favorite_thumb_update')
-        self.add('clean_cache')
+        self.add('clean_image_cache')
         self.add('refresh_available_sites')
 
         setting = Setting()

@@ -1,6 +1,7 @@
 import React from "react";
 import {Badge, Rate, theme, Tooltip} from "antd";
-import VideoCover from "../../../../components/VideoCover";
+import RemoteImage from "../../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../../constants/image";
 import {SearchOutlined} from "@ant-design/icons";
 import {useRouter} from "@tanstack/react-router";
 import type {SiteVideo} from "../../../../types/video";
@@ -18,7 +19,7 @@ function VideoItem(props: { item: SiteVideo }) {
             <div className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0"
                  style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}>
                 <div>
-                    <VideoCover src={item.cover} num={item.num}/>
+                    <RemoteImage src={item.cover} num={item.num} imageType={IMAGE_TYPES.COVER}/>
                 </div>
                 <div className={'p-3'}>
                     <div className={'text-nowrap overflow-y-scroll'} style={{

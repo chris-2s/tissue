@@ -7,7 +7,8 @@ import {useRequest} from "ahooks";
 import * as actorApi from "../../../apis/actor.ts";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
-import VideoCover from "../../../components/VideoCover";
+import RemoteImage from "../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../constants/image";
 
 const {Paragraph, Text} = Typography;
 
@@ -89,11 +90,12 @@ function ActorFavoritePage() {
                         >
                             <div className={'flex gap-3'}>
                                 <div className={'h-[72px] w-[72px] bg-black/5'}>
-                                    <VideoCover
+                                    <RemoteImage
                                         className={'h-full w-full'}
                                         src={favorite.actor.thumb}
                                         num={favorite.actor_code}
                                         avatar
+                                        imageType={IMAGE_TYPES.AVATAR}
                                     />
                                 </div>
                                 <div className={'min-w-0 flex-1'}>

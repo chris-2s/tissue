@@ -6,7 +6,8 @@ import * as actorApi from "../../../apis/actor.ts";
 import {createFileRoute, type ErrorComponentProps, useNavigate, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
-import VideoCover from "../../../components/VideoCover";
+import RemoteImage from "../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../constants/image";
 import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {Dispatch} from "../../../models";
@@ -143,11 +144,12 @@ function Actor() {
                     <Space size={16} align={'start'}>
                         {actor.thumb ? (
                             <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} bg-black/5`}>
-                                <VideoCover
+                                <RemoteImage
                                     className={'h-full w-full'}
                                     src={actor.thumb}
                                     num={actor.code}
                                     avatar
+                                    imageType={IMAGE_TYPES.AVATAR}
                                 />
                             </div>
                         ) : (

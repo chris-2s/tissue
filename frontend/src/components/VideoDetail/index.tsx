@@ -17,7 +17,7 @@ import {useRequest} from "ahooks";
 import Styles from "./index.module.css";
 import Websites from "../Websites";
 import VideoActors from "../VideoActors";
-import VideoCoverEditor from "../VideoCover/editor.tsx";
+import RemoteImageEditor from "../RemoteImage/editor.tsx";
 import {ManualTransModeOptions} from "../../utils/constants.ts";
 
 
@@ -127,7 +127,7 @@ function VideoDetail(props: Props) {
                     <Row gutter={[30, 15]}>
                         <Col span={24} md={10} lg={10}>
                             <Form.Item noStyle name={'cover'}>
-                                <VideoCoverEditor/>
+                                <RemoteImageEditor/>
                             </Form.Item>
                             <br/>
                             <Form.Item label={'演员'} name={'actors'}>

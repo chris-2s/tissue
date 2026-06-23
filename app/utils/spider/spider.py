@@ -172,7 +172,7 @@ class Spider:
         return []
 
     @classmethod
-    def get_cover(cls, url: str):
+    def fetch_cover(cls, url: str) -> tuple[int | None, bytes | None, str | None]:
         referer: str
         if cls.origin_host is not None:
             referer = cls.origin_host
@@ -180,15 +180,25 @@ class Spider:
             uri = urllib3.util.parse_url(url)
             scheme = uri.scheme or 'https'
             referer = f'{scheme}://{uri.host}/' if uri.host else url
-        response = curl_requests.get(
-            url,
-            headers={'Referer': referer},
-            timeout=cls._get_timeout_seconds(),
-            impersonate=DEFAULT_IMPERSONATE,
-        )
-        if response.ok:
-            return response.content
-        return None
+        response = None
+        try:
+            response = curl_requests.get(
+                url,
+                headers={'Referer': referer},
+                timeout=cls._get_timeout_seconds(),
+                impersonate=DEFAULT_IMPERSONATE,
+            )
+            if response.ok:
+                content_type = response.headers.get('content-type')
+                if content_type:
+                    content_type = content_type.split(';', 1)[0].strip()
+                return response.status_code, response.content, content_type
+            return response.status_code, None, None
+        except Exception:
+            return None, None, None
+        finally:
+            if response is not None:
+                response.close()
 
     def testing(self) -> bool:
         try:

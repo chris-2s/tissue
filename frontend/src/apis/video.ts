@@ -1,5 +1,6 @@
 import {request} from "../utils/requests";
 import configs from "../configs";
+import type {ImageType} from "../constants/image";
 
 export async function getVideos(force: boolean = false) {
     const response = await request.request({
@@ -28,8 +29,8 @@ export async function parseVideoNum(path: string) {
     return response.data.data
 }
 
-export function getVideoCover(url: string) {
-    return configs.BASE_API + '/common/cover?url=' + encodeURIComponent(url)
+export function getImageUrl(url: string, imageType: ImageType) {
+    return configs.BASE_API + '/common/image?url=' + encodeURIComponent(url) + '&image_type=' + encodeURIComponent(imageType)
 }
 
 export function getVideoTrailer(url: string) {

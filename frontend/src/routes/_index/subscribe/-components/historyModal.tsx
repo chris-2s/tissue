@@ -1,5 +1,6 @@
 import {Button, List, message, Modal, ModalProps, Space, Tooltip} from "antd";
-import VideoCover from "../../../../components/VideoCover";
+import RemoteImage from "../../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../../constants/image";
 import React, {useEffect} from "react";
 import {useRequest} from "ahooks";
 import * as api from "../../../../apis/subscribe";
@@ -52,7 +53,7 @@ function HistoryModal(props: Props) {
                               <List.Item.Meta
                                   avatar={(
                                       <div className={'w-24'}>
-                                          <VideoCover src={item.cover}/>
+                                          <RemoteImage src={item.cover} imageType={IMAGE_TYPES.COVER}/>
                                       </div>
                                   )}
                                   title={(

@@ -2,7 +2,8 @@ import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useRequest} from "ahooks";
 import * as api from "../../../apis/video";
 import {Card, Col, Empty, FloatButton, Row, Space, Tag, Tooltip} from "antd";
-import VideoCover from "../../../components/VideoCover";
+import RemoteImage from "../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../constants/image";
 import React, {useMemo, useState} from "react";
 import {FilterOutlined, LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import VideoFilterModal, {FilterParams} from "./-components/filter.tsx";
@@ -102,7 +103,7 @@ function Video() {
                     <Col key={video.path} span={24} md={12} lg={6}>
                         <Card hoverable
                               size={"small"}
-                              cover={(<VideoCover src={video.cover}/>)}
+                              cover={(<RemoteImage src={video.cover} imageType={IMAGE_TYPES.COVER}/>)}
                               onClick={() => setSelected(video.path)}
                         >
                             <Card.Meta title={video.title}

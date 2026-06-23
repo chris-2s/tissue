@@ -1,6 +1,7 @@
 import {Badge, Rate, Space, Tag, theme} from "antd";
 import React from "react";
-import VideoCover from "../../../../components/VideoCover";
+import RemoteImage from "../../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../../constants/image";
 import type {VideoCandidate} from "./types";
 
 interface VideoResultCardProps {
@@ -19,7 +20,7 @@ function VideoResultCard(props: VideoResultCardProps) {
             onClick={onClick}
         >
             <div>
-                <VideoCover src={item.cover} num={item.num}/>
+                <RemoteImage src={item.cover} num={item.num} imageType={IMAGE_TYPES.COVER}/>
             </div>
             <div className={'p-3'}>
                 <div className={'text-nowrap overflow-y-scroll'} style={{

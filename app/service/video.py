@@ -13,6 +13,7 @@ from app.db.models import History
 from app.exception import BizException
 from app.schema import VideoList, VideoDetail, Setting, VideoNotify
 from app.service.base import BaseService
+from app.service.resource import ResourceService
 from app.service.spider import SpiderService
 from app.utils import nfo, spider, num_parser, cache, notify
 from app.utils.image import save_images
@@ -85,11 +86,6 @@ class VideoService(BaseService):
         video = SpiderService(self.db).get_video_info(num)
         if not video:
             raise BizException("未找到该番号")
-
-        cache.clean_cache_file('cover', video.cover)
-        for actor in video.actors:
-            cache.clean_cache_file('cover', actor.thumb)
-
         return video
 
     def save_video(self, video: VideoDetail,
@@ -158,8 +154,11 @@ class VideoService(BaseService):
 
         if video.cover:
             logger.info(f"生成封面及水印图片")
-            cover_data = SpiderService.get_video_cover(video.cover)
-            save_images(video, video_path, cover_data)
+            cover_result = ResourceService.get_cached_image(video.cover, 'cover')
+            if cover_result.file_path and os.path.exists(cover_result.file_path):
+                with open(cover_result.file_path, 'rb') as file:
+                    cover_data = file.read()
+                save_images(video, video_path, cover_data)
 
         logger.info(f"生成NFO文件")
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)

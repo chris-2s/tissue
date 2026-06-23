@@ -1,5 +1,5 @@
 import Styles from "./editor.module.css";
-import VideoCover from "./index";
+import RemoteImage from "./index";
 import React, {useEffect, useState} from "react";
 import {EditOutlined} from "@ant-design/icons";
 import {Input, Modal, theme} from "antd";
@@ -12,7 +12,7 @@ interface Props {
 
 const {useToken} = theme
 
-function VideoCoverEditor(props: Props) {
+function RemoteImageEditor(props: Props) {
 
     const {token} = useToken()
     const {value, disabled = false, onChange} = props
@@ -25,7 +25,7 @@ function VideoCoverEditor(props: Props) {
 
     return (
         <div style={{position: 'relative', borderRadius: 8, overflow: 'hidden'}}>
-            <VideoCover src={value}/>
+            <RemoteImage src={value} imageType={'cover'}/>
             {!disabled && (
                 <div className={Styles.cover} onClick={() => setModalVisible(true)}>
                     <EditOutlined style={{fontSize: token.sizeMD, color: token.colorWhite}}/>
@@ -45,4 +45,4 @@ function VideoCoverEditor(props: Props) {
     )
 }
 
-export default VideoCoverEditor
+export default RemoteImageEditor

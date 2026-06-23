@@ -1,7 +1,8 @@
 import {Avatar, List, Tag} from "antd";
 import {UserOutlined} from "@ant-design/icons";
 import React from "react";
-import VideoCover from "../../../../components/VideoCover";
+import RemoteImage from "../../../../components/RemoteImage";
+import {IMAGE_TYPES} from "../../../../constants/image";
 import type {ActorCandidate} from "./types";
 
 interface ActorResultItemProps {
@@ -17,7 +18,7 @@ function ActorResultItem(props: ActorResultItemProps) {
             <List.Item.Meta
                 avatar={item.thumb ? (
                     <div className={'h-14 w-14 bg-black/5'}>
-                        <VideoCover className={'h-full w-full'} src={item.thumb} num={item.code} avatar/>
+                        <RemoteImage className={'h-full w-full'} src={item.thumb} num={item.code} avatar imageType={IMAGE_TYPES.AVATAR}/>
                     </div>
                 ) : (
                     <Avatar size={56} icon={<UserOutlined/>}>
