@@ -306,11 +306,8 @@ class JavDBSpider(Spider):
             ranking.url = urljoin(self.host, video.get('href'))
 
             tag_str = video.xpath('./div[contains(@class, "tags")]/span/text()')
-            zh_result, _ = detect_flags_with_tag_priority(
-                texts=[('title', ranking.title), ('num', ranking.num)],
-                tags=tag_str,
-            )
-            ranking.isZh = zh_result.value
+            if tag_str:
+                ranking.isZh = ('中字' in tag_str[0])
 
             ranking.source = self.source_ref()
             result.append(ranking)

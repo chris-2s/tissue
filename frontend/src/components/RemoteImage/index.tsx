@@ -1,5 +1,5 @@
 import React, {HTMLProps, useMemo} from "react";
-import {Empty, Tag, Tooltip} from "antd";
+import {Avatar, Empty, Tag, Tooltip} from "antd";
 import Styles from "./index.module.css";
 
 import * as api from "../../apis/video";
@@ -7,7 +7,7 @@ import type {ImageType} from "../../constants/image";
 import {useSelector} from "react-redux";
 import {RootState} from "../../models";
 import {LazyLoadImage} from "react-lazy-load-image-component";
-import {UnorderedListOutlined} from "@ant-design/icons";
+import {UnorderedListOutlined, UserOutlined} from "@ant-design/icons";
 
 interface Props extends HTMLProps<any> {
     num?: string
@@ -33,6 +33,14 @@ function RemoteImage(props: Props) {
             {(src && goodBoy) && <div className={Styles.blur}/>}
             {src ? (
                 <LazyLoadImage className={avatar ? 'h-full w-full object-cover' : 'object-contain'} src={api.getImageUrl(src, imageType)}/>
+            ) : avatar ? (
+                <div className={'flex justify-center items-center bg-black/5'}>
+                    <Avatar
+                        icon={<UserOutlined/>}
+                        size={'large'}
+                        style={{width: '100%', height: '100%'}}
+                    />
+                </div>
             ) : (
                 <div className={'flex justify-center items-center'}>
                     <Empty description={'暂无图片'}/>

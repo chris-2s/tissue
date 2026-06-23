@@ -1,5 +1,5 @@
-import {Avatar, Button, Card, Col, Empty, Pagination, Row, Space, Tag, Tooltip, Typography, message} from "antd";
-import {HeartFilled, HeartOutlined, UserOutlined} from "@ant-design/icons";
+import {Button, Card, Col, Empty, Pagination, Row, Space, Tag, Tooltip, Typography, message} from "antd";
+import {HeartFilled, HeartOutlined} from "@ant-design/icons";
 import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect, useState} from "react";
 import * as actorApi from "../../../apis/actor.ts";
@@ -142,19 +142,15 @@ function Actor() {
             <Card className={'mb-4'}>
                 <div className={'flex flex-col gap-4 md:flex-row md:items-center md:justify-between'}>
                     <Space size={16} align={'start'}>
-                        {actor.thumb ? (
-                            <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} bg-black/5`}>
-                                <RemoteImage
-                                    className={'h-full w-full'}
-                                    src={actor.thumb}
-                                    num={actor.code}
-                                    avatar
-                                    imageType={IMAGE_TYPES.AVATAR}
-                                />
-                            </div>
-                        ) : (
-                            <Avatar size={responsive.md ? 88 : 72} icon={<UserOutlined/>}/>
-                        )}
+                        <div className={`${responsive.md ? 'h-[88px] w-[88px]' : 'h-[72px] w-[72px]'} bg-black/5`}>
+                            <RemoteImage
+                                className={'h-full w-full'}
+                                src={actor.thumb}
+                                num={actor.code}
+                                avatar
+                                imageType={IMAGE_TYPES.AVATAR}
+                            />
+                        </div>
                         <div>
                             <Space wrap size={[8, 8]}>
                                 <Title level={4} className={'!mb-0'}>

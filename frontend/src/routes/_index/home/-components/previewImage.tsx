@@ -1,11 +1,11 @@
 import React from "react";
-import * as api from "../../../../apis/video.ts";
 import Styles from "./previewImage.module.css";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../models";
 import {PlayCircleTwoTone} from "@ant-design/icons";
 import {theme} from "antd";
 import {IMAGE_TYPES} from "../../../../constants/image";
+import RemoteImage from "../../../../components/RemoteImage";
 
 const {useToken} = theme;
 
@@ -27,8 +27,11 @@ function PreviewImage(props: Props) {
                     <PlayCircleTwoTone style={{color: token.colorPrimary}} className={'text-4xl'}/>
                 </div>
             )}
-            <img className={'w-full h-auto align-bottom object-contain'} style={{maxHeight: 80}} src={api.getImageUrl(src, IMAGE_TYPES.COVER)}
-                 alt=""/>
+            <RemoteImage
+                className={'h-full w-full'}
+                src={src}
+                imageType={IMAGE_TYPES.COVER}
+            />
         </div>
     );
 }

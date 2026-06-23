@@ -1,7 +1,8 @@
 import {Avatar, message, Tooltip} from "antd";
-import * as api from "../../apis/video";
 import React, {useState} from "react";
 import ModifyModal from "./modifyModal";
+import RemoteImage from "../RemoteImage";
+import {IMAGE_TYPES} from "../../constants/image";
 
 interface Actor {
     name: string
@@ -45,14 +46,20 @@ function VideoActors(props: Props) {
                 <Avatar.Group maxCount={8}>
                     {value?.map((actor: any, index: number) => (
                         <Tooltip title={actor?.name} key={actor.name}>
-                            <Avatar style={{cursor: 'pointer'}}
-                                    size={"large"}
-                                    src={actor?.thumb && api.getImageUrl(actor.thumb, 'avatar')}
-                                    onClick={() => {
-                                        setEditMode('edit')
-                                        setSelected(index)
-                                    }}
-                            />
+                            <div
+                                className={'h-10 w-10 cursor-pointer'}
+                                onClick={() => {
+                                    setEditMode('edit')
+                                    setSelected(index)
+                                }}
+                            >
+                                <RemoteImage
+                                    className={'h-full w-full'}
+                                    src={actor?.thumb}
+                                    avatar
+                                    imageType={IMAGE_TYPES.AVATAR}
+                                />
+                            </div>
                         </Tooltip>
                     ))}
                     <Tooltip title={'新增'}>
