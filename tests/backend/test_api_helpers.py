@@ -1,25 +1,13 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from app.api.common import build_proxy_headers, get_versions
-from app.api.home import _build_log_event, _format_sse, _read_last_lines
+from app.api.common import get_versions
+from app.utils.log_stream import build_log_event, format_sse, read_last_lines
 from version import APP_VERSION
 
 
-def test_build_proxy_headers_uses_request_values_and_fallback_referer():
-    request = SimpleNamespace(headers={"Range": "bytes=0-1", "User-Agent": "UA"})
-
-    headers = build_proxy_headers(request, "https://example.com/video.mp4")
-
-    assert headers == {
-        "Range": "bytes=0-1",
-        "User-Agent": "UA",
-        "Referer": "https://example.com/",
-    }
-
-
 def test_build_log_event_extracts_structured_fields():
-    event = _build_log_event("【INFO】2026-06-21 12:00:00 - spider - started")
+    event = build_log_event("【INFO】2026-06-21 12:00:00 - spider - started")
 
     assert event == {
         "raw": "【INFO】2026-06-21 12:00:00 - spider - started",
@@ -31,7 +19,7 @@ def test_build_log_event_extracts_structured_fields():
 
 
 def test_build_log_event_falls_back_for_unstructured_line():
-    event = _build_log_event("plain log line")
+    event = build_log_event("plain log line")
 
     assert event["level"] == "INFO"
     assert event["content"] == "plain log line"
@@ -40,14 +28,14 @@ def test_build_log_event_falls_back_for_unstructured_line():
 def test_format_sse_outputs_json_event():
     payload = {"level": "INFO", "content": "ok"}
 
-    assert _format_sse(payload) == 'data: {"level": "INFO", "content": "ok"}\n\n'
+    assert format_sse(payload) == 'data: {"level": "INFO", "content": "ok"}\n\n'
 
 
 def test_read_last_lines_returns_requested_tail(tmp_path: Path):
     log_path = tmp_path / "app.log"
     log_path.write_text("1\n2\n3\n4\n", encoding="utf-8")
 
-    assert _read_last_lines(log_path, 2) == ["3\n", "4\n"]
+    assert read_last_lines(log_path, 2) == ["3\n", "4\n"]
 
 
 def test_get_versions_uses_remote_version_when_regex_matches(monkeypatch):

@@ -1,8 +1,5 @@
 import asyncio
-import json
 import os
-import re
-from collections import deque
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request
@@ -12,40 +9,9 @@ from app import schema
 from app.schema.home import SiteVideo
 from app.schema.r import R
 from app.service.spider import get_spider_service
+from app.utils.log_stream import build_log_event, format_sse, read_last_lines
 
 router = APIRouter()
-LOG_LINE_RE = re.compile(
-    r"^【(?P<level>[^】]+)】(?P<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:,\d{3})?) - (?P<module>.+?) - (?P<content>.*)$"
-)
-
-
-def _build_log_event(line: str) -> dict[str, str]:
-    content = line.rstrip('\r\n')
-    matched = LOG_LINE_RE.match(content)
-    if not matched:
-        return {
-            "raw": content,
-            "level": "INFO",
-            "time": "",
-            "module": "",
-            "content": content,
-        }
-    return {
-        "raw": content,
-        "level": matched.group("level"),
-        "time": matched.group("time"),
-        "module": matched.group("module"),
-        "content": matched.group("content"),
-    }
-
-
-def _format_sse(data: dict[str, str]) -> str:
-    return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-
-def _read_last_lines(path: Path, limit: int) -> list[str]:
-    with open(path, 'r', encoding='utf-8', errors='replace') as log_file:
-        return list(deque(log_file, maxlen=limit))
 
 
 @router.get('/ranking')
@@ -68,8 +34,8 @@ async def get_logs(request: Request):
 
     async def log_generator():
         if log_path.exists():
-            for line in _read_last_lines(log_path, 50):
-                yield _format_sse(_build_log_event(line))
+            for line in read_last_lines(log_path, 50):
+                yield format_sse(build_log_event(line))
 
         log_file = None
         last_stat: os.stat_result | None = None
@@ -107,7 +73,7 @@ async def get_logs(request: Request):
 
                 line = log_file.readline()
                 if line:
-                    yield _format_sse(_build_log_event(line))
+                    yield format_sse(build_log_event(line))
                     last_heartbeat = asyncio.get_running_loop().time()
                     continue
 
