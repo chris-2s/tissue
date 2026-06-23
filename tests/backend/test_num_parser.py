@@ -22,6 +22,7 @@ def test_parse_num_supported_cases(name: str, expected_num: str):
     ('name', 'expected_flags'),
     [
         ('MIDV-639-UC', (True, True)),
+        ('WSA-001-UC', (True, True)),
         ('MIDV-639CH', (True, False)),
         ('MVSD-598-uncensored-HD', (False, True)),
     ],
@@ -55,6 +56,7 @@ def test_parse_prefers_cleaner_parent_candidate_when_basename_is_polluted():
     ('path', 'expected_num', 'expected_zh', 'expected_uncensored'),
     [
         ('/videos/midv-639ch.mp4', 'MIDV-639', True, False),
+        ('/videos/WSA-001-UC.mp4', 'WSA-001', True, True),
         ('/downloads/SONE-157-UC/SONE-157-UC.mp4', 'SONE-157', True, True),
         ('/downloads/MIDV- 653- UC/MIDV- 653- UC.mp4', 'MIDV-653', True, True),
         ('/downloads/abf-357ch/4k2.meabf-357ch.mp4', 'ABF-357', True, False),
@@ -88,13 +90,13 @@ def test_detect_flags_prefers_tag_match_over_filename_guess():
     assert uncensored_result.value is True
 
 
-def test_detect_flags_uses_tag_priority_only_for_zh():
+def test_detect_flags_falls_back_to_filename_when_tag_has_no_signal():
     zh_result, uncensored_result = detect_flags_with_tag_priority(
         texts=[('download_name', 'IPX-001-UC')],
         tags=['高清'],
     )
 
-    assert zh_result.value is False
+    assert zh_result.value is True
     assert uncensored_result.value is True
 
 

@@ -35,7 +35,7 @@ NUM_PATTERNS: list[tuple[str, re.Pattern[str], float]] = [
 ZH_SUFFIX_SCORES = {
     'C': 0.9,
     'CH': 0.9,
-    'UC': 0.7,
+    'UC': 1.0,
 }
 
 UNCENSORED_SUFFIX_SCORES = {
