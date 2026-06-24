@@ -1,5 +1,5 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Card, Col, Empty, FloatButton, Input, message, Row, Space, Tag, Tooltip} from "antd";
+import {Card, Col, Empty, FloatButton, message, Row, Space, Tag, Tooltip} from "antd";
 import React, {useMemo, useState} from "react";
 import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
@@ -13,6 +13,8 @@ import {useFormModal} from "../../../utils/useFormModal.ts";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
 import HistoryModal from "./-components/historyModal.tsx";
 import PageFloatButtons from "../../../components/PageFloatButtons";
+import FilterPanel from "./-components/filterPanel.tsx";
+import type {SubscribeFilterValue} from "./-components/filterPanel.utils.ts";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -33,7 +35,7 @@ function Subscribe() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(subscribesQueryOptions())
-    const [filter, setFilter] = useState<string>()
+    const [filters, setFilters] = useState<SubscribeFilterValue>({tokens: []})
     const {setOpen, modalProps} = useFormModal({
         service: api.modifySubscribe,
         onOk: () => {
@@ -59,9 +61,23 @@ function Subscribe() {
         }
     })
 
-    const subscribes = data.filter((item: any) => {
-        if (!filter) return true
-        return item.title.toUpperCase().includes(filter.toUpperCase()) || item.num.toUpperCase().includes(filter.toUpperCase())
+    const subscribes = data.filter((item: api.Subscribe) => {
+        return filters.tokens.every((token) => {
+            const keyword = token.value.trim().toUpperCase()
+            if (!keyword) {
+                return true
+            }
+
+            if (token.kind === "num") {
+                return (item.num || "").trim().toUpperCase().includes(keyword)
+            }
+
+            if (token.kind === "actor") {
+                return (item.actors || "").trim().toUpperCase().includes(keyword)
+            }
+
+            return (item.title || "").trim().toUpperCase().includes(keyword)
+        })
     })
 
     let content: React.ReactNode;
@@ -132,14 +148,13 @@ function Subscribe() {
 
     return (
         <div>
-            <Row>
-                <Col span={24} lg={{
-                    span: 6,
-                    offset: 18,
-                }}>
-                    <Input.Search allowClear enterButton style={{marginBottom: 15}} onSearch={setFilter}/>
-                </Col>
-            </Row>
+            <FilterPanel
+                subscribes={data}
+                total={data.length}
+                filteredTotal={subscribes.length}
+                value={filters}
+                onChange={setFilters}
+            />
             {content}
             <PageFloatButtons>{floatButtons}</PageFloatButtons>
             <ModifyModal width={1100}

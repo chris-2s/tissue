@@ -33,6 +33,7 @@ def get_basic(video: str, include_actor: bool = False):
         cover = root.find('cover')
         fanart = root.find('fanart')
         num = root.find('num')
+        rating = root.find('rating')
         extra = root.find('extra')
         is_zh = (extra.get('is_zh') == '1') if extra is not None else False
         is_uncensored = (extra.get('is_uncensored') == '1') if extra is not None else False
@@ -49,9 +50,18 @@ def get_basic(video: str, include_actor: bool = False):
                 video_actors.append(video_actor)
 
         fanart_value = fanart.text if fanart is not None else None
-        nfo = VideoList(path=video, title=title.text, num=num.text, cover=cover.text if cover is not None else None,
-                        fanart=fanart_value, fanart_path=resolve_asset_path(path, fanart_value), is_zh=is_zh,
-                        is_uncensored=is_uncensored, actors=video_actors)
+        nfo = VideoList(
+            path=video,
+            title=title.text,
+            num=num.text if num is not None else None,
+            rating=rating.text if rating is not None else None,
+            cover=cover.text if cover is not None else None,
+            fanart=fanart_value,
+            fanart_path=resolve_asset_path(path, fanart_value),
+            is_zh=is_zh,
+            is_uncensored=is_uncensored,
+            actors=video_actors,
+        )
         return nfo
     except Exception:
         logger.warning(f'{video} NFO文件读取失败')

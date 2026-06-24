@@ -1,18 +1,32 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useRequest} from "ahooks";
 import * as api from "../../../apis/video";
-import {Card, Col, Empty, FloatButton, Row, Space, Tag, Tooltip} from "antd";
+import {
+    Card,
+    Col,
+    Empty,
+    FloatButton,
+    Row,
+    Space,
+    Tag,
+    Tooltip,
+} from "antd";
 import RemoteImage from "../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../constants/image";
 import React, {useMemo, useState} from "react";
-import {FilterOutlined, LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
-import VideoFilterModal, {FilterParams} from "./-components/filter.tsx";
+import {LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
 import PageFloatButtons from "../../../components/PageFloatButtons";
 import type {VideoDetail as VideoItem} from "../../../types/video";
+import FilterPanel from "./-components/filterPanel.tsx";
+import {
+    formatRating,
+    getVideoRatingValue,
+    type VideoFilterValue,
+} from "./-components/filterPanel.utils.ts";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
@@ -33,8 +47,12 @@ function Video() {
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(videosQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
-    const [filterOpen, setFilterOpen] = useState(false)
-    const [filterParams, setFilterParams] = useState<FilterParams>({})
+    const [filters, setFilters] = useState<VideoFilterValue>({
+        tokens: [],
+        isZh: false,
+        isUncensored: false,
+        minRating: null,
+    })
     const {navigate} = useRouter()
     const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
         manual: true,
@@ -43,45 +61,50 @@ function Video() {
         }
     })
 
-    const actors = useMemo(() => {
-        const actors: any[] = []
-        data.forEach((video: any) => {
-            video.actors.forEach((actor: any) => {
-                const exist = actors.find(i => i.name == actor.name)
-                if (exist) {
-                    exist.count = exist.count + 1
-                } else {
-                    actor.count = 1
-                    actors.push(actor)
-                }
-            })
-        })
-        return actors
-    }, [data])
-
     const videos = useMemo(() => {
-        return data.filter((item: any) => {
-            if (filterParams.title) {
-                if (!item.title.toUpperCase().includes(filterParams.title.toUpperCase())) {
+        return data.filter((video: VideoItem) => {
+            if (filters.isZh && !video.is_zh) {
+                return false
+            }
+
+            if (filters.isUncensored && !video.is_uncensored) {
+                return false
+            }
+
+            if (filters.minRating !== null) {
+                const rating = getVideoRatingValue(video)
+                if (rating === undefined || rating < filters.minRating) {
                     return false
                 }
             }
-            if (filterParams.actors?.length) {
-                return item.actors.map((i: any) => i.name).filter((i: string) => filterParams.actors?.includes(i)).length > 0
-            }
-            return true
-        })
-    }, [filterParams, data])
 
-    const hasFilter = !!filterParams.title || !!filterParams.actors?.length
+            return filters.tokens.every((token) => {
+                const keyword = token.value.trim().toUpperCase()
+                if (!keyword) {
+                    return true
+                }
+
+                if (token.kind === "num") {
+                    return (video.num || "").trim().toUpperCase().includes(keyword)
+                }
+
+                if (token.kind === "actor") {
+                    return video.actors.some((actor) => (actor.name || "").trim().toUpperCase().includes(keyword))
+                }
+
+                return (video.title || "").trim().toUpperCase().includes(keyword)
+            })
+        })
+    }, [data, filters])
+
+    const hasFilter = filters.tokens.length > 0 || filters.isZh || filters.isUncensored || filters.minRating !== null
+
     const floatButtons = useMemo(() => (
         <>
             <FloatButton icon={refreshing ? <LoadingOutlined/> : <RedoOutlined/>}
                          onClick={() => runForceRefresh()}/>
-            <FloatButton icon={<FilterOutlined/>} type={hasFilter ? 'primary' : 'default'}
-                         onClick={() => setFilterOpen(true)}/>
         </>
-    ), [hasFilter, refreshing, runForceRefresh])
+    ), [refreshing, runForceRefresh])
 
     let content: React.ReactNode;
 
@@ -112,11 +135,15 @@ function Video() {
                                            <div className={'flex'}>
                                                <div className={'flex-1 items-center overflow-x-scroll'}
                                                     style={{scrollbarWidth: 'none'}}>
-                                                   <Space size={[0, 'small']} className={'flex-1'}>
+                                                   <Space size={[0, 'small']} wrap className={'flex-1'}>
                                                        {video.is_zh && (
                                                            <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
                                                        {video.is_uncensored && (
                                                            <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                                       {getVideoRatingValue(video) !== undefined && (
+                                                           <Tag color={'gold'} variant={'filled'}>
+                                                               {formatRating(getVideoRatingValue(video)!)}
+                                                           </Tag>)}
                                                        {video.actors.map((actor: any) => (
                                                            <Tag key={actor.name} color={'purple'}
                                                                 variant={'filled'}>{actor.name}</Tag>
@@ -124,7 +151,8 @@ function Video() {
                                                    </Space>
                                                </div>
                                                <Tooltip title={'搜索'}>
-                                                   <div className={'ml-1'} onClick={() => {
+                                                   <div className={'ml-1'} onClick={(event) => {
+                                                       event.stopPropagation()
                                                        return navigate({
                                                            to: '/home/detail',
                                                            search: {num: video.num}
@@ -147,7 +175,7 @@ function Video() {
                 <Col span={24}>
                     <Card title={'视频'}>
                         <Empty
-                            description={(<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
+                            description={hasFilter ? '没有符合当前条件的影片' : (<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
                     </Card>
                 </Col>
             </Row>
@@ -156,6 +184,14 @@ function Video() {
 
     return (
         <>
+            <FilterPanel
+                videos={data}
+                total={data.length}
+                filteredTotal={videos.length}
+                value={filters}
+                onChange={setFilters}
+            />
+
             {content}
             <PageFloatButtons>{floatButtons}</PageFloatButtons>
             <VideoDetail title={'编辑'}
@@ -164,19 +200,11 @@ function Video() {
                          path={selected}
                          open={!!selected}
                          onCancel={() => setSelected(undefined)}
-                          onOk={() => {
+                         onOk={() => {
                              setSelected(undefined)
                              queryClient.invalidateQueries({queryKey: ['videos']})
                          }}
             />
-            <VideoFilterModal open={filterOpen}
-                              actors={actors}
-                              initialValues={filterParams}
-                              onCancel={() => setFilterOpen(false)}
-                              onFilter={params => {
-                                  setFilterParams(params)
-                                  setFilterOpen(false)
-                              }}/>
         </>
     )
 }

@@ -20,6 +20,7 @@ class VideoList(BaseModel):
     title: str
     path: str
     num: Optional[str] = None
+    rating: Optional[str] = None
     cover: Optional[str] = None
     fanart: Optional[str] = None
     fanart_path: Optional[str] = None
