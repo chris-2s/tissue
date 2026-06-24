@@ -12,11 +12,23 @@ from typing import Any, Literal
 cache_path = Path(f'{Path(__file__).cwd()}/config/cache')
 CACHE_LAYOUT_VERSION = '2'
 cache_version_file = cache_path / '.cache_version'
-CACHE_IMAGE_PARENTS = ('cover', 'avatar')
+CACHE_IMAGE_PARENTS = ('cover', 'avatar', 'preview')
 
-IMAGE_SUCCESS_TTL_SECONDS = 30 * 24 * 60 * 60
-IMAGE_STALE_FALLBACK_TTL_SECONDS = 60 * 60
-IMAGE_RETENTION_SECONDS = 30 * 24 * 60 * 60
+IMAGE_SUCCESS_TTL_BY_PARENT = {
+    'cover': 30 * 24 * 60 * 60,
+    'avatar': 30 * 24 * 60 * 60,
+    'preview': 7 * 24 * 60 * 60,
+}
+IMAGE_STALE_FALLBACK_TTL_BY_PARENT = {
+    'cover': 24 * 60 * 60,
+    'avatar': 7 * 24 * 60 * 60,
+    'preview': 6 * 60 * 60,
+}
+IMAGE_RETENTION_SECONDS_BY_PARENT = {
+    'cover': 30 * 24 * 60 * 60,
+    'avatar': 60 * 24 * 60 * 60,
+    'preview': 14 * 24 * 60 * 60,
+}
 NEGATIVE_TTL_BY_STATUS = {
     403: 30 * 60,
     404: 6 * 60 * 60,
@@ -147,8 +159,10 @@ def get_cache_lookup(parent: str, path: str) -> CacheLookup:
     )
 
 
-def write_success_cache(parent: str, path: str, content: bytes, content_type: str, ttl_seconds: int = IMAGE_SUCCESS_TTL_SECONDS):
+def write_success_cache(parent: str, path: str, content: bytes, content_type: str, ttl_seconds: int | None = None):
     now = int(time.time())
+    if ttl_seconds is None:
+        ttl_seconds = IMAGE_SUCCESS_TTL_BY_PARENT.get(parent, 30 * 24 * 60 * 60)
     data_path = get_cache_data_path(parent, path)
     metadata_path = get_cache_metadata_path(parent, path)
     metadata = {
@@ -188,6 +202,14 @@ def extend_cache_expiry(parent: str, path: str, ttl_seconds: int):
     now = int(time.time())
     metadata['expires_at'] = now + ttl_seconds
     _write_json_atomic(metadata_path, metadata)
+
+
+def get_stale_fallback_ttl_seconds(parent: str) -> int:
+    return IMAGE_STALE_FALLBACK_TTL_BY_PARENT.get(parent, 60 * 60)
+
+
+def get_retention_seconds(parent: str) -> int:
+    return IMAGE_RETENTION_SECONDS_BY_PARENT.get(parent, 30 * 24 * 60 * 60)
 
 
 def build_cache_etag(parent: str, path: str, metadata: dict[str, Any] | None) -> str | None:
@@ -244,7 +266,7 @@ def cleanup_expired_cache(parents: tuple[str, ...] = CACHE_IMAGE_PARENTS) -> dic
             if cache_status == 'negative':
                 should_remove = expires_at <= now
             elif cache_status == 'hit':
-                should_remove = (expires_at + IMAGE_RETENTION_SECONDS) <= now
+                should_remove = (expires_at + get_retention_seconds(parent)) <= now
             else:
                 should_remove = True
 

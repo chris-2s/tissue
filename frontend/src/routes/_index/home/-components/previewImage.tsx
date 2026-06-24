@@ -30,7 +30,7 @@ function PreviewImage(props: Props) {
             <RemoteImage
                 className={'h-full w-full'}
                 src={src}
-                imageType={IMAGE_TYPES.COVER}
+                imageType={IMAGE_TYPES.PREVIEW}
             />
         </div>
     );

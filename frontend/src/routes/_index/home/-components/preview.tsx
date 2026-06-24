@@ -25,7 +25,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
         item.type === "video" ? (
             {
                 type: "video" as const,
-                poster: api.getImageUrl(item.thumb || '', IMAGE_TYPES.COVER),
+                poster: api.getImageUrl(item.thumb || '', IMAGE_TYPES.PREVIEW),
                 sources: [
                     {
                         src: api.getVideoTrailer(item.url || ''),
@@ -35,7 +35,7 @@ function Preview(props: { data: VideoPreviewItem[] }) {
             }
         ) : (
             {
-                src: api.getImageUrl(item.url || '', IMAGE_TYPES.COVER)
+                src: api.getImageUrl(item.url || '', IMAGE_TYPES.PREVIEW)
             }
         )
     ));

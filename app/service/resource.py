@@ -20,7 +20,7 @@ from app.utils.spider import JavDBSpider
 from app.utils.spider.spider import DEFAULT_IMPERSONATE, Spider
 
 
-ImageCacheType = Literal['cover', 'avatar']
+ImageCacheType = Literal['cover', 'avatar', 'preview']
 
 
 @dataclass(slots=True)
@@ -77,7 +77,7 @@ class ResourceService(BaseService):
             )
 
         if stale_path is not None:
-            cache.extend_cache_expiry(image_type, url, cache.IMAGE_STALE_FALLBACK_TTL_SECONDS)
+            cache.extend_cache_expiry(image_type, url, cache.get_stale_fallback_ttl_seconds(image_type))
             return ImageResult(
                 file_path=stale_path,
                 media_type=stale_media_type,
