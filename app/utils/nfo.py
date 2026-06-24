@@ -12,6 +12,15 @@ def get_nfo_path_by_video(path: str):
     return file_path + ".nfo"
 
 
+def resolve_asset_path(base_path: str, asset_path: str | None):
+    if not asset_path:
+        return None
+
+    candidate = asset_path if os.path.isabs(asset_path) else os.path.join(os.path.dirname(base_path), asset_path)
+    normalized = os.path.normpath(candidate)
+    return normalized if os.path.isfile(normalized) else None
+
+
 def get_basic(video: str, include_actor: bool = False):
     path = get_nfo_path_by_video(video)
     if not os.path.exists(path):
@@ -22,6 +31,7 @@ def get_basic(video: str, include_actor: bool = False):
         root = tree.getroot()
         title = root.find('title')
         cover = root.find('cover')
+        fanart = root.find('fanart')
         num = root.find('num')
         extra = root.find('extra')
         is_zh = (extra.get('is_zh') == '1') if extra is not None else False
@@ -38,7 +48,9 @@ def get_basic(video: str, include_actor: bool = False):
                     video_actor.thumb = thumb_element.text
                 video_actors.append(video_actor)
 
-        nfo = VideoList(path=video, title=title.text, num=num.text, cover=cover.text, is_zh=is_zh,
+        fanart_value = fanart.text if fanart is not None else None
+        nfo = VideoList(path=video, title=title.text, num=num.text, cover=cover.text if cover is not None else None,
+                        fanart=fanart_value, fanart_path=resolve_asset_path(path, fanart_value), is_zh=is_zh,
                         is_uncensored=is_uncensored, actors=video_actors)
         return nfo
     except Exception:
@@ -85,6 +97,7 @@ def get_full(path: str):
             case _:
                 if hasattr(nfo, element.tag):
                     setattr(nfo, element.tag, element.text)
+    nfo.fanart_path = resolve_asset_path(path, nfo.fanart)
     return nfo
 
 

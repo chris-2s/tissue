@@ -6,63 +6,63 @@ import * as api from "../../../../apis/video.ts";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/counter.css";
 import {Counter, Zoom} from "yet-another-react-lightbox/plugins";
-import Video from "yet-another-react-lightbox/plugins/video";
 import type {VideoPreviewItem} from "../../../../types/video";
 import {IMAGE_TYPES} from "../../../../constants/image";
-
-function getTrailerSourceType(url: string) {
-    return url.toLowerCase().includes('.m3u8')
-        ? 'application/vnd.apple.mpegurl'
-        : 'video/mp4';
-}
+import TrailerPlayerModal from "./trailerPlayerModal.tsx";
 
 function Preview(props: { data: VideoPreviewItem[] }) {
     const {data} = props;
     const [openPreview, setOpenPreview] = useState(false);
     const [previewIndex, setPreviewIndex] = useState(0);
+    const [videoPreview, setVideoPreview] = useState<VideoPreviewItem>();
 
-    const slides = data.map((item) => (
-        item.type === "video" ? (
-            {
-                type: "video" as const,
-                poster: api.getImageUrl(item.thumb || '', IMAGE_TYPES.PREVIEW),
-                sources: [
-                    {
-                        src: api.getVideoTrailer(item.url || ''),
-                        type: getTrailerSourceType(item.url || ''),
-                    },
-                ],
-            }
-        ) : (
-            {
-                src: api.getImageUrl(item.url || '', IMAGE_TYPES.PREVIEW)
-            }
-        )
-    ));
+    const imageSlides = data
+        .filter((item) => item.type !== "video")
+        .map((item) => ({
+            src: api.getImageUrl(item.url || "", IMAGE_TYPES.PREVIEW)
+        }));
+
+    const imagePreviewIndexes = new Map<number, number>();
+    let imageIndex = 0;
+    data.forEach((item, index) => {
+        if (item.type === "video") {
+            return;
+        }
+        imagePreviewIndexes.set(index, imageIndex);
+        imageIndex += 1;
+    });
 
     return (
         <Row gutter={[10, 10]}>
             {data.map((item, index: number) => (
                 <Col className={'cursor-pointer flex items-center'} span={8} lg={3} md={6} key={item.url}
                      onClick={() => {
-                         setPreviewIndex(index);
+                         if (item.type === "video") {
+                             setVideoPreview(item);
+                             return;
+                         }
+
+                         setPreviewIndex(imagePreviewIndexes.get(index) || 0);
                          setOpenPreview(true);
                      }}>
                     <PreviewImage src={item.thumb || ''} type={item.type || 'image'}/>
                 </Col>
             ))}
-            <Lightbox open={openPreview}
-                      index={previewIndex}
-                      close={() => setOpenPreview(false)}
-                      plugins={[Counter, Video, Zoom]}
-                      video={{
-                          muted: true,
-                          playsInline: false
-                      }}
-                      controller={{
-                          closeOnPullDown: true
-                      }}
-                      slides={slides}/>
+            <Lightbox
+                open={openPreview}
+                index={previewIndex}
+                close={() => setOpenPreview(false)}
+                plugins={[Counter, Zoom]}
+                controller={{
+                    closeOnPullDown: true
+                }}
+                slides={imageSlides}
+            />
+            <TrailerPlayerModal
+                open={!!videoPreview}
+                item={videoPreview}
+                onClose={() => setVideoPreview(undefined)}
+            />
         </Row>
     );
 }

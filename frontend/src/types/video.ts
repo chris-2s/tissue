@@ -80,6 +80,7 @@ export interface VideoDetail {
     cover?: string;
     poster?: string;
     fanart?: string;
+    fanart_path?: string;
     thumb?: string;
     website: string[];
     path?: string;

@@ -12,6 +12,7 @@ import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
 import PageFloatButtons from "../../../components/PageFloatButtons";
+import type {VideoDetail as VideoItem} from "../../../types/video";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
@@ -99,11 +100,11 @@ function Video() {
     } else if (videos.length > 0) {
         content = (
             <Row gutter={[15, 15]}>
-                {videos.map((video: any) => (
+                {videos.map((video: VideoItem) => (
                     <Col key={video.path} span={24} md={12} lg={6}>
                         <Card hoverable
                               size={"small"}
-                              cover={(<RemoteImage src={video.cover} imageType={IMAGE_TYPES.COVER}/>)}
+                              cover={(<RemoteImage src={video.fanart_path || video.cover} imageType={IMAGE_TYPES.COVER}/>)}
                               onClick={() => setSelected(video.path)}
                         >
                             <Card.Meta title={video.title}

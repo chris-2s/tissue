@@ -1,4 +1,6 @@
 import hashlib
+import mimetypes
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Literal, Optional
 from urllib.parse import urlparse
@@ -11,6 +13,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.db import get_db
 from app.db.models import Site
+from app.schema import Setting
 from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.utils import cache
@@ -37,6 +40,36 @@ def get_resource_service(db: Session = Depends(get_db)):
 
 class ResourceService(BaseService):
     IMAGE_CLIENT_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60
+    LOCAL_IMAGE_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+
+    @classmethod
+    def is_remote_image(cls, url: str) -> bool:
+        component = urlparse(url)
+        return component.scheme in {'http', 'https'}
+
+    @classmethod
+    def fetch_local_image_file(cls, path: str) -> ImageResult:
+        try:
+            target_path = Path(path).expanduser().resolve(strict=True)
+        except OSError:
+            return ImageResult(file_path=None, media_type=None, status_code=404)
+
+        if not target_path.is_file():
+            return ImageResult(file_path=None, media_type=None, status_code=404)
+
+        if target_path.suffix.lower() not in cls.LOCAL_IMAGE_SUFFIXES:
+            return ImageResult(file_path=None, media_type=None, status_code=404)
+
+        video_root = Path(Setting().app.video_path).expanduser().resolve()
+        try:
+            target_path.relative_to(video_root)
+        except ValueError:
+            return ImageResult(file_path=None, media_type=None, status_code=403)
+
+        media_type = mimetypes.guess_type(target_path.name)[0] or 'application/octet-stream'
+        stat = target_path.stat()
+        etag = f'"{hashlib.sha256(f"{target_path}:{int(stat.st_mtime)}:{stat.st_size}".encode("utf-8")).hexdigest()}"'
+        return ImageResult(file_path=str(target_path), media_type=media_type, status_code=200, etag=etag)
 
     @staticmethod
     def fetch_image_file(url: str, image_type: ImageCacheType) -> ImageResult:
@@ -197,25 +230,35 @@ class ResourceService(BaseService):
 
         return None
 
-    async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
-        headers = self._build_proxy_headers(request, url)
-        cookie_str = self._get_cookies_by_url(url)
-
-        if is_m3u8(url):
-            try:
-                m3u8_text, upstream_headers = await run_in_threadpool(self._fetch_m3u8_via_cffi, url, headers, cookie_str)
-            except Exception as exc:
-                status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
-                logger.warning("代理 m3u8 失败: %s %s", status_code, url)
-                return Response(status_code=status_code)
-
-            effective_base_url = base_url or str(request.base_url).rstrip("/")
-            m3u8_content = fix_m3u8_paths(m3u8_text, url, effective_base_url)
-            media_type = upstream_headers.get("content-type", "application/vnd.apple.mpegurl")
-            return Response(content=m3u8_content.encode('utf-8'), media_type=media_type)
-
+    async def _proxy_hls_trailer(
+            self,
+            url: str,
+            headers: dict[str, str],
+            cookie_str: str | None,
+            request: Request,
+            base_url: str | None,
+    ) -> Response:
         try:
-            status_code, response_headers, body = await run_in_threadpool(self._stream_binary_via_cffi, url, headers, cookie_str)
+            m3u8_text, upstream_headers = await run_in_threadpool(self._fetch_m3u8_via_cffi, url, headers, cookie_str)
+        except Exception as exc:
+            status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
+            logger.warning("代理 m3u8 失败: %s %s", status_code, url)
+            return Response(status_code=status_code)
+
+        effective_base_url = base_url or str(request.base_url).rstrip("/")
+        m3u8_content = fix_m3u8_paths(m3u8_text, url, effective_base_url)
+        media_type = upstream_headers.get("content-type", "application/vnd.apple.mpegurl")
+        return Response(content=m3u8_content.encode('utf-8'), media_type=media_type)
+
+    async def _proxy_binary_trailer(
+            self,
+            url: str,
+            headers: dict[str, str],
+            cookie_str: str | None,
+    ) -> Response | StreamingResponse:
+        try:
+            status_code, response_headers, body = await run_in_threadpool(self._stream_binary_via_cffi, url, headers,
+                                                                          cookie_str)
         except Exception as exc:
             status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
             logger.warning("代理视频流失败: %s %s", status_code, url)
@@ -240,6 +283,15 @@ class ResourceService(BaseService):
             status_code=status_code,
             headers=response_headers
         )
+
+    async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
+        headers = self._build_proxy_headers(request, url)
+        cookie_str = self._get_cookies_by_url(url)
+
+        if is_m3u8(url):
+            return await self._proxy_hls_trailer(url, headers, cookie_str, request, base_url)
+
+        return await self._proxy_binary_trailer(url, headers, cookie_str)
 
     @classmethod
     def job_clean_cache(cls):

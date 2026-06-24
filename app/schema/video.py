@@ -21,6 +21,8 @@ class VideoList(BaseModel):
     path: str
     num: Optional[str] = None
     cover: Optional[str] = None
+    fanart: Optional[str] = None
+    fanart_path: Optional[str] = None
     is_zh: bool = False
     is_uncensored: bool = False
 
@@ -99,6 +101,7 @@ class VideoDetail(BaseModel):
     cover: Optional[str] = None
     poster: Optional[str] = None
     fanart: Optional[str] = None
+    fanart_path: Optional[str] = None
     thumb: Optional[str] = None
     # 页面
     website: List[str] = Field(default_factory=list)
