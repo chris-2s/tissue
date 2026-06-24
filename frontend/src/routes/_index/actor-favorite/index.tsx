@@ -89,7 +89,7 @@ function ActorFavoritePage() {
                             ]}
                         >
                             <div className={'flex gap-3'}>
-                                <div className={'h-[72px] w-[72px] bg-black/5'}>
+                                <div className={'h-[72px] w-[72px]'}>
                                     <RemoteImage
                                         className={'h-full w-full'}
                                         src={favorite.actor.thumb}

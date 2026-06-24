@@ -34,7 +34,7 @@ function RemoteImage(props: Props) {
             {src ? (
                 <LazyLoadImage className={avatar ? 'h-full w-full object-cover' : 'object-contain'} src={api.getImageUrl(src, imageType)}/>
             ) : avatar ? (
-                <div className={'flex justify-center items-center bg-black/5'}>
+                <div className={Styles.avatarPlaceholder}>
                     <Avatar
                         icon={<UserOutlined/>}
                         size={'large'}

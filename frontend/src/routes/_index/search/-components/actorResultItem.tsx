@@ -16,7 +16,7 @@ function ActorResultItem(props: ActorResultItemProps) {
         <List.Item className={'cursor-pointer'} onClick={onClick}>
             <List.Item.Meta
                 avatar={(
-                    <div className={'h-14 w-14 bg-black/5'}>
+                    <div className={'h-14 w-14'}>
                         <RemoteImage className={'h-full w-full'} src={item.thumb} num={item.code} avatar imageType={IMAGE_TYPES.AVATAR}/>
                     </div>
                 )}

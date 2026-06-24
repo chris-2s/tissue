@@ -103,6 +103,7 @@ function TrailerPlayerModal(props: Props) {
             afterOpenChange={setModalReady}
             title={"预告片"}
             footer={null}
+            centered
             destroyOnClose
             width={"min(960px, calc(100vw - 32px))"}
             styles={{

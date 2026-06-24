@@ -21,10 +21,19 @@
 
 .avatar {
     border-radius: 9999px;
+    background: transparent;
 }
 
 .avatar:before {
     padding-top: 100%;
+}
+
+.avatarPlaceholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 9999px;
+    background: var(--ant-color-fill-tertiary, rgb(0 0 0 / 0.05));
 }
 
 .blur {
