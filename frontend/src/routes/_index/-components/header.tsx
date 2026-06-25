@@ -13,7 +13,7 @@ import {
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../../models";
 import {themes} from "../../../utils/constants";
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import IconButton from "../../../components/IconButton";
 import Log from "./log";
 import Logo from "../../../assets/logo.png";
@@ -43,6 +43,10 @@ function Header(props: Props) {
     const authDispatch = useDispatch<Dispatch>().auth
     const [logOpen, setLogOpen] = useState(false)
     const [pinVisible, setPinVisible] = useState(false)
+    const [themeDropdownOpen, setThemeDropdownOpen] = useState(false)
+    const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+    const suppressThemeReopenRef = useRef(false)
+    const suppressUserReopenRef = useRef(false)
 
     const themeMode = useSelector((state: RootState) => state.app?.themeMode)
     const CurrentTheme = themes.find(i => i.name === themeMode) || themes[0]
@@ -58,7 +62,12 @@ function Header(props: Props) {
     })) as any
 
     function onThemeClick(event: any) {
+        suppressThemeReopenRef.current = true
+        setThemeDropdownOpen(false)
         appDispatch.setThemeMode(event.key)
+        window.setTimeout(() => {
+            suppressThemeReopenRef.current = false
+        }, 0)
     }
 
     const userItems = [
@@ -80,6 +89,8 @@ function Header(props: Props) {
     ] as any
 
     function onUserClick(event: any) {
+        suppressUserReopenRef.current = true
+        setUserDropdownOpen(false)
         switch (event.key) {
             case 'pin':
                 setPinVisible(true)
@@ -91,6 +102,23 @@ function Header(props: Props) {
                 authDispatch.logout()
                 break
         }
+        window.setTimeout(() => {
+            suppressUserReopenRef.current = false
+        }, 0)
+    }
+
+    function handleThemeDropdownOpenChange(nextOpen: boolean) {
+        if (nextOpen && suppressThemeReopenRef.current) {
+            return
+        }
+        setThemeDropdownOpen(nextOpen)
+    }
+
+    function handleUserDropdownOpenChange(nextOpen: boolean) {
+        if (nextOpen && suppressUserReopenRef.current) {
+            return
+        }
+        setUserDropdownOpen(nextOpen)
     }
 
     function renderDropdown(menu: any) {
@@ -138,12 +166,25 @@ function Header(props: Props) {
                         {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
                             <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
                     </IconButton>
-                    <Dropdown arrow menu={{items: themeItems, onClick: onThemeClick}}>
+                    <Dropdown
+                        arrow
+                        trigger={['click']}
+                        open={themeDropdownOpen}
+                        onOpenChange={handleThemeDropdownOpenChange}
+                        menu={{items: themeItems, onClick: onThemeClick}}
+                    >
                         <IconButton>
                             <CurrentTheme.icon style={{fontSize: token.sizeLG}}/>
                         </IconButton>
                     </Dropdown>
-                    <Dropdown arrow menu={{items: userItems, onClick: onUserClick}} popupRender={renderDropdown}>
+                    <Dropdown
+                        arrow
+                        trigger={['click']}
+                        open={userDropdownOpen}
+                        onOpenChange={handleUserDropdownOpenChange}
+                        menu={{items: userItems, onClick: onUserClick}}
+                        popupRender={renderDropdown}
+                    >
                         <IconButton>
                             <UserOutlined
                                 style={{fontSize: token.sizeLG, color: pin ? token.colorPrimary : undefined}}/>
