@@ -1,5 +1,5 @@
 import {AutoComplete, Card, Input, InputNumber, Space, Tag, Typography} from "antd";
-import {useEffect, useMemo, useState} from "react";
+import {useDeferredValue, useEffect, useMemo, useState} from "react";
 import type {VideoDetail} from "../../../../types/video";
 import {
     buildAutocompleteGroups,
@@ -30,6 +30,7 @@ function FilterPanel(props: Props) {
     const [searchText, setSearchText] = useState("");
     const [advancedOpen, setAdvancedOpen] = useState(false);
     const [filterValue, setFilterValue] = useState<VideoFilterValue>(value);
+    const deferredSearchText = useDeferredValue(searchText);
 
     useEffect(() => {
         setFilterValue(value);
@@ -40,8 +41,8 @@ function FilterPanel(props: Props) {
     }, [filterValue, onChange]);
 
     const autocompleteOptions = useMemo(
-        () => buildAutocompleteGroups(videos, searchText),
-        [videos, searchText]
+        () => buildAutocompleteGroups(videos, deferredSearchText),
+        [deferredSearchText, videos]
     );
 
     function upsertToken(token: VideoSearchToken) {

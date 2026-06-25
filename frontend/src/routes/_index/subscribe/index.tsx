@@ -1,6 +1,6 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Card, Col, Empty, FloatButton, message, Row, Space, Tag, Tooltip} from "antd";
-import React, {useMemo, useState} from "react";
+import {Card, Col, Empty, FloatButton, message, Pagination, Row, Space, Tag, Tooltip} from "antd";
+import React, {useDeferredValue, useEffect, useMemo, useState} from "react";
 import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
 import ModifyModal from "./-components/modifyModal.tsx";
@@ -35,7 +35,10 @@ function Subscribe() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(subscribesQueryOptions())
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(24)
     const [filters, setFilters] = useState<SubscribeFilterValue>({tokens: []})
+    const deferredFilters = useDeferredValue(filters)
     const {setOpen, modalProps} = useFormModal({
         service: api.modifySubscribe,
         onOk: () => {
@@ -61,8 +64,8 @@ function Subscribe() {
         }
     })
 
-    const subscribes = data.filter((item: api.Subscribe) => {
-        return filters.tokens.every((token) => {
+    const subscribes = useMemo(() => data.filter((item: api.Subscribe) => {
+        return deferredFilters.tokens.every((token) => {
             const keyword = token.value.trim().toUpperCase()
             if (!keyword) {
                 return true
@@ -78,7 +81,23 @@ function Subscribe() {
 
             return (item.title || "").trim().toUpperCase().includes(keyword)
         })
-    })
+    }), [data, deferredFilters])
+
+    useEffect(() => {
+        setPage(1)
+    }, [deferredFilters])
+
+    useEffect(() => {
+        const maxPage = Math.max(1, Math.ceil(subscribes.length / pageSize))
+        if (page > maxPage) {
+            setPage(maxPage)
+        }
+    }, [page, pageSize, subscribes.length])
+
+    const pagedSubscribes = useMemo(() => {
+        const start = (page - 1) * pageSize
+        return subscribes.slice(start, start + pageSize)
+    }, [page, pageSize, subscribes])
 
     let content: React.ReactNode;
 
@@ -96,45 +115,61 @@ function Subscribe() {
         );
     } else if (subscribes.length > 0) {
         content = (
-            <Row gutter={[15, 15]}>
-                {subscribes.map((subscribe: any) => (
-                    <Col key={subscribe.id} span={24} md={12} lg={6}>
-                        <Card hoverable
-                              size={"small"}
-                              cover={(<RemoteImage src={subscribe.cover} num={subscribe.num} imageType={IMAGE_TYPES.COVER}/>)}
-                              onClick={() => setOpen(true, subscribe)}
-                        >
-                            <Card.Meta title={subscribe.title || subscribe.num}
-                                       description={(
-                                           <div className={'flex'}>
-                                               <Space size={[0, 'small']} wrap className={'flex-1'}>
-                                                   {subscribe.premiered && (
-                                                       <Tag variant={'filled'}>{subscribe.premiered}</Tag>
-                                                   )}
-                                                   {subscribe.is_hd && (
-                                                       <Tag color={'red'} variant={'filled'}>高清</Tag>)}
-                                                   {subscribe.is_zh && (
-                                                       <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
-                                                   {subscribe.is_uncensored && (
-                                                       <Tag color={'green'} variant={'filled'}>无码</Tag>)}
-                                               </Space>
-                                               <Tooltip title={'搜索'}>
-                                                   <div className={'px-2'} onClick={() => {
-                                                       return navigate({
-                                                           to: '/home/detail',
-                                                           search: {num: subscribe.num}
-                                                       })
-                                                   }}>
-                                                       <SearchOutlined/>
-                                                   </div>
-                                               </Tooltip>
-                                           </div>
-                                       )}
-                            />
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
+            <>
+                <Row gutter={[15, 15]}>
+                    {pagedSubscribes.map((subscribe: any) => (
+                        <Col key={subscribe.id} span={24} md={12} lg={6}>
+                            <Card hoverable
+                                  size={"small"}
+                                  cover={(<RemoteImage src={subscribe.cover} num={subscribe.num} imageType={IMAGE_TYPES.COVER}/>)}
+                                  onClick={() => setOpen(true, subscribe)}
+                            >
+                                <Card.Meta title={subscribe.title || subscribe.num}
+                                           description={(
+                                               <div className={'flex'}>
+                                                   <Space size={[0, 'small']} wrap className={'flex-1'}>
+                                                       {subscribe.premiered && (
+                                                           <Tag variant={'filled'}>{subscribe.premiered}</Tag>
+                                                       )}
+                                                       {subscribe.is_hd && (
+                                                           <Tag color={'red'} variant={'filled'}>高清</Tag>)}
+                                                       {subscribe.is_zh && (
+                                                           <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
+                                                       {subscribe.is_uncensored && (
+                                                           <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                                   </Space>
+                                                   <Tooltip title={'搜索'}>
+                                                       <div className={'px-2'} onClick={() => {
+                                                           return navigate({
+                                                               to: '/home/detail',
+                                                               search: {num: subscribe.num}
+                                                           })
+                                                       }}>
+                                                           <SearchOutlined/>
+                                                       </div>
+                                                   </Tooltip>
+                                               </div>
+                                           )}
+                                />
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+
+                <div className={'mt-4 flex justify-center'}>
+                    <Pagination
+                        current={page}
+                        pageSize={pageSize}
+                        total={subscribes.length}
+                        showSizeChanger
+                        pageSizeOptions={[24, 48, 96]}
+                        onChange={(nextPage, nextPageSize) => {
+                            setPage(nextPage)
+                            setPageSize(nextPageSize)
+                        }}
+                    />
+                </div>
+            </>
         );
     } else {
         content = (

@@ -1,5 +1,7 @@
 import type {Subscribe} from "../../../../apis/subscribe.ts";
 
+const AUTOCOMPLETE_OPTION_LIMIT = 8;
+
 export type SubscribeSearchTokenKind = "num" | "actor" | "title";
 
 export interface SubscribeSearchToken {
@@ -59,7 +61,12 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
 
     for (const subscribe of subscribes) {
         const num = (subscribe.num || "").trim();
-        if (num && includesNormalized(num, normalizedKeyword) && !numSeen.has(num.toUpperCase())) {
+        if (
+            numOptions.length < AUTOCOMPLETE_OPTION_LIMIT &&
+            num &&
+            includesNormalized(num, normalizedKeyword) &&
+            !numSeen.has(num.toUpperCase())
+        ) {
             numSeen.add(num.toUpperCase());
             numOptions.push({
                 label: `番号 · ${num}`,
@@ -73,6 +80,10 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
             .filter(Boolean);
 
         for (const actor of actors) {
+            if (actorOptions.length >= AUTOCOMPLETE_OPTION_LIMIT) {
+                break;
+            }
+
             if (includesNormalized(actor, normalizedKeyword) && !actorSeen.has(actor.toUpperCase())) {
                 actorSeen.add(actor.toUpperCase());
                 actorOptions.push({
@@ -81,14 +92,21 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
                 });
             }
         }
+
+        if (
+            numOptions.length >= AUTOCOMPLETE_OPTION_LIMIT &&
+            actorOptions.length >= AUTOCOMPLETE_OPTION_LIMIT
+        ) {
+            break;
+        }
     }
 
     const groups = [];
     if (numOptions.length > 0) {
-        groups.push({label: "番号", options: numOptions.slice(0, 8)});
+        groups.push({label: "番号", options: numOptions});
     }
     if (actorOptions.length > 0) {
-        groups.push({label: "演员", options: actorOptions.slice(0, 8)});
+        groups.push({label: "演员", options: actorOptions});
     }
     return groups;
 }

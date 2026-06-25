@@ -1,5 +1,5 @@
 import {AutoComplete, Card, Input, Space, Tag, Typography} from "antd";
-import {useEffect, useMemo, useState} from "react";
+import {useDeferredValue, useEffect, useMemo, useState} from "react";
 import type {Subscribe} from "../../../../apis/subscribe.ts";
 import {
     buildAutocompleteGroups,
@@ -24,6 +24,7 @@ function FilterPanel(props: Props) {
     const {subscribes, total, filteredTotal, value, onChange} = props;
     const [searchText, setSearchText] = useState("");
     const [filterValue, setFilterValue] = useState<SubscribeFilterValue>(value);
+    const deferredSearchText = useDeferredValue(searchText);
 
     useEffect(() => {
         setFilterValue(value);
@@ -34,8 +35,8 @@ function FilterPanel(props: Props) {
     }, [filterValue, onChange]);
 
     const autocompleteOptions = useMemo(
-        () => buildAutocompleteGroups(subscribes, searchText),
-        [subscribes, searchText]
+        () => buildAutocompleteGroups(subscribes, deferredSearchText),
+        [deferredSearchText, subscribes]
     );
 
     function upsertToken(token: SubscribeSearchToken) {

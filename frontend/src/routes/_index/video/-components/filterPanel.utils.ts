@@ -1,5 +1,7 @@
 import type {VideoDetail} from "../../../../types/video";
 
+const AUTOCOMPLETE_OPTION_LIMIT = 8;
+
 export type VideoSearchTokenKind = "num" | "actor" | "title";
 export type VideoFlagFilter = "include" | "exclude" | null;
 export type VideoRatingOperator = "gte" | "lte";
@@ -65,7 +67,12 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
 
     for (const video of videos) {
         const num = (video.num || "").trim();
-        if (num && includesNormalized(num, normalizedKeyword) && !numSeen.has(num.toUpperCase())) {
+        if (
+            numOptions.length < AUTOCOMPLETE_OPTION_LIMIT &&
+            num &&
+            includesNormalized(num, normalizedKeyword) &&
+            !numSeen.has(num.toUpperCase())
+        ) {
             numSeen.add(num.toUpperCase());
             numOptions.push({
                 label: `番号 · ${num}`,
@@ -75,6 +82,10 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
 
         for (const actor of video.actors) {
             const name = (actor.name || "").trim();
+            if (actorOptions.length >= AUTOCOMPLETE_OPTION_LIMIT) {
+                break;
+            }
+
             if (name && includesNormalized(name, normalizedKeyword) && !actorSeen.has(name.toUpperCase())) {
                 actorSeen.add(name.toUpperCase());
                 actorOptions.push({
@@ -83,14 +94,21 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
                 });
             }
         }
+
+        if (
+            numOptions.length >= AUTOCOMPLETE_OPTION_LIMIT &&
+            actorOptions.length >= AUTOCOMPLETE_OPTION_LIMIT
+        ) {
+            break;
+        }
     }
 
     const groups = [];
     if (numOptions.length > 0) {
-        groups.push({label: "番号", options: numOptions.slice(0, 8)});
+        groups.push({label: "番号", options: numOptions});
     }
     if (actorOptions.length > 0) {
-        groups.push({label: "演员", options: actorOptions.slice(0, 8)});
+        groups.push({label: "演员", options: actorOptions});
     }
     return groups;
 }

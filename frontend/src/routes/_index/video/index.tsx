@@ -6,6 +6,7 @@ import {
     Col,
     Empty,
     FloatButton,
+    Pagination,
     Row,
     Space,
     Tag,
@@ -13,7 +14,7 @@ import {
 } from "antd";
 import RemoteImage from "../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../constants/image";
-import React, {useMemo, useState} from "react";
+import React, {useDeferredValue, useEffect, useMemo, useState} from "react";
 import {LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
 import RouteErrorState from "../../../components/RouteErrorState";
@@ -47,6 +48,8 @@ function Video() {
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(videosQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(24)
     const [filters, setFilters] = useState<VideoFilterValue>({
         tokens: [],
         zh: null,
@@ -54,6 +57,7 @@ function Video() {
         ratingOperator: "gte",
         ratingValue: null,
     })
+    const deferredFilters = useDeferredValue(filters)
     const {navigate} = useRouter()
     const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
         manual: true,
@@ -64,36 +68,36 @@ function Video() {
 
     const videos = useMemo(() => {
         return data.filter((video: VideoItem) => {
-            if (filters.zh === "include" && !video.is_zh) {
+            if (deferredFilters.zh === "include" && !video.is_zh) {
                 return false
             }
 
-            if (filters.zh === "exclude" && video.is_zh) {
+            if (deferredFilters.zh === "exclude" && video.is_zh) {
                 return false
             }
 
-            if (filters.uncensored === "include" && !video.is_uncensored) {
+            if (deferredFilters.uncensored === "include" && !video.is_uncensored) {
                 return false
             }
 
-            if (filters.uncensored === "exclude" && video.is_uncensored) {
+            if (deferredFilters.uncensored === "exclude" && video.is_uncensored) {
                 return false
             }
 
-            if (filters.ratingValue !== null) {
+            if (deferredFilters.ratingValue !== null) {
                 const rating = getVideoRatingValue(video)
                 if (rating === undefined) {
                     return false
                 }
-                if (filters.ratingOperator === "gte" && rating < filters.ratingValue) {
+                if (deferredFilters.ratingOperator === "gte" && rating < deferredFilters.ratingValue) {
                     return false
                 }
-                if (filters.ratingOperator === "lte" && rating > filters.ratingValue) {
+                if (deferredFilters.ratingOperator === "lte" && rating > deferredFilters.ratingValue) {
                     return false
                 }
             }
 
-            return filters.tokens.every((token) => {
+            return deferredFilters.tokens.every((token) => {
                 const keyword = token.value.trim().toUpperCase()
                 if (!keyword) {
                     return true
@@ -110,7 +114,23 @@ function Video() {
                 return (video.title || "").trim().toUpperCase().includes(keyword)
             })
         })
-    }, [data, filters])
+    }, [data, deferredFilters])
+
+    useEffect(() => {
+        setPage(1)
+    }, [deferredFilters])
+
+    useEffect(() => {
+        const maxPage = Math.max(1, Math.ceil(videos.length / pageSize))
+        if (page > maxPage) {
+            setPage(maxPage)
+        }
+    }, [page, pageSize, videos.length])
+
+    const pagedVideos = useMemo(() => {
+        const start = (page - 1) * pageSize
+        return videos.slice(start, start + pageSize)
+    }, [page, pageSize, videos])
 
     const hasFilter = filters.tokens.length > 0 || filters.zh !== null || filters.uncensored !== null || filters.ratingValue !== null
 
@@ -137,52 +157,68 @@ function Video() {
         );
     } else if (videos.length > 0) {
         content = (
-            <Row gutter={[15, 15]}>
-                {videos.map((video: VideoItem) => (
-                    <Col key={video.path} span={24} md={12} lg={6}>
-                        <Card hoverable
-                              size={"small"}
-                              cover={(<RemoteImage src={video.fanart_path || video.cover} imageType={IMAGE_TYPES.COVER}/>)}
-                              onClick={() => setSelected(video.path)}
-                        >
-                            <Card.Meta title={video.title}
-                                       description={(
-                                           <div className={'flex'}>
-                                               <div className={'flex-1 items-center overflow-x-scroll'}
-                                                    style={{scrollbarWidth: 'none'}}>
-                                                   <Space size={[0, 'small']} wrap className={'flex-1'}>
-                                                       {video.is_zh && (
-                                                           <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
-                                                       {video.is_uncensored && (
-                                                           <Tag color={'green'} variant={'filled'}>无码</Tag>)}
-                                                       {getVideoRatingValue(video) !== undefined && (
-                                                           <Tag color={'gold'} variant={'filled'}>
-                                                               {formatRating(getVideoRatingValue(video)!)}
-                                                           </Tag>)}
-                                                       {video.actors.map((actor: any) => (
-                                                           <Tag key={actor.name} color={'purple'}
-                                                                variant={'filled'}>{actor.name}</Tag>
-                                                       ))}
-                                                   </Space>
-                                               </div>
-                                               <Tooltip title={'搜索'}>
-                                                   <div className={'ml-1'} onClick={(event) => {
-                                                       event.stopPropagation()
-                                                       return navigate({
-                                                           to: '/home/detail',
-                                                           search: {num: video.num}
-                                                       })
-                                                   }}>
-                                                       <SearchOutlined/>
+            <>
+                <Row gutter={[15, 15]}>
+                    {pagedVideos.map((video: VideoItem) => (
+                        <Col key={video.path} span={24} md={12} lg={6}>
+                            <Card hoverable
+                                  size={"small"}
+                                  cover={(<RemoteImage src={video.fanart_path || video.cover} imageType={IMAGE_TYPES.COVER}/>)}
+                                  onClick={() => setSelected(video.path)}
+                            >
+                                <Card.Meta title={video.title}
+                                           description={(
+                                               <div className={'flex'}>
+                                                   <div className={'flex-1 items-center overflow-x-scroll'}
+                                                        style={{scrollbarWidth: 'none'}}>
+                                                       <Space size={[0, 'small']} wrap className={'flex-1'}>
+                                                           {video.is_zh && (
+                                                               <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
+                                                           {video.is_uncensored && (
+                                                               <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                                           {getVideoRatingValue(video) !== undefined && (
+                                                               <Tag color={'gold'} variant={'filled'}>
+                                                                   {formatRating(getVideoRatingValue(video)!)}
+                                                               </Tag>)}
+                                                           {video.actors.map((actor: any) => (
+                                                               <Tag key={actor.name} color={'purple'}
+                                                                    variant={'filled'}>{actor.name}</Tag>
+                                                           ))}
+                                                       </Space>
                                                    </div>
-                                               </Tooltip>
-                                           </div>
-                                       )}
-                            />
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
+                                                   <Tooltip title={'搜索'}>
+                                                       <div className={'ml-1'} onClick={(event) => {
+                                                           event.stopPropagation()
+                                                           return navigate({
+                                                               to: '/home/detail',
+                                                               search: {num: video.num}
+                                                           })
+                                                       }}>
+                                                           <SearchOutlined/>
+                                                       </div>
+                                                   </Tooltip>
+                                               </div>
+                                           )}
+                                />
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+
+                <div className={'mt-4 flex justify-center'}>
+                    <Pagination
+                        current={page}
+                        pageSize={pageSize}
+                        total={videos.length}
+                        showSizeChanger
+                        pageSizeOptions={[24, 48, 96]}
+                        onChange={(nextPage, nextPageSize) => {
+                            setPage(nextPage)
+                            setPageSize(nextPageSize)
+                        }}
+                    />
+                </div>
+            </>
         );
     } else {
         content = (
