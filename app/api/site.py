@@ -6,6 +6,7 @@ from app import schema
 from app.scheduler import scheduler
 from app.schema.r import R
 from app.schema.site import LoginSubmit
+from app.service.metadata_priority import get_metadata_priority_service
 from app.service.site import get_site_service
 
 router = APIRouter()
@@ -38,4 +39,15 @@ def get_login_page(site_id: int, service=Depends(get_site_service)):
 @router.post('/{site_id}/login/submit')
 def submit_login(site_id: int, data: LoginSubmit, service=Depends(get_site_service)):
     service.submit_login(site_id, data)
+    return R.ok()
+
+
+@router.get('/metadata-priority', response_model=R[schema.MetadataPrioritySettings])
+def get_metadata_priority(service=Depends(get_metadata_priority_service)):
+    return R.ok(service.get_settings())
+
+
+@router.put('/metadata-priority')
+def save_metadata_priority(payload: schema.MetadataPriorityUpdate, service=Depends(get_metadata_priority_service)):
+    service.save_settings(payload)
     return R.ok()

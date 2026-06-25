@@ -10,9 +10,11 @@ from starlette.concurrency import run_in_threadpool
 from app.db import get_db
 from app.db.models import Site
 from app.schema import SiteCapabilities, SpiderKey, VideoDetail
+from app.schema.site import MetadataPriorityFieldKey
 from app.schema.actor import Actor, ActorPage, ImageInfo
 from app.schema.home import SiteVideo
 from app.service.base import BaseService
+from app.service.metadata_priority import MetadataPriorityService
 from app.utils.logger import logger
 from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
 from app.utils.spider.spider import Spider
@@ -88,17 +90,25 @@ class SpiderService(BaseService):
         return self.build_spider(site, include_cookies=include_cookies)
 
     def _merge_video_info(self, metas: list[VideoDetail]) -> VideoDetail:
-        meta = metas[0]
+        meta = metas[0].model_copy(deep=True)
         if len(metas) >= 2:
             logger.debug("合并多个刮削信息")
+            field_orders = MetadataPriorityService(self.db).get_effective_field_orders()
+            for field_name in ('cover', 'rating', 'actors'):
+                setattr(meta, field_name, self._pick_prioritized_field(metas, field_name, field_orders[field_name]))
+
+            skipped_fields = {'website', 'previews', 'comments', 'downloads', 'site_actors', 'cover', 'rating',
+                              'actors'}
             for key in meta.__dict__:
-                if not getattr(meta, key) and key not in ['website', 'previews', 'comments', 'downloads',
-                                                          'site_actors']:
-                    for other_meta in metas[1:]:
-                        value = getattr(other_meta, key)
-                        if value:
-                            setattr(meta, key, value)
-                            break
+                if key in skipped_fields:
+                    continue
+                if getattr(meta, key):
+                    continue
+                for other_meta in metas[1:]:
+                    value = getattr(other_meta, key)
+                    if value:
+                        setattr(meta, key, value)
+                        break
             meta.website = [m.website[0] for m in metas if m.website]
             meta.previews = [m.previews[0] for m in metas if m.previews]
             meta.comments = [m.comments[0] for m in metas if m.comments]
@@ -109,6 +119,24 @@ class SpiderService(BaseService):
             logger.debug("信息合并成功")
         return meta
 
+    @staticmethod
+    def _pick_prioritized_field(metas: list[VideoDetail], field_name: str, spider_order: list[SpiderKey]):
+        order_index = {spider_key.value: index for index, spider_key in enumerate(spider_order)}
+
+        sorted_metas = sorted(
+            enumerate(metas),
+            key=lambda item: (
+                order_index.get(item[1].source.spider_key, len(order_index)) if item[1].source else len(order_index),
+                item[0],
+            )
+        )
+
+        for _, meta in sorted_metas:
+            value = getattr(meta, field_name)
+            if value:
+                return value
+        return getattr(metas[0], field_name)
+
     def _get_spiders(self):
         sites = self.db.query(Site).filter(Site.status == 1).order_by(Site.priority).all()
         spiders = []
@@ -118,6 +146,15 @@ class SpiderService(BaseService):
                 continue
             spiders.append(spider)
         return spiders
+
+    def _get_actor_spiders(self):
+        spiders = [spider for spider in self._get_spiders() if spider.supports_actor]
+        actor_order = MetadataPriorityService(self.db).get_effective_site_order(MetadataPriorityFieldKey.ACTORS)
+        order_index = {spider_key.value: index for index, spider_key in enumerate(actor_order)}
+        return sorted(
+            spiders,
+            key=lambda spider: order_index.get(spider.key, len(order_index)),
+        )
 
     @staticmethod
     def _close_spiders(spiders: list[Spider]):
@@ -173,7 +210,7 @@ class SpiderService(BaseService):
                 traceback.print_exc()
                 return None
 
-        spiders = [spider for spider in self._get_spiders() if spider.supports_actor]
+        spiders = self._get_actor_spiders()
         try:
             tasks = [run_in_threadpool(__search_actor_by_spider, spider=spider) for spider in spiders]
             results = await asyncio.gather(*tasks)

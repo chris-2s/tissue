@@ -22,7 +22,7 @@ class Jav321Spider(Spider):
         if not no or num.lower() not in no[0].text.lower().strip():
             raise SpiderException('未找到番号')
 
-        meta = VideoDetail()
+        meta = VideoDetail(source=self.source_ref())
         meta.num = num
 
         outline_element = no[0].xpath("./../../..//div[@class='row']")

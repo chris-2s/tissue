@@ -1,4 +1,4 @@
-import {AutoComplete, Card, Input, InputNumber, Select, Space, Tag, Typography} from "antd";
+import {AutoComplete, Card, Input, InputNumber, Space, Tag, Typography} from "antd";
 import {useEffect, useMemo, useState} from "react";
 import type {VideoDetail} from "../../../../types/video";
 import {
@@ -178,21 +178,28 @@ function FilterPanel(props: Props) {
                 {advancedOpen && (
                     <div className={'flex flex-wrap items-center gap-3 rounded-lg border border-solid border-gray-200 px-3 py-2'}>
                         <Text strong>评分</Text>
-                        <Select
-                            value={filterValue.ratingOperator}
-                            options={[
-                                {label: ">=", value: "gte"},
-                                {label: "<=", value: "lte"},
-                            ]}
-                            onChange={(value) => setFilterValue((current) => ({...current, ratingOperator: value}))}
-                            style={{width: 84}}
-                        />
+                        <Space size={[8, 8]} wrap>
+                            <Tag.CheckableTag
+                                checked={filterValue.ratingOperator === "gte"}
+                                onChange={() => setFilterValue((current) => ({...current, ratingOperator: "gte"}))}
+                            >
+                                {">="}
+                            </Tag.CheckableTag>
+                            <Tag.CheckableTag
+                                checked={filterValue.ratingOperator === "lte"}
+                                onChange={() => setFilterValue((current) => ({...current, ratingOperator: "lte"}))}
+                            >
+                                {"<="}
+                            </Tag.CheckableTag>
+                        </Space>
                         <InputNumber
                             min={0}
                             max={5}
                             step={0.1}
+                            variant={'borderless'}
                             value={filterValue.ratingValue ?? undefined}
                             placeholder={'不限'}
+                            style={{width: 96}}
                             onChange={(value) => {
                                 if (typeof value !== "number" || value <= 0) {
                                     setFilterValue((current) => ({...current, ratingValue: null}));

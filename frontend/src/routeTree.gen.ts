@@ -28,6 +28,7 @@ import { Route as IndexDownloadIndexRouteImport } from './routes/_index/download
 import { Route as IndexActorIndexRouteImport } from './routes/_index/actor/index'
 import { Route as IndexActorFavoriteIndexRouteImport } from './routes/_index/actor-favorite/index'
 import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index'
+import { Route as IndexSitePriorityRouteImport } from './routes/_index/site/priority'
 import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
 import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
 import { Route as IndexSettingDownloadRouteImport } from './routes/_index/setting/download'
@@ -129,6 +130,11 @@ const IndexAboutIndexRoute = IndexAboutIndexRouteImport.update({
   path: '/about/',
   getParentRoute: () => IndexRouteRoute,
 } as any)
+const IndexSitePriorityRoute = IndexSitePriorityRouteImport.update({
+  id: '/site/priority',
+  path: '/site/priority',
+  getParentRoute: () => IndexRouteRoute,
+} as any)
 const IndexSettingNotifyRoute = IndexSettingNotifyRouteImport.update({
   id: '/notify',
   path: '/notify',
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
+  '/site/priority': typeof IndexSitePriorityRoute
   '/about/': typeof IndexAboutIndexRoute
   '/actor-favorite/': typeof IndexActorFavoriteIndexRoute
   '/actor/': typeof IndexActorIndexRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
+  '/site/priority': typeof IndexSitePriorityRoute
   '/about': typeof IndexAboutIndexRoute
   '/actor-favorite': typeof IndexActorFavoriteIndexRoute
   '/actor': typeof IndexActorIndexRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/_index/setting/download': typeof IndexSettingDownloadRoute
   '/_index/setting/file': typeof IndexSettingFileRoute
   '/_index/setting/notify': typeof IndexSettingNotifyRoute
+  '/_index/site/priority': typeof IndexSitePriorityRoute
   '/_index/about/': typeof IndexAboutIndexRoute
   '/_index/actor-favorite/': typeof IndexActorFavoriteIndexRoute
   '/_index/actor/': typeof IndexActorIndexRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/setting/download'
     | '/setting/file'
     | '/setting/notify'
+    | '/site/priority'
     | '/about/'
     | '/actor-favorite/'
     | '/actor/'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/setting/download'
     | '/setting/file'
     | '/setting/notify'
+    | '/site/priority'
     | '/about'
     | '/actor-favorite'
     | '/actor'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/_index/setting/download'
     | '/_index/setting/file'
     | '/_index/setting/notify'
+    | '/_index/site/priority'
     | '/_index/about/'
     | '/_index/actor-favorite/'
     | '/_index/actor/'
@@ -460,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexAboutIndexRouteImport
       parentRoute: typeof IndexRouteRoute
     }
+    '/_index/site/priority': {
+      id: '/_index/site/priority'
+      path: '/site/priority'
+      fullPath: '/site/priority'
+      preLoaderRoute: typeof IndexSitePriorityRouteImport
+      parentRoute: typeof IndexRouteRoute
+    }
     '/_index/setting/notify': {
       id: '/_index/setting/notify'
       path: '/notify'
@@ -530,6 +549,7 @@ interface IndexRouteRouteChildren {
   IndexSettingRouteRoute: typeof IndexSettingRouteRouteWithChildren
   IndexIndexRoute: typeof IndexIndexRoute
   IndexHomeDetailRoute: typeof IndexHomeDetailRoute
+  IndexSitePriorityRoute: typeof IndexSitePriorityRoute
   IndexAboutIndexRoute: typeof IndexAboutIndexRoute
   IndexActorFavoriteIndexRoute: typeof IndexActorFavoriteIndexRoute
   IndexActorIndexRoute: typeof IndexActorIndexRoute
@@ -550,6 +570,7 @@ const IndexRouteRouteChildren: IndexRouteRouteChildren = {
   IndexSettingRouteRoute: IndexSettingRouteRouteWithChildren,
   IndexIndexRoute: IndexIndexRoute,
   IndexHomeDetailRoute: IndexHomeDetailRoute,
+  IndexSitePriorityRoute: IndexSitePriorityRoute,
   IndexAboutIndexRoute: IndexAboutIndexRoute,
   IndexActorFavoriteIndexRoute: IndexActorFavoriteIndexRoute,
   IndexActorIndexRoute: IndexActorIndexRoute,

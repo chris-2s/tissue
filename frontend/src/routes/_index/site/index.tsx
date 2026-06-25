@@ -7,11 +7,12 @@ import {useFormModal} from "../../../utils/useFormModal.ts";
 import * as api from "../../../apis/site.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
-import {KeyOutlined, LoadingOutlined, RedoOutlined} from "@ant-design/icons";
+import {KeyOutlined, LoadingOutlined, OrderedListOutlined, RedoOutlined} from "@ant-design/icons";
 import React, {useMemo, useState} from "react";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import PageFloatButtons from "../../../components/PageFloatButtons";
+import {useNavigate} from "@tanstack/react-router";
 
 
 export const Route = createFileRoute('/_index/site/')({
@@ -32,6 +33,7 @@ function Site() {
 
     const {token} = theme.useToken()
     const queryClient = useQueryClient()
+    const navigate = useNavigate()
 
     const {data = [], isPending, isError, refetch} = useQuery(sitesQueryOptions())
 
@@ -53,11 +55,19 @@ function Site() {
         }
     })
     const floatButtons = useMemo(() => (
-        <FloatButton
-            icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
-            onClick={() => onTesting()}
-        />
-    ), [onTesting, testing])
+        <>
+            <FloatButton
+                icon={<OrderedListOutlined/>}
+                tooltip={'刮削优先级'}
+                onClick={() => navigate({to: '/site/priority'})}
+            />
+            <FloatButton
+                icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
+                tooltip={'刷新站点'}
+                onClick={() => onTesting()}
+            />
+        </>
+    ), [navigate, onTesting, testing])
 
     const handleRefreshCookie = (item: SiteItem) => {
         setLoginSite({ id: item.id, name: item.name })

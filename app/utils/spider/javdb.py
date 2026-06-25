@@ -108,7 +108,7 @@ class JavDBSpider(Spider):
             if searched:
                 time.sleep(randint(1, 3))
 
-        meta = VideoDetail()
+        meta = VideoDetail(source=self.source_ref())
         meta.num = num
 
         response = self.session.get(url)

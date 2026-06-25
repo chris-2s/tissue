@@ -74,6 +74,7 @@ class VideoSiteActor(BaseModel):
 
 
 class VideoDetail(BaseModel):
+    source: Optional[SourceRef] = None
     # 标题
     title: Optional[str] = None
     # 番号

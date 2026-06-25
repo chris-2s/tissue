@@ -28,6 +28,22 @@ export interface SiteUpdate {
     cookies?: string;
 }
 
+export type MetadataPriorityFieldKey = 'cover' | 'rating' | 'actors';
+
+export interface MetadataPriorityFieldConfig {
+    sites: SiteItem['spider_key'][];
+    is_default: boolean;
+}
+
+export interface MetadataPrioritySettings {
+    global_sites: SiteItem['spider_key'][];
+    fields: Record<MetadataPriorityFieldKey, MetadataPriorityFieldConfig>;
+}
+
+export interface MetadataPriorityUpdate {
+    fields: Record<MetadataPriorityFieldKey, SiteItem['spider_key'][]>;
+}
+
 export async function getSites(): Promise<SiteItem[]> {
     const response = await request.get('/site/');
     return response.data.data;
@@ -53,4 +69,13 @@ export function submitLogin(siteId: number, data: {
     captcha: string;
 }) {
     return request.post(`/site/${siteId}/login/submit`, data);
+}
+
+export async function getMetadataPriority(): Promise<MetadataPrioritySettings> {
+    const response = await request.get('/site/metadata-priority');
+    return response.data.data;
+}
+
+export function saveMetadataPriority(payload: MetadataPriorityUpdate) {
+    return request.put('/site/metadata-priority', payload);
 }

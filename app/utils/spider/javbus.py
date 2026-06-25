@@ -33,7 +33,7 @@ class JavBusSpider(Spider):
 
         html = etree.HTML(response.text)
 
-        meta = VideoDetail()
+        meta = VideoDetail(source=self.source_ref())
         meta.num = num
 
         title_element = html.xpath("//h3")

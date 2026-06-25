@@ -21,7 +21,7 @@ class DmmSpider(Spider):
         if response.status_code == 404:
             raise SpiderException('未找到番号')
 
-        meta = VideoDetail()
+        meta = VideoDetail(source=self.source_ref())
 
         response = self.session.post(self.api_url, json={
             "operationName": "ContentPageData",

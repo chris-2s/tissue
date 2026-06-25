@@ -11,6 +11,12 @@ class SpiderKey(StrEnum):
     DMM = 'dmm'
 
 
+class MetadataPriorityFieldKey(StrEnum):
+    COVER = 'cover'
+    RATING = 'rating'
+    ACTORS = 'actors'
+
+
 class SiteCapabilities(BaseModel):
     supports_ranking: bool
     supports_actor: bool
@@ -45,3 +51,29 @@ class LoginSubmit(BaseModel):
     username: str
     password: str
     captcha: str
+
+
+class MetadataPriorityFieldConfig(BaseModel):
+    sites: list[SpiderKey]
+    is_default: bool
+
+
+class MetadataPriorityFieldsConfig(BaseModel):
+    cover: MetadataPriorityFieldConfig
+    rating: MetadataPriorityFieldConfig
+    actors: MetadataPriorityFieldConfig
+
+
+class MetadataPrioritySettings(BaseModel):
+    global_sites: list[SpiderKey]
+    fields: MetadataPriorityFieldsConfig
+
+
+class MetadataPriorityFieldsUpdate(BaseModel):
+    cover: list[SpiderKey]
+    rating: list[SpiderKey]
+    actors: list[SpiderKey]
+
+
+class MetadataPriorityUpdate(BaseModel):
+    fields: MetadataPriorityFieldsUpdate
