@@ -199,7 +199,6 @@ function Subscribe() {
                           onCancel={() => setHistoryModalOpen(false)}
                           onResubscribe={() => {
                               queryClient.invalidateQueries({queryKey: ['subscribes']})
-                              setHistoryModalOpen(false)
                           }}
             />
         </div>

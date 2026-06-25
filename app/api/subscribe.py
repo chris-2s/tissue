@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app import schema
 from app.schema.r import R
@@ -16,9 +16,13 @@ def get_subscribes(service=Depends(get_subscribe_service)):
 
 
 @router.get('/history', response_model=R[List[schema.Subscribe]])
-def get_subscribe_history(service=Depends(get_subscribe_service)):
-    subscribes = service.get_subscribe_histories()
-    return R.list(subscribes)
+def get_subscribe_history(
+        page: int = Query(default=1, ge=1),
+        limit: int = Query(default=12, ge=1, le=100),
+        service=Depends(get_subscribe_service)
+):
+    subscribes = service.get_subscribe_histories(page=page, limit=limit)
+    return R.pages(subscribes)
 
 
 @router.post('/')

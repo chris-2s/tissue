@@ -1,5 +1,6 @@
 import {request} from "../utils/requests";
 import type {VideoDetail, VideoDownload} from "../types/video";
+import type {PagedResponse} from "../types/video";
 
 export interface SubscribeCreate {
     num: string;
@@ -23,6 +24,11 @@ export interface Subscribe extends SubscribeCreate {
 
 export type SubscribeUpdate = Subscribe;
 
+export interface GetSubscribeHistoriesParams {
+    page?: number;
+    limit?: number;
+}
+
 export async function getSubscribes(): Promise<Subscribe[]> {
     const response = await request.request({
         url: '/subscribe/',
@@ -31,12 +37,13 @@ export async function getSubscribes(): Promise<Subscribe[]> {
     return response.data.data
 }
 
-export async function getSubscribeHistories(): Promise<Subscribe[]> {
+export async function getSubscribeHistories(params: GetSubscribeHistoriesParams = {}): Promise<PagedResponse<Subscribe[]>> {
     const response = await request.request({
         url: '/subscribe/history',
-        method: 'get'
+        method: 'get',
+        params
     })
-    return response.data.data
+    return response.data
 }
 
 export function modifySubscribe(data: SubscribeCreate | SubscribeUpdate) {

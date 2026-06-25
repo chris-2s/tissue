@@ -162,12 +162,14 @@ function Header(props: Props) {
                    }}
                    styles={{
                        body: {
+                           display: 'flex',
+                           flexDirection: 'column',
                            padding: responsive.lg ? 24 : 12,
-                           maxHeight: responsive.lg
-                               ? undefined
+                           height: responsive.lg
+                               ? '80vh'
                                : 'calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)) - 72px)',
                            paddingBottom: responsive.lg ? 24 : 'max(12px, env(safe-area-inset-bottom))',
-                           overflowY: 'auto',
+                           overflow: 'hidden',
                        }
                    }}
                    centered={responsive.lg}

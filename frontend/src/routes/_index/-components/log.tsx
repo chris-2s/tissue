@@ -164,7 +164,7 @@ function Log() {
     }
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0}}>
             <div style={{
                 position: 'sticky',
                 top: 0,
@@ -241,7 +241,8 @@ function Log() {
             <div
                 ref={container}
                 style={{
-                    height: responsive.lg ? '72vh' : '70vh',
+                    flex: 1,
+                    minHeight: 0,
                     overflowY: 'auto',
                     background: token.colorBgContainer,
                     padding: 0,

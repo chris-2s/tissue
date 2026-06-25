@@ -12,6 +12,7 @@ from app.db.models import Subscribe, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
 from app.schema import Setting
+from app.schema.r import Page
 from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.utils import notify
@@ -32,8 +33,11 @@ class SubscribeService(BaseService):
     def get_subscribes(self):
         return self.db.query(Subscribe).filter(Subscribe.status != 2).order_by(Subscribe.id.desc()).all()
 
-    def get_subscribe_histories(self):
-        return self.db.query(Subscribe).filter(Subscribe.status == 2).order_by(Subscribe.update_time.desc()).all()
+    def get_subscribe_histories(self, page: int = 1, limit: int = 12):
+        query = self.db.query(Subscribe).filter(Subscribe.status == 2)
+        total = query.count()
+        subscribes = query.order_by(Subscribe.update_time.desc()).offset((page - 1) * limit).limit(limit).all()
+        return Page(page=page, limit=limit, total=total, data=subscribes)
 
     @transaction
     def add_subscribe(self, param: schema.SubscribeCreate):
