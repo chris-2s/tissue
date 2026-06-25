@@ -1,6 +1,8 @@
 import type {VideoDetail} from "../../../../types/video";
 
 export type VideoSearchTokenKind = "num" | "actor" | "title";
+export type VideoFlagFilter = "include" | "exclude" | null;
+export type VideoRatingOperator = "gte" | "lte";
 
 export interface VideoSearchToken {
     kind: VideoSearchTokenKind;
@@ -9,9 +11,10 @@ export interface VideoSearchToken {
 
 export interface VideoFilterValue {
     tokens: VideoSearchToken[];
-    isZh: boolean;
-    isUncensored: boolean;
-    minRating: number | null;
+    zh: VideoFlagFilter;
+    uncensored: VideoFlagFilter;
+    ratingOperator: VideoRatingOperator;
+    ratingValue: number | null;
 }
 
 export function encodeToken(token: VideoSearchToken) {
@@ -99,4 +102,24 @@ export function getVideoRatingValue(video: VideoDetail) {
 
 export function formatRating(value: number) {
     return value.toFixed(2);
+}
+
+export function cycleFlagFilter(value: VideoFlagFilter): VideoFlagFilter {
+    if (value === null) {
+        return "include";
+    }
+    if (value === "include") {
+        return "exclude";
+    }
+    return null;
+}
+
+export function getFlagFilterLabel(name: string, value: VideoFlagFilter) {
+    if (value === "include") {
+        return `仅${name}`;
+    }
+    if (value === "exclude") {
+        return `非${name}`;
+    }
+    return name;
 }

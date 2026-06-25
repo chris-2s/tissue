@@ -97,6 +97,8 @@ class VideoService(BaseService):
                 trans_mode = setting.file.trans_mode
             elif mode == 'download':
                 trans_mode = setting.download.trans_mode
+            elif mode == 'video':
+                trans_mode = 'move'
             else:
                 trans_mode = 'move'
         source_path = video.path
@@ -123,6 +125,9 @@ class VideoService(BaseService):
             raise BizException('视频不存在')
 
         subtitle_paths = self.find_subtitle_paths(video.path, video.num)
+        if subtitle_paths and not video.is_zh:
+            logger.info(f"影片《{video.num}》匹配到字幕文件，标记为中文字幕")
+            video.is_zh = True
         _, ext_name = os.path.splitext(video.path)
 
         if trans_mode == 'move':

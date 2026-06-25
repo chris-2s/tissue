@@ -49,9 +49,10 @@ function Video() {
     const [selected, setSelected] = useState<string | undefined>()
     const [filters, setFilters] = useState<VideoFilterValue>({
         tokens: [],
-        isZh: false,
-        isUncensored: false,
-        minRating: null,
+        zh: null,
+        uncensored: null,
+        ratingOperator: "gte",
+        ratingValue: null,
     })
     const {navigate} = useRouter()
     const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
@@ -63,17 +64,31 @@ function Video() {
 
     const videos = useMemo(() => {
         return data.filter((video: VideoItem) => {
-            if (filters.isZh && !video.is_zh) {
+            if (filters.zh === "include" && !video.is_zh) {
                 return false
             }
 
-            if (filters.isUncensored && !video.is_uncensored) {
+            if (filters.zh === "exclude" && video.is_zh) {
                 return false
             }
 
-            if (filters.minRating !== null) {
+            if (filters.uncensored === "include" && !video.is_uncensored) {
+                return false
+            }
+
+            if (filters.uncensored === "exclude" && video.is_uncensored) {
+                return false
+            }
+
+            if (filters.ratingValue !== null) {
                 const rating = getVideoRatingValue(video)
-                if (rating === undefined || rating < filters.minRating) {
+                if (rating === undefined) {
+                    return false
+                }
+                if (filters.ratingOperator === "gte" && rating < filters.ratingValue) {
+                    return false
+                }
+                if (filters.ratingOperator === "lte" && rating > filters.ratingValue) {
                     return false
                 }
             }
@@ -97,7 +112,7 @@ function Video() {
         })
     }, [data, filters])
 
-    const hasFilter = filters.tokens.length > 0 || filters.isZh || filters.isUncensored || filters.minRating !== null
+    const hasFilter = filters.tokens.length > 0 || filters.zh !== null || filters.uncensored !== null || filters.ratingValue !== null
 
     const floatButtons = useMemo(() => (
         <>

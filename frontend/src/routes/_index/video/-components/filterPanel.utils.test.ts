@@ -1,9 +1,11 @@
 import {describe, expect, it} from "vitest";
 import {
     buildAutocompleteGroups,
+    cycleFlagFilter,
     decodeToken,
     encodeToken,
     formatRating,
+    getFlagFilterLabel,
     getTokenLabel,
     getVideoRatingValue,
 } from "./filterPanel.utils.ts";
@@ -49,5 +51,14 @@ describe("filter panel utils", () => {
     it("keeps rating precision for display", () => {
         expect(getVideoRatingValue(videos[0])).toBe(4.3);
         expect(formatRating(4.3)).toBe("4.30");
+    });
+
+    it("cycles tri-state flag filters and formats labels", () => {
+        expect(cycleFlagFilter(null)).toBe("include");
+        expect(cycleFlagFilter("include")).toBe("exclude");
+        expect(cycleFlagFilter("exclude")).toBe(null);
+        expect(getFlagFilterLabel("中文", null)).toBe("中文");
+        expect(getFlagFilterLabel("中文", "include")).toBe("仅中文");
+        expect(getFlagFilterLabel("中文", "exclude")).toBe("非中文");
     });
 });

@@ -1,11 +1,13 @@
-import {AutoComplete, Card, Input, InputNumber, Space, Tag, Typography} from "antd";
+import {AutoComplete, Card, Input, InputNumber, Select, Space, Tag, Typography} from "antd";
 import {useEffect, useMemo, useState} from "react";
 import type {VideoDetail} from "../../../../types/video";
 import {
     buildAutocompleteGroups,
+    cycleFlagFilter,
     decodeToken,
     encodeToken,
     formatRating,
+    getFlagFilterLabel,
     getTokenLabel,
     type VideoFilterValue,
     type VideoSearchToken,
@@ -84,9 +86,10 @@ function FilterPanel(props: Props) {
         setSearchText("");
         setFilterValue({
             tokens: [],
-            isZh: false,
-            isUncensored: false,
-            minRating: null,
+            zh: null,
+            uncensored: null,
+            ratingOperator: "gte",
+            ratingValue: null,
         });
     }
 
@@ -97,27 +100,27 @@ function FilterPanel(props: Props) {
             onClose: () => removeToken(token),
         }));
 
-        if (filterValue.isZh) {
+        if (filterValue.zh !== null) {
             tags.push({
                 key: "switch:zh",
-                label: "中文",
-                onClose: () => setFilterValue((current) => ({...current, isZh: false})),
+                label: getFlagFilterLabel("中文", filterValue.zh),
+                onClose: () => setFilterValue((current) => ({...current, zh: null})),
             });
         }
 
-        if (filterValue.isUncensored) {
+        if (filterValue.uncensored !== null) {
             tags.push({
                 key: "switch:uncensored",
-                label: "无码",
-                onClose: () => setFilterValue((current) => ({...current, isUncensored: false})),
+                label: getFlagFilterLabel("无码", filterValue.uncensored),
+                onClose: () => setFilterValue((current) => ({...current, uncensored: null})),
             });
         }
 
-        if (filterValue.minRating !== null) {
+        if (filterValue.ratingValue !== null) {
             tags.push({
                 key: "rating",
-                label: `评分: ${formatRating(filterValue.minRating)}+`,
-                onClose: () => setFilterValue((current) => ({...current, minRating: null})),
+                label: `评分 ${filterValue.ratingOperator === "gte" ? ">=" : "<="} ${formatRating(filterValue.ratingValue)}`,
+                onClose: () => setFilterValue((current) => ({...current, ratingValue: null})),
             });
         }
 
@@ -149,16 +152,22 @@ function FilterPanel(props: Props) {
 
                 <div className={'flex flex-wrap items-center gap-2'}>
                     <Tag.CheckableTag
-                        checked={filterValue.isZh}
-                        onChange={(checked) => setFilterValue((current) => ({...current, isZh: checked}))}
+                        checked={filterValue.zh !== null}
+                        onChange={() => setFilterValue((current) => ({
+                            ...current,
+                            zh: cycleFlagFilter(current.zh),
+                        }))}
                     >
-                        中文
+                        {getFlagFilterLabel("中文", filterValue.zh)}
                     </Tag.CheckableTag>
                     <Tag.CheckableTag
-                        checked={filterValue.isUncensored}
-                        onChange={(checked) => setFilterValue((current) => ({...current, isUncensored: checked}))}
+                        checked={filterValue.uncensored !== null}
+                        onChange={() => setFilterValue((current) => ({
+                            ...current,
+                            uncensored: cycleFlagFilter(current.uncensored),
+                        }))}
                     >
-                        无码
+                        {getFlagFilterLabel("无码", filterValue.uncensored)}
                     </Tag.CheckableTag>
                     <Tag.CheckableTag checked={advancedOpen} onChange={setAdvancedOpen}>更多筛选</Tag.CheckableTag>
                     {activeFilterTags.length > 0 && (
@@ -169,28 +178,37 @@ function FilterPanel(props: Props) {
                 {advancedOpen && (
                     <div className={'flex flex-wrap items-center gap-3 rounded-lg border border-solid border-gray-200 px-3 py-2'}>
                         <Text strong>评分</Text>
+                        <Select
+                            value={filterValue.ratingOperator}
+                            options={[
+                                {label: ">=", value: "gte"},
+                                {label: "<=", value: "lte"},
+                            ]}
+                            onChange={(value) => setFilterValue((current) => ({...current, ratingOperator: value}))}
+                            style={{width: 84}}
+                        />
                         <InputNumber
                             min={0}
                             max={5}
                             step={0.1}
-                            value={filterValue.minRating ?? undefined}
+                            value={filterValue.ratingValue ?? undefined}
                             placeholder={'不限'}
                             onChange={(value) => {
                                 if (typeof value !== "number" || value <= 0) {
-                                    setFilterValue((current) => ({...current, minRating: null}));
+                                    setFilterValue((current) => ({...current, ratingValue: null}));
                                     return;
                                 }
-                                setFilterValue((current) => ({...current, minRating: value}));
+                                setFilterValue((current) => ({...current, ratingValue: value}));
                             }}
                         />
                         <Space size={[8, 8]} wrap>
                             {RATING_PRESETS.map((value) => (
                                 <Tag.CheckableTag
                                     key={value}
-                                    checked={filterValue.minRating === value}
+                                    checked={filterValue.ratingValue === value}
                                     onChange={(checked) => setFilterValue((current) => ({
                                         ...current,
-                                        minRating: checked ? value : null,
+                                        ratingValue: checked ? value : null,
                                     }))}
                                 >
                                     {value.toFixed(1)}+
