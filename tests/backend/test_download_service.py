@@ -86,7 +86,7 @@ def build_download_service(db) -> DownloadService:
             mapping_path="/mapped",
             trans_mode="move",
         ),
-        app=SimpleNamespace(video_format=".mp4,.mkv", video_size_minimum=1),
+        library=SimpleNamespace(video_format=".mp4,.mkv", video_size_minimum=1),
     )
     return service
 
