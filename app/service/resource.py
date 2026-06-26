@@ -60,7 +60,7 @@ class ResourceService(BaseService):
         if target_path.suffix.lower() not in cls.LOCAL_IMAGE_SUFFIXES:
             return ImageResult(file_path=None, media_type=None, status_code=404)
 
-        video_root = Path(Setting().app.video_path).expanduser().resolve()
+        video_root = Path(Setting().library.video_path).expanduser().resolve()
         try:
             target_path.relative_to(video_root)
         except ValueError:

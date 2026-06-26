@@ -1,6 +1,6 @@
+import {AppstoreOutlined, CloudDownloadOutlined, CloudOutlined, FolderOpenOutlined, GlobalOutlined, NotificationOutlined} from "@ant-design/icons";
 import {Card, Tabs} from "antd";
 import React from "react";
-import {AppstoreOutlined, CloudDownloadOutlined, CloudOutlined, FolderOpenOutlined, NotificationOutlined} from "@ant-design/icons";
 import {createFileRoute, Outlet, useLocation, useNavigate} from "@tanstack/react-router";
 
 export const Route = createFileRoute('/_index/setting')({
@@ -14,9 +14,14 @@ function Setting() {
 
     const items = [
         {
-            key: '/setting/app',
-            label: '通用',
+            key: '/setting/library',
+            label: '媒体库',
             icon: <AppstoreOutlined/>,
+        },
+        {
+            key: '/setting/crawler',
+            label: '爬虫',
+            icon: <GlobalOutlined/>,
         },
         {
             key: '/setting/file',
@@ -52,4 +57,3 @@ function Setting() {
         </Card>
     )
 }
-

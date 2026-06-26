@@ -1,20 +1,20 @@
-import {Button, Form, Input, InputNumber, message, Skeleton} from "antd";
+import {Button, Form, Input, message, Skeleton} from "antd";
 import * as api from "../../../apis/setting.ts";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
 
 
-export const Route = createFileRoute('/_index/setting/app')({
-    component: SettingApp
+export const Route = createFileRoute('/_index/setting/library')({
+    component: SettingLibrary
 })
 
-function SettingApp() {
+function SettingLibrary() {
 
     const [form] = Form.useForm()
 
     const {loading} = useRequest(api.getSettings, {
         onSuccess: (res) => {
-            form.setFieldsValue(res.app)
+            form.setFieldsValue(res.library)
         }
     })
 
@@ -26,7 +26,7 @@ function SettingApp() {
     })
 
     function onFinish(data: any) {
-        run('app', data)
+        run('library', data)
     }
 
     return (
@@ -43,9 +43,6 @@ function SettingApp() {
                     </Form.Item>
                     <Form.Item label={'视频最小容量'} name={'video_size_minimum'}>
                         <Input/>
-                    </Form.Item>
-                    <Form.Item label={'超时时间(秒)'} name={'timeout'}>
-                        <InputNumber style={{width: '100%'}}/>
                     </Form.Item>
                     <div style={{textAlign: 'center'}}>
                         <Button type={'primary'} style={{width: 150}} loading={saving} htmlType={"submit"}>提交</Button>

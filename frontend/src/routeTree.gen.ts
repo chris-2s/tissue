@@ -30,10 +30,11 @@ import { Route as IndexActorFavoriteIndexRouteImport } from './routes/_index/act
 import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index'
 import { Route as IndexSitePriorityRouteImport } from './routes/_index/site/priority'
 import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
+import { Route as IndexSettingLibraryRouteImport } from './routes/_index/setting/library'
 import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
 import { Route as IndexSettingDownloadRouteImport } from './routes/_index/setting/download'
+import { Route as IndexSettingCrawlerRouteImport } from './routes/_index/setting/crawler'
 import { Route as IndexSettingCookiecloudRouteImport } from './routes/_index/setting/cookiecloud'
-import { Route as IndexSettingAppRouteImport } from './routes/_index/setting/app'
 import { Route as IndexHomeDetailRouteImport } from './routes/_index/home/detail'
 
 const IndexRouteRoute = IndexRouteRouteImport.update({
@@ -140,6 +141,11 @@ const IndexSettingNotifyRoute = IndexSettingNotifyRouteImport.update({
   path: '/notify',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
+const IndexSettingLibraryRoute = IndexSettingLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => IndexSettingRouteRoute,
+} as any)
 const IndexSettingFileRoute = IndexSettingFileRouteImport.update({
   id: '/file',
   path: '/file',
@@ -150,14 +156,14 @@ const IndexSettingDownloadRoute = IndexSettingDownloadRouteImport.update({
   path: '/download',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
+const IndexSettingCrawlerRoute = IndexSettingCrawlerRouteImport.update({
+  id: '/crawler',
+  path: '/crawler',
+  getParentRoute: () => IndexSettingRouteRoute,
+} as any)
 const IndexSettingCookiecloudRoute = IndexSettingCookiecloudRouteImport.update({
   id: '/cookiecloud',
   path: '/cookiecloud',
-  getParentRoute: () => IndexSettingRouteRoute,
-} as any)
-const IndexSettingAppRoute = IndexSettingAppRouteImport.update({
-  id: '/app',
-  path: '/app',
   getParentRoute: () => IndexSettingRouteRoute,
 } as any)
 const IndexHomeDetailRoute = IndexHomeDetailRouteImport.update({
@@ -171,10 +177,11 @@ export interface FileRoutesByFullPath {
   '/setting': typeof IndexSettingRouteRouteWithChildren
   '/login/': typeof LoginIndexRoute
   '/home/detail': typeof IndexHomeDetailRoute
-  '/setting/app': typeof IndexSettingAppRoute
   '/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
+  '/setting/crawler': typeof IndexSettingCrawlerRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
+  '/setting/library': typeof IndexSettingLibraryRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
   '/site/priority': typeof IndexSitePriorityRoute
   '/about/': typeof IndexAboutIndexRoute
@@ -197,10 +204,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexIndexRoute
   '/login': typeof LoginIndexRoute
   '/home/detail': typeof IndexHomeDetailRoute
-  '/setting/app': typeof IndexSettingAppRoute
   '/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
+  '/setting/crawler': typeof IndexSettingCrawlerRoute
   '/setting/download': typeof IndexSettingDownloadRoute
   '/setting/file': typeof IndexSettingFileRoute
+  '/setting/library': typeof IndexSettingLibraryRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
   '/site/priority': typeof IndexSitePriorityRoute
   '/about': typeof IndexAboutIndexRoute
@@ -226,10 +234,11 @@ export interface FileRoutesById {
   '/_index/': typeof IndexIndexRoute
   '/login/': typeof LoginIndexRoute
   '/_index/home/detail': typeof IndexHomeDetailRoute
-  '/_index/setting/app': typeof IndexSettingAppRoute
   '/_index/setting/cookiecloud': typeof IndexSettingCookiecloudRoute
+  '/_index/setting/crawler': typeof IndexSettingCrawlerRoute
   '/_index/setting/download': typeof IndexSettingDownloadRoute
   '/_index/setting/file': typeof IndexSettingFileRoute
+  '/_index/setting/library': typeof IndexSettingLibraryRoute
   '/_index/setting/notify': typeof IndexSettingNotifyRoute
   '/_index/site/priority': typeof IndexSitePriorityRoute
   '/_index/about/': typeof IndexAboutIndexRoute
@@ -255,10 +264,11 @@ export interface FileRouteTypes {
     | '/setting'
     | '/login/'
     | '/home/detail'
-    | '/setting/app'
     | '/setting/cookiecloud'
+    | '/setting/crawler'
     | '/setting/download'
     | '/setting/file'
+    | '/setting/library'
     | '/setting/notify'
     | '/site/priority'
     | '/about/'
@@ -281,10 +291,11 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/home/detail'
-    | '/setting/app'
     | '/setting/cookiecloud'
+    | '/setting/crawler'
     | '/setting/download'
     | '/setting/file'
+    | '/setting/library'
     | '/setting/notify'
     | '/site/priority'
     | '/about'
@@ -309,10 +320,11 @@ export interface FileRouteTypes {
     | '/_index/'
     | '/login/'
     | '/_index/home/detail'
-    | '/_index/setting/app'
     | '/_index/setting/cookiecloud'
+    | '/_index/setting/crawler'
     | '/_index/setting/download'
     | '/_index/setting/file'
+    | '/_index/setting/library'
     | '/_index/setting/notify'
     | '/_index/site/priority'
     | '/_index/about/'
@@ -486,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexSettingNotifyRouteImport
       parentRoute: typeof IndexSettingRouteRoute
     }
+    '/_index/setting/library': {
+      id: '/_index/setting/library'
+      path: '/library'
+      fullPath: '/setting/library'
+      preLoaderRoute: typeof IndexSettingLibraryRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
     '/_index/setting/file': {
       id: '/_index/setting/file'
       path: '/file'
@@ -500,18 +519,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexSettingDownloadRouteImport
       parentRoute: typeof IndexSettingRouteRoute
     }
+    '/_index/setting/crawler': {
+      id: '/_index/setting/crawler'
+      path: '/crawler'
+      fullPath: '/setting/crawler'
+      preLoaderRoute: typeof IndexSettingCrawlerRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
     '/_index/setting/cookiecloud': {
       id: '/_index/setting/cookiecloud'
       path: '/cookiecloud'
       fullPath: '/setting/cookiecloud'
       preLoaderRoute: typeof IndexSettingCookiecloudRouteImport
-      parentRoute: typeof IndexSettingRouteRoute
-    }
-    '/_index/setting/app': {
-      id: '/_index/setting/app'
-      path: '/app'
-      fullPath: '/setting/app'
-      preLoaderRoute: typeof IndexSettingAppRouteImport
       parentRoute: typeof IndexSettingRouteRoute
     }
     '/_index/home/detail': {
@@ -525,19 +544,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface IndexSettingRouteRouteChildren {
-  IndexSettingAppRoute: typeof IndexSettingAppRoute
   IndexSettingCookiecloudRoute: typeof IndexSettingCookiecloudRoute
+  IndexSettingCrawlerRoute: typeof IndexSettingCrawlerRoute
   IndexSettingDownloadRoute: typeof IndexSettingDownloadRoute
   IndexSettingFileRoute: typeof IndexSettingFileRoute
+  IndexSettingLibraryRoute: typeof IndexSettingLibraryRoute
   IndexSettingNotifyRoute: typeof IndexSettingNotifyRoute
   IndexSettingIndexRoute: typeof IndexSettingIndexRoute
 }
 
 const IndexSettingRouteRouteChildren: IndexSettingRouteRouteChildren = {
-  IndexSettingAppRoute: IndexSettingAppRoute,
   IndexSettingCookiecloudRoute: IndexSettingCookiecloudRoute,
+  IndexSettingCrawlerRoute: IndexSettingCrawlerRoute,
   IndexSettingDownloadRoute: IndexSettingDownloadRoute,
   IndexSettingFileRoute: IndexSettingFileRoute,
+  IndexSettingLibraryRoute: IndexSettingLibraryRoute,
   IndexSettingNotifyRoute: IndexSettingNotifyRoute,
   IndexSettingIndexRoute: IndexSettingIndexRoute,
 }

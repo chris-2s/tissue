@@ -20,13 +20,22 @@ class AddMagnetResponse:
 
 class QBittorent:
     def __init__(self):
+        self.host: str | None = None
+        self.tracker_subscribe: str | None = None
+        self.client: qbittorrentapi.Client | None = None
+        self._client_host: str | None = None
+        self.refresh_settings()
+
+    def refresh_settings(self):
         setting = Setting().download
         self.host = setting.host
         self.tracker_subscribe = setting.tracker_subscribe
-        self.client: qbittorrentapi.Client | None = None
-        self._client_host: str | None = None
+        if self._client_host != self.host:
+            self.client = None
+            self._client_host = None
 
     def _build_client(self) -> qbittorrentapi.Client:
+        self.refresh_settings()
         setting = Setting().download
         if not self.host:
             raise BizException('下载器地址未配置')

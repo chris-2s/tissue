@@ -7,3 +7,4 @@ from .torrent import *
 from .site import *
 from .metadata_priority import *
 from .actor_favorite import *
+from .setting_entry import *

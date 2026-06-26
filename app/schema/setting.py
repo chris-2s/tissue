@@ -1,17 +1,22 @@
-from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class SettingApp(BaseModel):
-    timeout: int = 60
+config_path = Path(f'{Path(__file__).cwd()}/config/app.conf')
 
+
+class SettingLibrary(BaseModel):
     video_path: str = '/data/media'
-
     video_size_minimum: int = 100
     video_format: str = '.mp4,.mkv,.mov'
+
+
+class SettingCrawler(BaseModel):
+    timeout: int = 60
+    subscribe_interval_minutes: int = Field(default=400, ge=15)
+    subscribe_pause_seconds: int = Field(default=45, ge=1)
 
 
 class SettingFile(BaseModel):
@@ -34,9 +39,7 @@ class SettingDownload(BaseModel):
 
 class SettingNotify(BaseModel):
     type: str = 'telegram'
-
     webhook_url: Optional[str] = None
-
     telegram_token: Optional[str] = None
     telegram_chat_id: Optional[str] = None
 
@@ -48,35 +51,29 @@ class SettingCookieCloud(BaseModel):
     password: Optional[str] = None
 
 
-config_path = Path(f'{Path(__file__).cwd()}/config/app.conf')
-
-
 class Setting(BaseModel):
-    app: SettingApp = SettingApp()
-    file: SettingFile = SettingFile()
-    download: SettingDownload = SettingDownload()
-    notify: SettingNotify = SettingNotify()
-    cookiecloud: SettingCookieCloud = SettingCookieCloud()
+    library: SettingLibrary = Field(default_factory=SettingLibrary)
+    crawler: SettingCrawler = Field(default_factory=SettingCrawler)
+    file: SettingFile = Field(default_factory=SettingFile)
+    download: SettingDownload = Field(default_factory=SettingDownload)
+    notify: SettingNotify = Field(default_factory=SettingNotify)
+    cookiecloud: SettingCookieCloud = Field(default_factory=SettingCookieCloud)
 
-    def __init__(self):
-        settings = Setting.read()
-        super().__init__(**settings)
+    def __init__(self, **data: Any):
+        if not data:
+            from app.settings import settings_manager
+
+            data = settings_manager.load()
+        super().__init__(**data)
 
     @staticmethod
     def read():
-        parser = ConfigParser()
-        parser.read(config_path)
-        sections = parser.sections()
-        setting = {}
-        for section in sections:
-            setting[section] = dict(parser.items(section))
+        from app.settings import settings_manager
 
-        return setting
+        return settings_manager.load()
 
     @staticmethod
     def write_section(section: str, setting: dict):
-        parser = ConfigParser()
-        parser.read(config_path)
-        parser[section] = setting
-        with open(config_path, 'w') as file:
-            parser.write(file)
+        from app.settings import settings_manager
+
+        settings_manager.save_section(section, setting)

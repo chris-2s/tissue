@@ -83,8 +83,16 @@ class SubscribeService(BaseService):
     def do_subscribe(self):
         subscribes = self.get_subscribes()
         logger.info(f"获取到{len(subscribes)}个订阅")
-        for subscribe in subscribes:
-            time.sleep(randint(30, 60))
+        pause_seconds = max(self.setting.crawler.subscribe_pause_seconds, 1)
+        for index, subscribe in enumerate(subscribes):
+            if index > 0:
+                actual_pause_seconds = self._with_delay_jitter(
+                    base_value=pause_seconds,
+                    jitter_ratio=0.1,
+                    minimum=1,
+                )
+                logger.debug(f"订阅任务暂停 {actual_pause_seconds} 秒后继续")
+                time.sleep(actual_pause_seconds)
 
             result = SpiderService(self.db).get_video(subscribe.num, include_comments=False)
             if not result:
@@ -153,3 +161,9 @@ class SubscribeService(BaseService):
         with SessionFactory() as db:
             SubscribeService(db).do_subscribe()
             db.commit()
+
+    @staticmethod
+    def _with_delay_jitter(base_value: int, jitter_ratio: float, minimum: int) -> int:
+        normalized = max(base_value, minimum)
+        jitter_max = max(round(normalized * jitter_ratio), 0)
+        return normalized + randint(0, jitter_max)

@@ -16,16 +16,34 @@ from app.service.subscribe import SubscribeService
 from app.utils.logger import logger
 
 
+class ScheduleOptions(BaseModel):
+    interval: int
+    jitter: int = 0
+    interval_unit: str = 'minutes'
+
+
+def build_fixed_schedule(interval: int, jitter: int = 0, interval_unit: str = 'minutes') -> Callable[[], ScheduleOptions]:
+    def provider() -> ScheduleOptions:
+        return ScheduleOptions(interval=interval, jitter=jitter, interval_unit=interval_unit)
+
+    return provider
+
+
+def build_subscribe_schedule() -> ScheduleOptions:
+    interval = max(Setting().crawler.subscribe_interval_minutes, 15)
+    jitter = max(round(interval * 60 * 0.1), 1)
+    return ScheduleOptions(interval=interval, jitter=jitter)
+
+
 class Job(BaseModel):
     key: str
     name: str
     job: Callable
-    interval: int
     running: int = 0
-    jitter: int = 0
     immediate: bool = False
     max_instances: int = 1
     misfire_grace_time: int = 300
+    schedule_provider: Callable[[], ScheduleOptions]
 
 
 class Scheduler:
@@ -33,31 +51,33 @@ class Scheduler:
         'subscribe': Job(key='subscribe',
                          name='订阅下载',
                          job=SubscribeService.job_subscribe,
-                         interval=400, jitter=30 * 60),
+                         schedule_provider=build_subscribe_schedule),
         'actor_favorite_thumb_update': Job(key='actor_favorite_thumb_update',
                                            name='演员收藏头像刷新',
                                            job=ActorFavoriteService.job_refresh_missing_thumb,
-                                           interval=100 * 60, jitter=6 * 60 * 60),
+                                           schedule_provider=build_fixed_schedule(interval=100 * 60, jitter=6 * 60 * 60)),
         'scrape_download': Job(key='scrape_download',
                                name='整理已完成下载',
                                job=DownloadService.job_scrape_download,
-                               interval=5),
+                               schedule_provider=build_fixed_schedule(interval=5)),
         'delete_complete_download': Job(key='delete_complete_download',
                                         name='删除已整理下载',
                                         job=DownloadService.job_delete_complete_download,
-                                        interval=5),
+                                        schedule_provider=build_fixed_schedule(interval=5)),
         'clean_image_cache': Job(key='clean_image_cache',
                                  name='清理图片缓存',
                                  job=ResourceService.job_clean_cache,
-                                 interval=12 * 60, jitter=60),
+                                 schedule_provider=build_fixed_schedule(interval=12 * 60, jitter=60)),
         'refresh_available_sites': Job(key='refresh_available_sites',
                                        name='刷新可用站点',
                                        job=SiteService.job_testing_sites,
-                                       interval=1 * 24 * 60, jitter=2 * 60 * 60, immediate=True),
+                                       schedule_provider=build_fixed_schedule(interval=1 * 24 * 60, jitter=2 * 60 * 60),
+                                       immediate=True),
         'cookiecloud_sync': Job(key='cookiecloud_sync',
                                 name='CookieCloud 同步',
                                 job=CookieCloudService().sync,
-                                interval=60, immediate=True),
+                                schedule_provider=build_fixed_schedule(interval=60),
+                                immediate=True),
     }
 
     def __init__(self):
@@ -89,16 +109,26 @@ class Scheduler:
     def list(self):
         return self.scheduler.get_jobs()
 
-    def add(self, key: str):
+    def add(
+        self,
+        key: str,
+        run_now: bool = False,
+        interval: int | None = None,
+        jitter: int | None = None,
+    ):
         job = self.jobs.get(key)
         logger.info(f"启动任务，{job.name}")
-
         job_kwargs = {}
-        if job.immediate:
+        if job.immediate or run_now:
             job_kwargs['next_run_time'] = datetime.now()
 
+        schedule = job.schedule_provider()
+        resolved_interval = interval if interval is not None else schedule.interval
+        resolved_jitter = jitter if jitter is not None else schedule.jitter
+        interval_unit = schedule.interval_unit
+
         self.scheduler.add_job(self.do_job,
-                               trigger=IntervalTrigger(minutes=job.interval, jitter=job.jitter),
+                               trigger=IntervalTrigger(**{interval_unit: resolved_interval}, jitter=resolved_jitter),
                                id=job.key,
                                name=job.name,
                                args=[job.key],

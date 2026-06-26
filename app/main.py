@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app import middleware, db, exception
 from app.scheduler import scheduler
 from app.api import api_router
+from app.settings import settings_manager
 from app.utils.cache import ensure_cache_layout
 
 app = FastAPI()
@@ -16,6 +17,7 @@ def on_startup():
     app.include_router(api_router)
     ensure_cache_layout()
     db.init()
+    settings_manager.bootstrap()
     scheduler.init()
 
 

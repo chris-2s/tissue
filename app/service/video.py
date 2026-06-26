@@ -39,7 +39,7 @@ class VideoService(BaseService):
 
     @cached(cache=video_cache, key=lambda self: 'videos')
     def get_videos(self) -> List[VideoList]:
-        setting = Setting().app
+        setting = Setting().library
         video_paths = []
         for root, _, files in os.walk(setting.video_path):
             for file in files:
@@ -108,7 +108,7 @@ class VideoService(BaseService):
         video_notify.trans_mode = trans_mode
         video_notify.size = utils.convert_size(os.stat(source_path).st_size)
 
-        dest_path = self.trans(video, setting.app.video_path, trans_mode)
+        dest_path = self.trans(video, setting.library.video_path, trans_mode)
         if dest_path != source_path:
             history = History(status=1, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
                               source_path=source_path, dest_path=dest_path, trans_method=trans_mode)

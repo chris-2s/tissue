@@ -24,7 +24,7 @@ class FileService(BaseService):
                 _, ext_name = os.path.splitext(path)
                 size = os.stat(path).st_size
 
-                if ext_name in setting.app.video_format.split(',') and size > (
-                        setting.app.video_size_minimum * 1024 * 1024):
+                if ext_name in setting.library.video_format.split(',') and size > (
+                        setting.library.video_size_minimum * 1024 * 1024):
                     result.append(schema.File(name=file, path=root, size=utils.convert_size(size)))
         return result

@@ -50,7 +50,7 @@ class Spider:
     @staticmethod
     def _get_timeout_seconds() -> int:
         try:
-            timeout = int(Setting().app.timeout)
+            timeout = int(Setting().crawler.timeout)
             return timeout if timeout > 0 else 10
         except Exception:
             return 10

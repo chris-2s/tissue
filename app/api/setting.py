@@ -31,8 +31,10 @@ def save_setting(section: str, setting: dict):
         else:
             scheduler.remove('delete_complete_download')
 
-        qbittorent.host = setting.get('host')
-        qbittorent.tracker_subscribe = setting.get('tracker_subscribe')
+        qbittorent.refresh_settings()
+
+    if section == 'crawler':
+        scheduler.add('subscribe')
 
     if section == 'cookiecloud':
         enabled = setting.get('enabled')
