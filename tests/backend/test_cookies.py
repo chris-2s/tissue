@@ -5,6 +5,8 @@ from app.utils.cookies import (
     apply_cookie_header_to_jar,
     cookiecloud_items_to_cookies,
     cookies_to_cookiecloud_items,
+    is_same_domain_or_subdomain,
+    normalize_host,
     parse_cookie_header,
     to_cookie_header,
 )
@@ -82,3 +84,13 @@ def test_cookiecloud_items_conversion_preserves_metadata():
             "sameSite": "Strict",
         }
     ]
+
+
+def test_normalize_host_extracts_hostname_from_url():
+    assert normalize_host("https://WWW.Example.com:8443/path") == "www.example.com"
+
+
+def test_is_same_domain_or_subdomain_requires_dot_boundary():
+    assert is_same_domain_or_subdomain("www.javdb.com", "javdb.com") is True
+    assert is_same_domain_or_subdomain("javdb.com", "www.javdb.com") is True
+    assert is_same_domain_or_subdomain("eviljavdb.com", "javdb.com") is False

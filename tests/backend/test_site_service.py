@@ -5,6 +5,7 @@ import pytest
 from app.exception import BizException
 from app.middleware.requestvars import g
 from app.schema.site import SiteUpdate
+from app.service.cookiecloud import CookieCloudService
 from app.service.site import SiteService
 
 
@@ -86,3 +87,21 @@ def test_modify_site_converts_empty_cookie_header_to_none(monkeypatch):
     )
 
     assert site_record.updated_payload["cookies"] is None
+
+
+def test_find_matching_cookies_collects_domain_and_subdomain_only():
+    service = CookieCloudService()
+
+    matched = service._find_matching_cookies(
+        "https://www.javdb.com",
+        {
+            "javdb.com": [{"name": "root", "value": "1", "domain": "javdb.com"}],
+            "www.javdb.com": [{"name": "www", "value": "2", "domain": "www.javdb.com"}],
+            "eviljavdb.com": [{"name": "evil", "value": "3", "domain": "eviljavdb.com"}],
+        },
+    )
+
+    assert matched == [
+        {"name": "root", "value": "1", "domain": "javdb.com"},
+        {"name": "www", "value": "2", "domain": "www.javdb.com"},
+    ]

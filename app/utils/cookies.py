@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlparse
 
 @dataclass(frozen=True)
 class BrowserCookie:
@@ -15,6 +15,29 @@ class BrowserCookie:
 
 def normalize_cookie_value(value: str) -> str:
     return quote(unquote(value.strip()))
+
+
+def normalize_host(host: str | None) -> str:
+    if not host:
+        return ''
+
+    raw = host.strip()
+    parsed = urlparse(raw if '://' in raw else f'//{raw}')
+    normalized = parsed.hostname or parsed.path or ''
+    return normalized.strip().strip('.').lower()
+
+
+def is_same_domain_or_subdomain(host: str | None, candidate: str | None) -> bool:
+    normalized_host = normalize_host(host)
+    normalized_candidate = normalize_host(candidate)
+    if not normalized_host or not normalized_candidate:
+        return False
+
+    return (
+        normalized_host == normalized_candidate
+        or normalized_host.endswith(f'.{normalized_candidate}')
+        or normalized_candidate.endswith(f'.{normalized_host}')
+    )
 
 
 def parse_cookie_header(cookie_header: str | None) -> list[BrowserCookie]:

@@ -7,6 +7,8 @@ from app.service.spider import SpiderService
 from app.utils.cookies import (
     cookiecloud_items_to_cookies,
     cookies_to_cookiecloud_items,
+    is_same_domain_or_subdomain,
+    normalize_host,
     parse_cookie_header,
     to_cookie_header,
 )
@@ -127,13 +129,26 @@ class CookieCloudService:
             logger.error(f"CookieCloud 条件删除失败: {e}")
 
     def _find_matching_cookies(self, origin_host: str, cookie_dict: dict) -> list | None:
-        from urllib.parse import urlparse
-        parsed = urlparse(origin_host)
-        host_domain = parsed.netloc or parsed.path
-        if host_domain.startswith('www.'):
-            host_domain = host_domain[4:]
+        host_domain = normalize_host(origin_host)
+        if not host_domain:
+            return None
+
+        matched: list[dict] = []
+        seen: set[tuple[str, str, str, str]] = set()
         for domain, cookies in cookie_dict.items():
-            domain_clean = domain.lstrip('.')
-            if host_domain.endswith(domain_clean) or domain_clean.endswith(host_domain):
-                return cookies
-        return None
+            if not is_same_domain_or_subdomain(host_domain, domain):
+                continue
+
+            for item in cookies:
+                key = (
+                    str(item.get('name', '')),
+                    str(item.get('value', '')),
+                    str(item.get('domain', '') or domain),
+                    str(item.get('path', '') or '/'),
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                matched.append(item)
+
+        return matched or None

@@ -28,7 +28,6 @@ video_cache = LRUCache(maxsize=1)
 
 
 class VideoService(BaseService):
-
     subtitle_formats = {'.ass', '.srt'}
     trans_mode_labels = {
         'copy': '复制',
@@ -59,7 +58,7 @@ class VideoService(BaseService):
         return videos
 
     def get_videos_force(self) -> List[VideoList]:
-        video_cache.pop('videos')
+        video_cache.pop('videos', None)
         return self.get_videos()
 
     def get_video(self, path: str) -> VideoDetail:
@@ -211,7 +210,7 @@ class VideoService(BaseService):
 
     def delete_video_meta(self, path):
         nfo_path = nfo.get_nfo_path_by_video(path)
-        movie_nfo_path = os.path.join(os.path.split(nfo_path)[0],'movie.nfo')
+        movie_nfo_path = os.path.join(os.path.split(nfo_path)[0], 'movie.nfo')
         exist = nfo.get_full(nfo_path)
         if exist:
             if os.path.exists(nfo_path):

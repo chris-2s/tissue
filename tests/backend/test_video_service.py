@@ -140,7 +140,7 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
     captured: dict[str, str] = {}
 
     monkeypatch.setattr(video_module, "Setting", lambda: SimpleNamespace(
-        app=SimpleNamespace(video_path=str(tmp_path / "library")),
+        library=SimpleNamespace(video_path=str(tmp_path / "library")),
         file=SimpleNamespace(trans_mode="copy"),
         download=SimpleNamespace(trans_mode="hardlink"),
     ))

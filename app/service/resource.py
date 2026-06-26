@@ -1,4 +1,5 @@
 import hashlib
+import ipaddress
 import mimetypes
 from pathlib import Path
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ from app.schema import Setting
 from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.utils import cache
+from app.utils.cookies import is_same_domain_or_subdomain, normalize_host
 from app.utils.logger import logger
 from app.utils.m3u8 import fix_m3u8_paths, is_m3u8
 from app.utils.spider import JavDBSpider
@@ -41,6 +43,32 @@ def get_resource_service(db: Session = Depends(get_db)):
 class ResourceService(BaseService):
     IMAGE_CLIENT_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60
     LOCAL_IMAGE_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+
+    @staticmethod
+    def _is_forbidden_ip(address: str) -> bool:
+        ip = ipaddress.ip_address(address)
+        return (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_unspecified
+            or ip.is_reserved
+        )
+
+    @classmethod
+    def get_remote_url_block_status(cls, url: str) -> int | None:
+        component = urlparse(url)
+        if component.scheme not in {'http', 'https'} or not component.hostname:
+            return 400
+
+        try:
+            if cls._is_forbidden_ip(component.hostname):
+                return 403
+        except ValueError:
+            pass
+
+        return None
 
     @classmethod
     def is_remote_image(cls, url: str) -> bool:
@@ -73,6 +101,10 @@ class ResourceService(BaseService):
 
     @staticmethod
     def fetch_image_file(url: str, image_type: ImageCacheType) -> ImageResult:
+        blocked_status = ResourceService.get_remote_url_block_status(url)
+        if blocked_status is not None:
+            return ImageResult(file_path=None, media_type=None, status_code=blocked_status)
+
         component = urlparse(url)
         lookup = cache.get_cache_lookup(image_type, url)
         stale_path = None
@@ -214,8 +246,9 @@ class ResourceService(BaseService):
         return status_code, response_headers, body_generator()
 
     def _get_cookies_by_url(self, url: str) -> str | None:
-        parsed = urlparse(url)
-        host = parsed.netloc
+        host = normalize_host(url)
+        if not host:
+            return None
         sites = self.db.query(Site).all()
 
         for site in sites:
@@ -223,9 +256,8 @@ class ResourceService(BaseService):
             if not spider_class or not spider_class.origin_host:
                 continue
 
-            origin_parsed = urlparse(site.alternate_host or spider_class.origin_host)
-            origin_domain = origin_parsed.netloc.lstrip('www.')
-            if host.endswith(origin_domain) or origin_domain.endswith(host):
+            site_host = normalize_host(site.alternate_host or spider_class.origin_host)
+            if is_same_domain_or_subdomain(host, site_host):
                 return site.cookies
 
         return None
@@ -285,6 +317,10 @@ class ResourceService(BaseService):
         )
 
     async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
+        blocked_status = self.get_remote_url_block_status(url)
+        if blocked_status is not None:
+            return Response(status_code=blocked_status)
+
         headers = self._build_proxy_headers(request, url)
         cookie_str = self._get_cookies_by_url(url)
 

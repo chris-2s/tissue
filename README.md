@@ -40,11 +40,12 @@ docker run \
 
 ### Docker环境变量
 
-| 变量    | 说明         | 是否必填 | 默认值 |
-|-------|------------|------|-----|
-| PUID  | 运行程序的用户ID  | 否    | 0   |
-| PGID  | 运行程序的用户组ID | 否    | 0   |
-| UMASK | 掩码权限       | 否    | 000 |
+| 变量    | 说明             | 是否必填 | 默认值 |
+|-------|----------------|------|-----|
+| PUID  | 运行程序的用户ID      | 否    | 0   |
+| PGID  | 运行程序的用户组ID     | 否    | 0   |
+| UMASK | 掩码权限           | 否    | 000 |
+| JWT_SECRET | 随机字符串，不提供将随机生成 | 否 | 无 |
 
 ### 端口映射
 
@@ -60,11 +61,24 @@ docker run \
 | 文件路径 | 后续希望设计成监控路径，路径下有文件后会自动刮削并转移到媒体库。目前可作为本项目还不支持QB以外下载器替代方案，即将本地址映射到其他下载器的下载路径     | /data/file  |
 | QB路径 | 目前本项目有且只支持qBittorrent，请将QB内的下载路径映射到容器中，如果QB的下载路径和系统路径不同名，请在设置页面设置下载路径在系统中的对应路径 | 无           |
 
-### 默认用户
+### 初始用户
 
 用户名：admin
 
-默认密码：password
+首次启动且系统内不存在 `admin` 用户时，会自动创建管理员账号，并随机生成初始密码。
+
+初始密码会写入启动日志，日志内容会包含类似如下提示：
+
+```text
+检测到系统首次初始化，已创建管理员账号 admin，初始密码为【xxxxxxxxxx】。请登录后立即修改密码。
+```
+
+获取初始密码的方式：
+
+- Docker 部署：执行 `docker logs tissue` 查看容器启动日志
+- 文件日志：查看映射出来的 `config/app.log`
+
+仅首次创建管理员时会输出这条日志，后续重启不会重复输出。
 
 ### 额外说明
 
@@ -109,4 +123,3 @@ docker build -t tissue:local .
 <img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/e5707b21-2737-4fb6-839e-a213318eddf3">
 <img width="1685" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/4597df98-87bf-40a6-805f-37dc0b5e02ad">
 <img width="1682" alt="image" src="https://github.com/chris-2s/tissue/assets/159798260/ac11e3c0-7631-40cb-bef6-7074fe3bbc2f">
-
