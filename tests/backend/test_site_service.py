@@ -91,15 +91,14 @@ def test_modify_site_converts_empty_cookie_header_to_none(monkeypatch):
 
 def test_find_matching_cookies_collects_domain_and_subdomain_only():
     service = CookieCloudService()
+    cookie_dict = {
+        "javdb.com": [{"name": "root", "value": "1", "domain": "javdb.com"}],
+        "www.javdb.com": [{"name": "www", "value": "2", "domain": "www.javdb.com"}],
+        "eviljavdb.com": [{"name": "evil", "value": "3", "domain": "eviljavdb.com"}],
+    }
 
-    matched = service._find_matching_cookies(
-        "https://www.javdb.com",
-        {
-            "javdb.com": [{"name": "root", "value": "1", "domain": "javdb.com"}],
-            "www.javdb.com": [{"name": "www", "value": "2", "domain": "www.javdb.com"}],
-            "eviljavdb.com": [{"name": "evil", "value": "3", "domain": "eviljavdb.com"}],
-        },
-    )
+    matched_entries = service._find_matching_cookie_entries("https://www.javdb.com", cookie_dict)
+    matched = service._merge_cookie_entries(matched_entries)
 
     assert matched == [
         {"name": "root", "value": "1", "domain": "javdb.com"},
