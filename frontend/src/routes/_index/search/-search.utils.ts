@@ -36,6 +36,7 @@ export function groupActors(actors: actorApi.ActorSearchItem[]): SearchResultGro
             thumb: actor.thumb,
             site_id: source.site_id,
             site_name: source.site_name,
+            alias: actor.alias,
         });
 
         groupMap.set(source.site_id, group);

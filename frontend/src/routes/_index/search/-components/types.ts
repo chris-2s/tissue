@@ -25,6 +25,7 @@ export type ActorCandidate = {
     thumb?: string;
     site_id: number;
     site_name?: string;
+    alias?: string[];
 };
 
 export type SearchResultGroup = {

@@ -161,8 +161,10 @@ class JavDBSpider(Spider):
                 actor_element = element.xpath('./preceding-sibling::a[1]')[0]
                 actor_url = actor_element.get('href')
                 actor_code = actor_url.split("/")[-1]
+                actor = VideoActor(name=actor_element.text, code=actor_code)
                 actor_avatar = urljoin(self.avatar_host, f'{actor_code[0:2].lower()}/{actor_code}.jpg')
-                actor = VideoActor(name=actor_element.text, thumb=actor_avatar, code=actor_code)
+                if self._validate_actor_avatar(actor_avatar, head_validate=True):
+                    actor.thumb = actor_avatar
                 actors.append(actor)
             meta.actors = actors
             meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
@@ -333,46 +335,40 @@ class JavDBSpider(Spider):
         pages.page = page
         pages.limit = 40
 
+        actor = Actor(code=code, source=self.source_ref())
+
         section = section_element[0]
+
+        name_elements = section.xpath('.//span[@class="actor-section-name"]')[0]
+        alias = name_elements.text.split(', ')
 
         meta_elements = section.xpath('.//span[@class="section-meta"]')
         for element in meta_elements:
             total_matched = re.match(r'(\d+) 部影片', element.text)
             if total_matched:
                 pages.total = int(total_matched.group(1))
+            if ', ' in element.text:
+                alias.extend(element.text.split(', '))
+
+        actor.name = alias[0]
+        actor.alias = alias[1:]
+
+        avatar_element = section.xpath('.//div[contains(@class, "actor-avatar")]/div/span')
+        if avatar_element:
+            avatar_matched = re.match(r'background-image: url\((.+?)\)', avatar_element[0].get('style'))
+            if avatar_matched:
+                actor.thumb = avatar_matched.group(1)
 
         pages.data = self._get_video(html)
-
-        actor = Actor(code=code, source=self.source_ref())
-        title = html.xpath('//title/text()')
-        if title:
-            actor.name = title[0].split(' | ')[0].strip()
-
-        if actor.name:
-            actors = self._search_actor_results(actor.name)
-            actor = next((item for item in actors if item.code == code), actor)
-
-        if not actor.thumb:
-            fallback_actors = self._parse_actor_elements(html.xpath('//div[@id="actors"]/div/a'))
-            fallback_actor = next((item for item in fallback_actors if item.code == code), None)
-            if fallback_actor:
-                actor = fallback_actor
-
-        actor.code = code
-        actor.source = self.source_ref()
 
         return ActorPage(actor=actor, page=pages)
 
     def search_actor(self, name: str):
-        return self._search_actor_results(name)
-
-    def _search_actor_results(self, name: str):
         url = urljoin(self.host, f'/search?q={name}&f=actor')
         response = self.session.get(url)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
-        return self._parse_actor_elements(html.xpath('//div[@id="actors"]/div/a'))
+        actors_element = html.xpath('//div[@id="actors"]/div/a')
 
-    def _parse_actor_elements(self, actors_element):
         actors = []
         for actor_element in actors_element:
             actor_names = [name.strip() for name in actor_element.get('title').split(',')]
@@ -381,8 +377,17 @@ class JavDBSpider(Spider):
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_names[0] if actor_names else None
-            if actor_avatar and not 'actor_unknow' in actor_avatar:
+            if self._validate_actor_avatar(actor_avatar):
                 actor.thumb = actor_avatar
             actor.alias = list(filter(lambda item: item != actor.name, actor_names))
             actors.append(actor)
         return actors
+
+    def _validate_actor_avatar(self, avatar, head_validate=False):
+        if not avatar or 'actor_unknow' in avatar:
+            return False
+        if head_validate:
+            response = self.session.head(avatar)
+            return response.ok
+        else:
+            return True

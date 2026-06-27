@@ -78,14 +78,19 @@ class JavBusSpider(Spider):
             tags = [tag.text for tag in tag_elements]
             meta.tags = tags
 
-        actor_elements = html.xpath("//span[@class='genre']//a[contains(@href,'star')]")
+        actor_elements = html.xpath("//ul/div[starts-with(@id, 'star_')]/li/a")
         if actor_elements:
             actors = []
             for element in actor_elements:
+                actor = VideoActor()
                 actor_url = element.get('href')
-                actor_code = actor_url.split("/")[-1]
-                actor_avatar = urljoin(self.host, f'/pics/actress/{actor_code}_a.jpg')
-                actor = VideoActor(name=element.text, thumb=actor_avatar, code=actor_code)
+                actor.code = actor_url.split("/")[-1]
+
+                avatar_element = element.xpath('./img')[0]
+                actor.name = avatar_element.get('title')
+                actor_avtar = avatar_element.get('src')
+                if self._validate_actor_avatar(actor_avtar):
+                    actor.thumb = urljoin(self.host, actor_avtar)
                 actors.append(actor)
             meta.actors = actors
             meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
@@ -219,41 +224,30 @@ class JavBusSpider(Spider):
         if total is None:
             raise BizException("未找到该演员")
 
+        actor = Actor(code=code, source=self.source_ref())
+
+        actor_element = html.xpath('//div[@class="avatar-box"]')[0]
+        avatar_element = actor_element.xpath("./div[@class='photo-frame']/img")
+        if avatar_element:
+            actor.name = avatar_element[0].get('title')
+            if self._validate_actor_avatar(avatar_element[0].get('src')):
+                actor.thumb = urljoin(self.host, avatar_element[0].get('src'))
+
         pages = Page()
         pages.page = page
         pages.limit = 30
         pages.total = total
         pages.data = self._parse_movie_boxes(html)
 
-        actor = Actor(code=code, source=self.source_ref())
-        actor_name = html.xpath('//title/text()')
-        if actor_name:
-            actor.name = actor_name[0].split(' - ')[0].strip()
-
-        if actor.name:
-            actors = self._search_actor_results(actor.name)
-            actor = next((item for item in actors if item.code == code), actor)
-
-        if not actor.thumb:
-            fallback_actors = self._parse_actor_elements(html.xpath('//a[contains(@class,"avatar-box")]'))
-            fallback_actor = next((item for item in fallback_actors if item.code == code), None)
-            if fallback_actor:
-                actor = fallback_actor
-
         return ActorPage(actor=actor, page=pages)
 
     def search_actor(self, name: str):
-        return self._search_actor_results(name)
-
-    def _search_actor_results(self, name: str):
         url = urljoin(self.host, f'/searchstar/{name}')
         response = self.session.get(url, allow_redirects=False)
         html = etree.HTML(response.text)
-        return self._parse_actor_elements(html.xpath('//a[contains(@class,"avatar-box")]'))
 
-    def _parse_actor_elements(self, actors_element):
         actors = []
-        for actor_element in actors_element:
+        for actor_element in html.xpath('//a[contains(@class,"avatar-box")]'):
             avatar_element = actor_element.xpath('./div/img')[0]
             actor_name = avatar_element.get('title')
             actor_src = avatar_element.get('src')
@@ -262,7 +256,7 @@ class JavBusSpider(Spider):
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_name
-            if actor_src and not 'nowprinting' in actor_src:
+            if self._validate_actor_avatar(actor_avatar):
                 actor.thumb = actor_avatar
             actors.append(actor)
         return actors
@@ -277,3 +271,6 @@ class JavBusSpider(Spider):
         response = self.session.get(url, allow_redirects=False, headers={'Cookie': 'existmag=all'})
         html = etree.HTML(response.text)
         return self._parse_movie_boxes(html)
+
+    def _validate_actor_avatar(self, avatar: str) -> bool:
+        return avatar and not 'nowprinting' in avatar
