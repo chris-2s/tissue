@@ -90,6 +90,11 @@ class SiteService(BaseService):
             try:
                 stale_cookie_header = site.cookies
                 if not spider_instance.check_cookie_validity(stale_cookie_header):
+                    current_site = self.db.query(Site).get(site.id)
+                    if not current_site or current_site.cookies != stale_cookie_header:
+                        logger.info(f"站点【{spider_instance.name}】Cookie 已更新，跳过失效清理")
+                        continue
+
                     domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
                     cookie_notify = CookieNotify(
                         site_name=spider_instance.name,
@@ -98,7 +103,7 @@ class SiteService(BaseService):
                     )
                     notify.send_cookie(cookie_notify)
 
-                    site.cookies = None
+                    current_site.cookies = None
                     self.db.commit()
                     logger.warning(f"站点【{spider_instance.name}】Cookie已失效并清除")
             finally:
