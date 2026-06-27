@@ -37,6 +37,24 @@ class JavDBSpider(Spider):
     supports_previews = True
     supports_comments = True
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
+    cookie_check_path = '/rankings/movies?p=daily&t=uncensored'
+
+    def check_cookie_validity(self, cookie_header: str | None) -> bool:
+        if not cookie_header:
+            return True
+
+        response = None
+        try:
+            self.session.cookies.clear()
+            apply_cookie_header_to_jar(cookie_header, self.session.cookies)
+            response = self.session.get(urljoin(self.host, self.cookie_check_path), allow_redirects=True)
+            return '/login' not in str(response.url)
+        except Exception:
+            return True
+        finally:
+            if response is not None:
+                response.close()
+            self.session.cookies.clear()
 
     def get_login_page(self) -> dict[str, Any]:
         """获取登录页信息"""

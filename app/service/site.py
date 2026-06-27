@@ -83,22 +83,20 @@ class SiteService(BaseService):
 
         sites = self.db.query(Site).filter(Site.cookies.isnot(None)).all()
         for site in sites:
-            spider_instance = SpiderService.build_spider(site)
+            spider_instance = SpiderService.build_spider(site, include_cookies=False)
             if not spider_instance:
                 logger.warning(f"站点【{site.spider_key}】未注册，跳过 Cookie 检查")
                 continue
             try:
-                if not spider_instance.session.cookies:
+                stale_cookie_header = site.cookies
+                if not spider_instance.check_cookie_validity(stale_cookie_header):
                     domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
-                    stale_cookie_header = site.cookies
                     cookie_notify = CookieNotify(
                         site_name=spider_instance.name,
                         domain=domain,
                         message="Cookie已失效，请重新登录"
                     )
                     notify.send_cookie(cookie_notify)
-
-                    CookieCloudService().delete_cookie_if_match(domain, stale_cookie_header)
 
                     site.cookies = None
                     self.db.commit()

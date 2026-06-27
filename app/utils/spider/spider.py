@@ -83,22 +83,24 @@ class Spider:
         return SourceRef(site_id=self.site_id, spider_key=self.key, site_name=self.name)
 
     def _ensure_valid_cookies(self):
-        """使用 HEAD 请求检测 cookie 是否有效"""
+        """让站点有机会重置当前会话，不在这里判断 cookie 是否失效"""
         if not self.session.cookies:
             return
 
         try:
-            head_response = self.session.head(self.host, timeout=3, allow_redirects=True)
-            if not head_response.ok:
-                self.session.cookies.clear()
-        except:
-            self.session.cookies.clear()
+            response = self.session.head(self.host, timeout=3, allow_redirects=True)
+            response.close()
+        except Exception:
+            pass
 
     def _load_cookies(self, cookies_str: str):
         """从浏览器复制的 cookie 字符串加载
         格式: key1=value1; key2=value2
         """
         apply_cookie_header_to_jar(cookies_str, self.session.cookies)
+
+    def check_cookie_validity(self, cookie_header: str | None) -> bool:
+        return True
 
     def probe_image_info(self, url: str) -> dict[str, Any] | None:
         if not url:
