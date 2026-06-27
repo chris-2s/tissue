@@ -1,10 +1,12 @@
-import {Button, Checkbox, Col, Form, Input, message, Modal, Row} from "antd";
+import {Button, Checkbox, Col, Form, Input, message, Modal, Row, Space, Tag, Typography} from "antd";
 import * as api from "../../../../apis/video";
 import {useRequest} from "ahooks";
-import React from "react";
+import React, {useMemo} from "react";
 import {FormModalProps} from "../../../../utils/useFormModal.ts";
 import RemoteImageEditor from "../../../../components/RemoteImage/editor.tsx";
-import DatePicker from "../../../../components/DatePicker";
+import {useRouter} from "@tanstack/react-router";
+
+const {Text} = Typography;
 
 interface Props extends FormModalProps {
     onDelete?: (id: number) => void
@@ -13,7 +15,15 @@ interface Props extends FormModalProps {
 function ModifyModal(props: Props) {
 
     const {form, onDelete, ...otherProps} = props
+    const router = useRouter()
     const id = Form.useWatch('id', form)
+    const title = Form.useWatch('title', form)
+    const premiered = Form.useWatch('premiered', form)
+    const actorsValue = Form.useWatch('actors', form)
+    const actorItems = useMemo(() => String(actorsValue || '')
+        .split(/[，,]/)
+        .map((item) => item.trim())
+        .filter(Boolean), [actorsValue])
 
     const {run: onSearch, loading: onSearching} = useRequest(api.scrapeVideo, {
         manual: true,
@@ -43,6 +53,16 @@ function ModifyModal(props: Props) {
         })
     }
 
+    function renderReadonlyValue(value?: string) {
+        return value ? (
+            <div className={'min-h-8 rounded-lg bg-[var(--ant-color-fill-quaternary)] px-3 py-2'}>
+                <Text>{value}</Text>
+            </div>
+        ) : (
+            <Text type={'secondary'}>暂无</Text>
+        )
+    }
+
     return (
         <Modal {...otherProps} title={id ? '编辑订阅' : '新增订阅'} footer={[
             id && <Button key={'delete'} danger onClick={handleDelete}>删除</Button>,
@@ -50,7 +70,7 @@ function ModifyModal(props: Props) {
             <Button key={'save'} type={"primary"} loading={props.confirmLoading}
                     onClick={() => props.onOk?.()}>确定</Button>,
         ]}>
-            <Form form={form} disabled={true} layout={'vertical'}>
+            <Form form={form} layout={'vertical'}>
                 <Form.Item noStyle name={'id'}>
                     <Input style={{display: 'none'}}/>
                 </Form.Item>
@@ -70,17 +90,41 @@ function ModifyModal(props: Props) {
                             </Col>
                             <Col span={12}>
                                 <Form.Item label={'发布日期'} name={'premiered'}>
-                                    <DatePicker style={{width: '100%'}}/>
+                                    {renderReadonlyValue(premiered)}
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
                                 <Form.Item label={'标题'} name={'title'}>
-                                    <Input/>
+                                    <div
+                                        className={'min-h-8 rounded-lg bg-[var(--ant-color-fill-quaternary)] px-3 py-2'}>
+                                        {title ? <Text>{title}</Text> : <Text type={'secondary'}>暂无</Text>}
+                                    </div>
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
                                 <Form.Item label={'演员'} name={'actors'}>
-                                    <Input/>
+                                    {actorItems.length ? (
+                                        <Space size={[8, 8]} wrap>
+                                            {actorItems.map((actor) => (
+                                                <Tag
+                                                    key={actor}
+                                                    className={'cursor-pointer'}
+                                                    onClick={(event) => {
+                                                        event.preventDefault()
+                                                        event.stopPropagation()
+                                                        void router.navigate({
+                                                            to: '/search',
+                                                            search: {mode: 'actor', keyword: actor} as never
+                                                        })
+                                                    }}
+                                                >
+                                                    {actor}
+                                                </Tag>
+                                            ))}
+                                        </Space>
+                                    ) : (
+                                        <Text type={'secondary'}>暂无</Text>
+                                    )}
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
