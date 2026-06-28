@@ -1,4 +1,4 @@
-import {Divider, Dropdown, Modal, Space, theme} from "antd";
+import {Divider, Dropdown, Modal, theme} from "antd";
 
 import {
     ArrowLeftOutlined,
@@ -52,6 +52,23 @@ function Header(props: Props) {
     const themeMode = useSelector((state: RootState) => state.app?.themeMode)
     const CurrentTheme = themes.find(i => i.name === themeMode) || themes[0]
 
+    function renderThemeIcon(item: typeof CurrentTheme, size: number) {
+        if (item.svg) {
+            return (
+                <span
+                    aria-hidden="true"
+                    style={{display: 'inline-flex', width: size, height: size}}
+                    dangerouslySetInnerHTML={{__html: item.svg}}
+                />
+            )
+        }
+        if (item.icon) {
+            const Icon = item.icon
+            return <Icon style={{fontSize: size}}/>
+        }
+        return null
+    }
+
     function onGoodBoyChange() {
         appDispatch.setGoodBoy(!isGoodBoy)
     }
@@ -59,7 +76,7 @@ function Header(props: Props) {
     const themeItems = themes.map(i => ({
         key: i.name,
         label: i.title,
-        icon: <i.icon></i.icon>
+        icon: renderThemeIcon(i, 16)
     })) as any
 
     function onThemeClick(event: any) {
@@ -141,29 +158,40 @@ function Header(props: Props) {
 
 
     return (
-        <div className={`h-full flex items-center`}>
-            <div className={'cursor-pointer flex items-center'} onClick={() => props.onCollapse?.()}>
+        <div className={'flex h-full w-full items-center justify-between'}>
+            <div className={'flex h-full items-center'} onClick={() => props.onCollapse?.()}>
                 {props.collapsible && (
-                    <IconButton>
+                    <IconButton size={responsive.md ? 'md' : 'lg'}>
                         <MenuOutlined style={{color: token.colorText, fontSize: token.sizeMD}}/>
                     </IconButton>
                 )}
                 {!props.collapsible && (
                     (canBack && !responsive.lg) ? (
-                        <IconButton onClick={() => history.go(-1)}>
+                        <IconButton size={responsive.md ? 'md' : 'lg'} onClick={() => history.go(-1)}>
                             <ArrowLeftOutlined style={{fontSize: token.sizeLG}}/>
                         </IconButton>
                     ) : (
                         <Link to={'/'}
-                              className={'flex items-center'}>
-                            <img className={responsive.lg ? 'ml-4 mr-4 h-12' : 'mr-1 h-10'} src={Logo} alt=""/>
+                              className={'flex h-full items-center'}>
+                            <img
+                                className={responsive.lg ? 'ml-4 mr-4 block h-12' : 'mr-1 block h-10'}
+                                src={Logo}
+                                alt=""
+                            />
                         </Link>
                     )
                 )}
             </div>
-            <div className={'flex-1 flex flex-row-reverse items-center'}>
-                <Space>
-                    <IconButton onClick={() => onGoodBoyChange()}>
+            <div className={'flex h-full flex-1 flex-row-reverse items-center'}>
+                <div
+                    className={'flex h-full items-center'}
+                    style={{gap: responsive.md ? 10 : 8}}
+                >
+                    <IconButton
+                        size={responsive.md ? 'md' : 'lg'}
+                        selected={isGoodBoy}
+                        onClick={() => onGoodBoyChange()}
+                    >
                         {isGoodBoy ? (<EyeInvisibleOutlined style={{fontSize: token.sizeLG}}/>) : (
                             <EyeOutlined style={{fontSize: token.sizeLG}}/>)}
                     </IconButton>
@@ -174,8 +202,8 @@ function Header(props: Props) {
                         onOpenChange={handleThemeDropdownOpenChange}
                         menu={{items: themeItems, onClick: onThemeClick}}
                     >
-                        <IconButton>
-                            <CurrentTheme.icon style={{fontSize: token.sizeLG}}/>
+                        <IconButton size={responsive.md ? 'md' : 'lg'} selected={themeDropdownOpen} pressable={false}>
+                            {renderThemeIcon(CurrentTheme, token.sizeLG)}
                         </IconButton>
                     </Dropdown>
                     <Dropdown
@@ -186,12 +214,12 @@ function Header(props: Props) {
                         menu={{items: userItems, onClick: onUserClick}}
                         popupRender={renderDropdown}
                     >
-                        <IconButton>
+                        <IconButton size={responsive.md ? 'md' : 'lg'} selected={userDropdownOpen || !!pin} pressable={false}>
                             <UserOutlined
                                 style={{fontSize: token.sizeLG, color: pin ? token.colorPrimary : undefined}}/>
                         </IconButton>
                     </Dropdown>
-                </Space>
+                </div>
             </div>
             <Modal title={'日志'}
                    open={logOpen}

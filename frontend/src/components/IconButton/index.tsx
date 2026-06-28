@@ -1,26 +1,39 @@
 import {CSSProperties, ComponentPropsWithoutRef, forwardRef} from "react";
 import {theme} from "antd";
+import Styles from "./index.module.css";
 
-type IconButtonProps = ComponentPropsWithoutRef<'span'>
+type IconButtonProps = ComponentPropsWithoutRef<'button'> & {
+    selected?: boolean
+    size?: 'sm' | 'md' | 'lg'
+    pressable?: boolean
+}
 
-const hoverStyle = {'--hover-bg': 'transparent'} as CSSProperties
-
-const IconButton = forwardRef<HTMLSpanElement, IconButtonProps>(function IconButton(props, ref) {
-    const {children, className, style, ...otherProps} = props
+const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(props, ref) {
+    const {children, className, style, selected = false, size = 'md', pressable = true, type = 'button', ...otherProps} = props
     const {token} = theme.useToken()
 
     return (
-        <span
+        <button
             ref={ref}
+            type={type}
             {...otherProps}
-            style={{...hoverStyle, '--hover-bg': token.colorBgTextHover, ...style} as CSSProperties}
+            style={{
+                '--icon-button-hover-bg': token.colorFillSecondary,
+                '--icon-button-active-bg': token.colorFill,
+                '--icon-button-selected-bg': token.colorPrimaryBg,
+                '--icon-button-selected-color': token.colorPrimary,
+                ...style
+            } as CSSProperties}
             className={[
-                'relative inline-flex justify-center items-center p-2 rounded-3xl cursor-pointer hover:bg-[var(--hover-bg)]',
+                Styles.button,
+                Styles[size],
+                !pressable && Styles.buttonNoPress,
+                selected && Styles.buttonSelected,
                 className
             ].filter(Boolean).join(' ')}
         >
             {children}
-        </span>
+        </button>
     )
 })
 

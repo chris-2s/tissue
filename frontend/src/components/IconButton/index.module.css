@@ -1,0 +1,58 @@
+.button {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition:
+        transform 120ms ease,
+        background-color 120ms ease,
+        color 120ms ease,
+        box-shadow 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.button:hover {
+    background: var(--icon-button-hover-bg);
+}
+
+.button:active {
+    transform: scale(0.94);
+    background: var(--icon-button-active-bg);
+}
+
+.buttonNoPress:active {
+    transform: none;
+}
+
+.buttonSelected {
+    background: var(--icon-button-selected-bg);
+    color: var(--icon-button-selected-color);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--icon-button-selected-bg) 55%, transparent);
+}
+
+.buttonSelected:hover {
+    background: var(--icon-button-selected-bg);
+}
+
+.sm {
+    width: 34px;
+    height: 34px;
+}
+
+.md {
+    width: 40px;
+    height: 40px;
+}
+
+.lg {
+    width: 44px;
+    height: 44px;
+}

@@ -1,7 +1,16 @@
-import {SunOutlined, MoonOutlined, LaptopOutlined} from "@ant-design/icons";
+import {SunOutlined, MoonOutlined} from "@ant-design/icons";
+import type {ComponentType} from "react";
+import themeAutoSvg from "../assets/theme-auto.svg?raw";
 
-export const themes = [
-    {title: '跟随系统', name: 'system', icon: LaptopOutlined},
+type ThemeOption = {
+    title: string
+    name: string
+    icon?: ComponentType<any>
+    svg?: string
+}
+
+export const themes: ThemeOption[] = [
+    {title: '跟随系统', name: 'system', svg: themeAutoSvg},
     {title: '明亮', name: 'light', icon: SunOutlined},
     {title: '暗黑', name: 'dark', icon: MoonOutlined},
 ]

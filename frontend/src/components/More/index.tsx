@@ -34,7 +34,7 @@ function More(props: Props) {
 
     return (
         <Dropdown menu={{items, onClick}}>
-            <IconButton>
+            <IconButton pressable={false}>
                 <MoreOutlined style={{fontSize: 25, color: token.colorText}}/>
             </IconButton>
         </Dropdown>

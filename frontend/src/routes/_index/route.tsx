@@ -28,6 +28,7 @@ export const Route = createFileRoute('/_index')({
 function RouteLayout() {
 
     const responsive = useResponsive()
+    const headerHeight = responsive.md ? 64 : 56
 
     const [collapsed, setCollapsed] = useState(true)
     const {token} = useToken()
@@ -91,14 +92,18 @@ function RouteLayout() {
                             background: token.colorBgContainer + '99',
                             borderBlockEndColor: token.colorBorderSecondary
                         }}>
-                            <Layout.Header className={'bg-transparent'}>
+                            <Layout.Header
+                                className={'bg-transparent flex items-center'}
+                                style={{height: headerHeight}}
+                            >
                                 <Header collapsible={responsive.md && !responsive.lg}
                                         onCollapse={() => setCollapsed(!collapsed)}/>
                             </Layout.Header>
                         </div>
                         <Layout.Content
                             style={{
-                                paddingBottom: (!responsive.md) ? ('calc(56px + env(safe-area-inset-bottom, 0))') : 0
+                                paddingBottom: (!responsive.md) ? ('calc(56px + env(safe-area-inset-bottom, 0))') : 0,
+                                paddingTop: `calc(env(safe-area-inset-top, 0) + ${headerHeight}px)`,
                             }}
                             className={Styles.content}>
                             <div style={{padding: responsive.md ? 16 : 12}}>

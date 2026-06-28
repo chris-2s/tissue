@@ -1,0 +1,92 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section {
+    padding: 2px 0 0;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.sectionTitle {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.item {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tile {
+    min-height: 92px;
+    border-radius: 18px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--ant-color-border-secondary) 68%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--ant-color-fill-quaternary) 72%, white 28%), transparent 100%);
+    transition:
+        transform 140ms ease,
+        border-color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.tile:active {
+    transform: scale(0.97);
+}
+
+.tileActive {
+    border-color: color-mix(in srgb, var(--ant-color-primary) 44%, var(--ant-color-border-secondary));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--ant-color-primary-bg) 84%, white 16%), transparent 100%);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--ant-color-primary-bg) 28%, transparent);
+}
+
+.iconWrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: color-mix(in srgb, var(--ant-color-fill-tertiary) 76%, white 24%);
+}
+
+.tileActive .iconWrap {
+    background: color-mix(in srgb, var(--ant-color-primary-bg) 78%, white 22%);
+}
+
+.label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
