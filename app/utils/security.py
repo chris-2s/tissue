@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +13,8 @@ oauth2_optional_scheme = OAuth2PasswordBearer(tokenUrl=f"/auth/login", auto_erro
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 algorithm = "HS256"
 jwt_secret_path = Path(f'{Path(__file__).cwd()}/config/jwt_secret')
+default_access_token_expire_hours = int(os.getenv('ACCESS_TOKEN_EXPIRE_HOURS', '12'))
+default_remember_token_expire_days = int(os.getenv('REMEMBER_TOKEN_EXPIRE_DAYS', '365'))
 
 
 def _write_secret_file(secret: str):
@@ -47,8 +49,15 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(subject: str | Any) -> str:
-    expire = datetime.now() + timedelta(days=365)
-    payload = {"exp": expire, "sub": str(subject)}
+def get_access_token_expire_delta(remember: bool = False) -> timedelta:
+    if remember:
+        return timedelta(days=default_remember_token_expire_days)
+    return timedelta(hours=default_access_token_expire_hours)
+
+
+def create_access_token(subject: str | Any, remember: bool = False) -> str:
+    now = datetime.now(timezone.utc)
+    expire = now + get_access_token_expire_delta(remember)
+    payload = {"exp": expire, "iat": now, "sub": str(subject)}
     encoded_jwt = jwt.encode(payload, secret_key, algorithm=algorithm)
     return encoded_jwt

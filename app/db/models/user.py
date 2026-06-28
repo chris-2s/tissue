@@ -15,13 +15,13 @@ class User(Base):
     is_admin = Column(Boolean, nullable=False, default=False)
 
     @staticmethod
-    def verify(db: Session, username: str, password: str):
+    def verify(db: Session, username: str, password: str, remember: bool = False):
         user = db.query(User).filter_by(username=username).one_or_none()
         if not user:
             return None
         if not verify_password(password, user.password):
             return None
-        return create_access_token(user.id)
+        return create_access_token(user.id, remember=remember)
 
     @staticmethod
     def get_by_username(db: Session, username: str):

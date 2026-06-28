@@ -1,11 +1,17 @@
 import {request} from "../utils/requests";
 
 export function login(data: any) {
+    const payload = new URLSearchParams({
+        username: data.username,
+        password: data.password,
+        remember: String(Boolean(data.remember)),
+    });
+
     return request.request({
         url: '/auth/login',
         method: 'post',
         headers: {'content-type': 'application/x-www-form-urlencoded'},
-        data: `username=${data.username}&password=${data.password}`
+        data: payload.toString(),
     })
 }
 

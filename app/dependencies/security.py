@@ -17,12 +17,16 @@ def _mask_api_key(api_key: str) -> str:
     return f"{api_key[:4]}...{api_key[-4:]}"
 
 
-def _verify_jwt_token(token: str) -> bool:
+def _verify_jwt_token(db: Session, token: str) -> bool:
     try:
         payload = jwt.decode(token, secret_key, algorithms=[algorithm])
-        g().current_user_id = int(payload['sub'])
+        user_id = int(payload['sub'])
+        user = User.get(db, user_id)
+        if not user:
+            return False
+        g().current_user_id = user_id
         return True
-    except Exception:
+    except (jwt.InvalidTokenError, ValueError, TypeError, KeyError):
         return False
 
 
@@ -40,7 +44,7 @@ def verify_auth(
     token: str | None = Depends(oauth2_optional_scheme),
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
 ):
-    if token and _verify_jwt_token(token):
+    if token and _verify_jwt_token(db, token):
         return
     if x_api_key and _verify_api_key(db, x_api_key):
         return

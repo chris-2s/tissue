@@ -12,8 +12,8 @@ def get_auth_service(db: Session = Depends(get_db)):
 
 class AuthService(BaseService):
 
-    def get_access_token(self, form_data):
-        token = User.verify(self.db, form_data.username, form_data.password)
+    def get_access_token(self, username: str, password: str, remember: bool = False):
+        token = User.verify(self.db, username, password, remember=remember)
         if not token:
             raise BizException(message="用户名或密码不正确")
         return token

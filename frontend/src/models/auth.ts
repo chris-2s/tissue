@@ -15,6 +15,8 @@ interface State {
     videos: any[]
 }
 
+const REMEMBER_COOKIE_DAYS = 365
+
 export const auth = createModel<RootModel>()({
     state: {
         userToken: Cookies.get("userToken"),
@@ -46,7 +48,7 @@ export const auth = createModel<RootModel>()({
                 dispatch.auth.setLogging(true)
                 const response = await api.login(params)
                 const token = response.data.data
-                Cookies.set('userToken', token, params.remember ? {expires: 365} : {})
+                Cookies.set('userToken', token, params.remember ? {expires: REMEMBER_COOKIE_DAYS, sameSite: 'Lax'} : {sameSite: 'Lax'})
                 dispatch.auth.setToken(token)
                 await router.navigate({to: '/'})
             } finally {

@@ -41,7 +41,7 @@ describe("auth model effects", () => {
         await effects.login({username: "admin", password: "password", remember: true});
 
         expect(setLogging).toHaveBeenNthCalledWith(1, true);
-        expect(cookieSet).toHaveBeenCalledWith("userToken", "jwt-token", {expires: 365});
+        expect(cookieSet).toHaveBeenCalledWith("userToken", "jwt-token", {expires: 365, sameSite: "Lax"});
         expect(setToken).toHaveBeenCalledWith("jwt-token");
         expect(navigate).toHaveBeenCalledWith({to: "/"});
         expect(setLogging).toHaveBeenLastCalledWith(false);
