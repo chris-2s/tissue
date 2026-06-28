@@ -68,10 +68,10 @@ function HistoryModal(props: Props) {
     }, [open, run]);
 
     const list = data?.data || [];
-    const isMobile = !screens.sm;
+    const isCompactLayout = !screens.sm;
 
     const renderActions = (item: api.Subscribe) => {
-        if (isMobile) {
+        if (isCompactLayout) {
             return (
                 <div className={'flex justify-end gap-2 w-full'}>
                     <Button
@@ -204,7 +204,7 @@ function HistoryModal(props: Props) {
                             renderItem={(item) => (
                                 <List.Item
                                     className={'px-0 py-3'}
-                                    extra={isMobile ? undefined : renderActions(item)}
+                                    extra={isCompactLayout ? undefined : renderActions(item)}
                                 >
                                     <List.Item.Meta
                                         avatar={(
@@ -239,7 +239,7 @@ function HistoryModal(props: Props) {
                                                 <Typography.Text type={'secondary'} className={'text-xs'}>
                                                     {dayjs(item.update_time).format('YYYY-MM-DD HH:mm')}
                                                 </Typography.Text>
-                                                {isMobile && (
+                                                {isCompactLayout && (
                                                     <div className={'pt-2'}>
                                                         {renderActions(item)}
                                                     </div>

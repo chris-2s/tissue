@@ -1,5 +1,4 @@
-import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useRequest} from "ahooks";
+import {queryOptions, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import * as api from "../../../apis/video";
 import {
     Card,
@@ -17,6 +16,7 @@ import {IMAGE_TYPES} from "../../../constants/image";
 import React, {useDeferredValue, useEffect, useMemo, useState} from "react";
 import {LoadingOutlined, RedoOutlined, SearchOutlined} from "@ant-design/icons";
 import {createFileRoute, Link, useRouter} from "@tanstack/react-router";
+import Page from "../../../components/Page";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
@@ -59,8 +59,8 @@ function Video() {
     })
     const deferredFilters = useDeferredValue(filters)
     const {navigate} = useRouter()
-    const {run: runForceRefresh, loading: refreshing} = useRequest(() => api.getVideos(true), {
-        manual: true,
+    const {mutateAsync: runForceRefresh, isPending: refreshing} = useMutation({
+        mutationFn: () => api.getVideos(true),
         onSuccess: (refreshedVideos) => {
             queryClient.setQueryData(['videos'], refreshedVideos)
         }
@@ -137,7 +137,7 @@ function Video() {
     const floatButtons = useMemo(() => (
         <>
             <FloatButton icon={refreshing ? <LoadingOutlined/> : <RedoOutlined/>}
-                         onClick={() => runForceRefresh()}/>
+                         onClick={() => void runForceRefresh()}/>
         </>
     ), [refreshing, runForceRefresh])
 
@@ -234,7 +234,7 @@ function Video() {
     }
 
     return (
-        <>
+        <Page onRefresh={runForceRefresh}>
             <FilterPanel
                 videos={data}
                 total={data.length}
@@ -256,6 +256,6 @@ function Video() {
                              queryClient.invalidateQueries({queryKey: ['videos']})
                          }}
             />
-        </>
+        </Page>
     )
 }

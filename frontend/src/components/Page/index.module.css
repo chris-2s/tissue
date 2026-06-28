@@ -1,0 +1,63 @@
+.page {
+    position: relative;
+    min-height: 100%;
+    overflow-x: clip;
+}
+
+.indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    pointer-events: none;
+    padding-top: calc(env(safe-area-inset-top, 0) + 6px);
+    transition: transform 180ms ease, opacity 140ms ease;
+}
+
+.indicatorInner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ant-color-bg-container) 88%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ant-color-border-secondary) 72%, transparent);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+    color: var(--ant-color-text-secondary);
+    font-size: 13px;
+    line-height: 1;
+}
+
+.spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid var(--ant-color-primary-border);
+    border-top-color: var(--ant-color-primary);
+    animation: page-pull-refresh-spin 0.8s linear infinite;
+}
+
+.content {
+    min-height: 100%;
+    will-change: transform;
+}
+
+.contentAnimated {
+    transition: transform 180ms ease;
+}
+
+@keyframes page-pull-refresh-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

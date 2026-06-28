@@ -11,6 +11,7 @@ import type {GetRankingsParams} from "../../../apis/home.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import type {SiteVideo} from "../../../types/video.ts";
 import {createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
+import Page from "../../../components/Page";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 
@@ -137,12 +138,14 @@ function JavDB() {
     }
 
     return (
-        <div>
+        <Page onRefresh={async () => {
+            await refetch();
+        }}>
             <Filter initialValues={filter as unknown as Record<string, unknown>} onFilterChange={(values) => {
                 return navigate({search: values as never})
             }} fields={filterFields}/>
             {content}
-        </div>
+        </Page>
     )
 }
 
