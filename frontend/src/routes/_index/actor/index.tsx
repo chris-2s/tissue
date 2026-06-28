@@ -12,6 +12,7 @@ import {useDispatch} from "react-redux";
 import VideoItem from "../home/-components/item.tsx";
 import type {Dispatch} from "../../../models";
 import {useRequest, useResponsive} from "ahooks";
+import {scrollPageToTop} from "../../../utils/scroll.ts";
 
 const {Paragraph, Text, Title} = Typography;
 
@@ -200,6 +201,7 @@ function Actor() {
                                     total={actorPage.page.total}
                                     showSizeChanger={false}
                                     onChange={(page) => {
+                                        scrollPageToTop();
                                         navigate({search: {...normalizedSearch, page} as never});
                                     }}/>
                     </div>

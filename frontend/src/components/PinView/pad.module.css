@@ -1,0 +1,30 @@
+.button {
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    border: 1px solid var(--pin-button-border);
+    background: var(--pin-button-bg);
+    color: var(--pin-button-text);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.buttonLabel {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.buttonHint {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.button:active {
+    transform: scale(0.94);
+    background: var(--pin-button-active-bg);
+    border-color: var(--pin-button-active-border);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}

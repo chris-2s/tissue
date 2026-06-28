@@ -6,7 +6,8 @@ import Sider from "./-components/sider.tsx";
 import Header from "./-components/header.tsx";
 import TabBar from "./-components/tabBar.tsx";
 import useVisibility from "../../utils/useVisibility.ts";
-import PinView, {PinMode} from "../../components/PinView";
+import PinView from "../../components/PinView";
+import {PinMode} from "../../components/PinView/types.ts";
 import {createFileRoute, Outlet, redirect} from "@tanstack/react-router";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
@@ -97,7 +98,7 @@ function RouteLayout() {
                         </div>
                         <Layout.Content
                             style={{
-                                paddingBottom: (!responsive.md) ? ('calc(50px + env(safe-area-inset-bottom, 0))') : 0
+                                paddingBottom: (!responsive.md) ? ('calc(56px + env(safe-area-inset-bottom, 0))') : 0
                             }}
                             className={Styles.content}>
                             <div style={{padding: responsive.md ? 16 : 12}}>

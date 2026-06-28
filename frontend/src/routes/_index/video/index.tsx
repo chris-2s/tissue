@@ -22,6 +22,7 @@ import RoutePendingState from "../../../components/RoutePendingState";
 import VideoDetail from "../../../components/VideoDetail";
 import PageFloatButtons from "../../../components/PageFloatButtons";
 import type {VideoDetail as VideoItem} from "../../../types/video";
+import {scrollPageToTop} from "../../../utils/scroll.ts";
 import FilterPanel from "./-components/filterPanel.tsx";
 import {
     formatRating,
@@ -215,6 +216,7 @@ function Video() {
                         onChange={(nextPage, nextPageSize) => {
                             setPage(nextPage)
                             setPageSize(nextPageSize)
+                            scrollPageToTop()
                         }}
                     />
                 </div>

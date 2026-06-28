@@ -2,6 +2,7 @@ import {CarryOutOutlined, HomeOutlined, MenuOutlined, SearchOutlined, VideoCamer
 import React from "react";
 import {theme} from "antd";
 import {Link, useLocation} from "@tanstack/react-router";
+import Styles from "./tabBar.module.css";
 
 const {useToken} = theme
 
@@ -13,35 +14,41 @@ function TabBar() {
     const menus = [
         {
             link: '/home',
-            icon: <HomeOutlined/>
+            icon: <HomeOutlined/>,
+            label: '首页',
         },
         {
             link: '/video',
-            icon: <VideoCameraOutlined/>
+            icon: <VideoCameraOutlined/>,
+            label: '影片',
         },
         {
             link: '/subscribe',
-            icon: <CarryOutOutlined/>
+            icon: <CarryOutOutlined/>,
+            label: '订阅',
         },
         {
             link: '/search',
-            icon: <SearchOutlined/>
+            icon: <SearchOutlined/>,
+            label: '搜索',
         },
         {
             link: '/menu',
-            icon: <MenuOutlined/>
+            icon: <MenuOutlined/>,
+            label: '菜单',
         }
     ]
 
     return (
-        <div className={'flex justify-around h-12 items-center'}
+        <div className={Styles.bar}
              style={{marginBottom: 'env(safe-area-inset-bottom,0)'}}>
             {menus.map(item => (
-                <div key={item.link} className={'text-2xl'}>
+                <div key={item.link} className={'text-2xl flex-1'}>
                     <Link to={item.link}
                           style={{color: location.pathname === item.link ? token.colorPrimary : token.colorText}}>
-                        <div className={'px-4'}>
-                            {item.icon}
+                        <div className={`${Styles.item} ${location.pathname === item.link ? Styles.itemActive : ''}`}>
+                            <div className={Styles.icon}>{item.icon}</div>
+                            <div className={Styles.label}>{item.label}</div>
                         </div>
                     </Link>
                 </div>

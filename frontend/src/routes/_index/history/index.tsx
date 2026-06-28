@@ -12,6 +12,7 @@ import RoutePendingState from "../../../components/RoutePendingState";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 import {TransModeOptions} from "../../../utils/constants.ts";
+import {scrollPageToTop} from "../../../utils/scroll.ts";
 import type {PagedResponse} from "../../../types/video.ts";
 
 export const Route = createFileRoute('/_index/history/')({
@@ -183,6 +184,7 @@ function History() {
                     total: data?.total || 0,
                     showSizeChanger: true,
                     onChange: (nextPage, nextPageSize) => {
+                        scrollPageToTop()
                         navigate({
                             search: {
                                 page: nextPage,

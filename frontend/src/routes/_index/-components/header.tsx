@@ -18,7 +18,8 @@ import IconButton from "../../../components/IconButton";
 import Log from "./log";
 import Logo from "../../../assets/logo.png";
 import {useResponsive} from "ahooks";
-import PinView, {PinMode} from "../../../components/PinView";
+import PinView from "../../../components/PinView";
+import {PinMode} from "../../../components/PinView/types.ts";
 import {Link, useRouter} from "@tanstack/react-router";
 
 

@@ -11,6 +11,7 @@ import RemoteImage from "../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../constants/image";
 import FilterPanel from "./-components/filterPanel.tsx";
 import type {ActorFavoriteFilterValue} from "./-components/filterPanel.utils.ts";
+import {scrollPageToTop} from "../../../utils/scroll.ts";
 
 const {Paragraph, Text} = Typography;
 
@@ -176,6 +177,7 @@ function ActorFavoritePage() {
                             onChange={(nextPage, nextPageSize) => {
                                 setPage(nextPage);
                                 setPageSize(nextPageSize);
+                                scrollPageToTop();
                             }}
                         />
                     </div>

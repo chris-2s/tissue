@@ -2,6 +2,7 @@ import type {ReactNode} from "react";
 import React, {useEffect, useEffectEvent, useMemo, useRef, useState} from "react";
 import {DownOutlined, LoadingOutlined} from "@ant-design/icons";
 import Styles from "./index.module.css";
+import {vibrateLight} from "../../utils/haptics.ts";
 
 const MAX_PULL_DISTANCE = 96;
 const TRIGGER_DISTANCE = 72;
@@ -115,6 +116,10 @@ export default function Page({children, onRefresh}: Props) {
     const updatePhase = useEffectEvent((nextPhase: PullPhase) => {
         if (phaseRef.current === nextPhase) {
             return;
+        }
+
+        if (nextPhase === "ready" && phaseRef.current !== "ready") {
+            vibrateLight();
         }
 
         phaseRef.current = nextPhase;

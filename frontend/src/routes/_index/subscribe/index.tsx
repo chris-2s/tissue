@@ -16,6 +16,7 @@ import Page from "../../../components/Page";
 import PageFloatButtons from "../../../components/PageFloatButtons";
 import FilterPanel from "./-components/filterPanel.tsx";
 import type {SubscribeFilterValue} from "./-components/filterPanel.utils.ts";
+import {scrollPageToTop} from "../../../utils/scroll.ts";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -167,6 +168,7 @@ function Subscribe() {
                         onChange={(nextPage, nextPageSize) => {
                             setPage(nextPage)
                             setPageSize(nextPageSize)
+                            scrollPageToTop()
                         }}
                     />
                 </div>

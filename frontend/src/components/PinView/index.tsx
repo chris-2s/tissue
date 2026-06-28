@@ -8,13 +8,11 @@ import {sha256} from "js-sha256";
 import {createPortal} from "react-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
+import Styles from "./index.module.css";
+import {vibrateError} from "../../utils/haptics.ts";
+import {PinMode} from "./types.ts";
 
 const {useToken} = theme
-
-export enum PinMode {
-    verify,
-    setting
-}
 
 interface Props {
     pin: string | null
@@ -29,10 +27,17 @@ function PinView(props: Props) {
     const [numbers, setNumbers] = useState<string[]>([])
     const [repeatNumbers, setRepeatNumbers] = useState<string[]>([])
     const [errorMessage, setErrorMessage] = useState<string>()
+    const [errorFeedbackKey, setErrorFeedbackKey] = useState(0)
     const responsive = useResponsive()
 
     const goodBoy = useSelector((state: RootState) => state.app?.goodBoy)
     const dispatch = useDispatch<Dispatch>().app
+
+    function triggerErrorFeedback(messageText: string) {
+        vibrateError()
+        setErrorMessage(messageText)
+        setErrorFeedbackKey((value) => value + 1)
+    }
 
     function onEnter(num: string) {
         const newNumbers = [...numbers, num]
@@ -47,7 +52,7 @@ function PinView(props: Props) {
                     onClose()
                 } else {
                     setNumbers([])
-                    setErrorMessage('密码错误')
+                    triggerErrorFeedback('密码错误')
                 }
             } else if (mode === PinMode.setting) {
                 if (repeatNumbers.length === 0) {
@@ -55,7 +60,7 @@ function PinView(props: Props) {
                     setNumbers([])
                 } else {
                     if (repeatNumbers.join('') !== newNumbers.join('')) {
-                        setErrorMessage('两次输入密码不匹配')
+                        triggerErrorFeedback('两次输入密码不匹配')
                         setRepeatNumbers([])
                         setNumbers([])
                     } else {
@@ -94,28 +99,33 @@ function PinView(props: Props) {
                     <Col span={24} md={12}>
                         <div className={'h-full flex flex-col items-center justify-center'}>
                             <img className={'h-20'} src={Logo} alt=""/>
-                            <div style={{color: token.colorText}}>
-                                {repeatNumbers.length > 0 ? (
-                                    '请再次输入密码 '
-                                ) : (
-                                    '请输入密码'
+                            <div
+                                key={errorFeedbackKey}
+                                className={`${Styles.statusPanel} ${errorMessage ? Styles.statusPanelShake : ''}`}
+                            >
+                                <div style={{color: token.colorText}}>
+                                    {repeatNumbers.length > 0 ? (
+                                        '请再次输入密码 '
+                                    ) : (
+                                        '请输入密码'
+                                    )}
+                                </div>
+                                <Space className={'flex justify-center mt-8'}>
+                                    {new Array(4).fill(0).map((_, i) => (
+                                        <Button shape={"circle"} size={"small"} key={i}
+                                                type={numbers.length > i ? 'primary' : 'default'}/>
+                                    ))}
+                                </Space>
+                                {(pin && mode === PinMode.setting) && (
+                                    <Button type={'link'} className={'mt-4'} onClick={() => {
+                                        dispatch.setPin(null)
+                                        message.success('密码取消成功')
+                                        onClose()
+                                    }}>清空密码</Button>
                                 )}
-                            </div>
-                            <Space className={'flex justify-center mt-8'}>
-                                {new Array(4).fill(0).map((_, i) => (
-                                    <Button shape={"circle"} size={"small"} key={i}
-                                            type={numbers.length > i ? 'primary' : 'default'}/>
-                                ))}
-                            </Space>
-                            {(pin && mode === PinMode.setting) && (
-                                <Button type={'link'} className={'mt-4'} onClick={() => {
-                                    dispatch.setPin(null)
-                                    message.success('密码取消成功')
-                                    onClose()
-                                }}>清空密码</Button>
-                            )}
-                            <div className={'h-14 flex items-center'} style={{color: token.colorError}}>
-                                {errorMessage}
+                                <div className={'h-14 flex items-center'} style={{color: token.colorError}}>
+                                    {errorMessage}
+                                </div>
                             </div>
                             {responsive.md && (
                                 renderRemark()
