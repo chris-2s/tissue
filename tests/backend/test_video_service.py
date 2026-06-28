@@ -145,7 +145,7 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
         download=SimpleNamespace(trans_mode="hardlink"),
     ))
     monkeypatch.setattr(video_module.utils, "convert_size", lambda _: "5 B")
-    monkeypatch.setattr(video_module.notify, "send_video", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(video_module.notification_manager, "emit_video_saved", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(video_module.video_cache, "pop", lambda *_args, **_kwargs: None)
 
     service = VideoService(db=SimpleNamespace(commit=lambda: None))

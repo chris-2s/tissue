@@ -69,7 +69,7 @@ class FakeQB:
         self.torrents = torrents
         self.files = files
 
-    def get_torrents(self, category, include_success=False, include_failed=True):
+    def get_completed_torrents(self, category, include_success=False, include_failed=True):
         return self.torrents
 
     def get_torrent_files(self, torrent_hash):
@@ -77,24 +77,27 @@ class FakeQB:
 
 
 def build_download_service(db) -> DownloadService:
+    download_setting = SimpleNamespace(
+        host="http://qb.example",
+        category="movies",
+        download_path="/downloads",
+        mapping_path="/mapped",
+        trans_mode="move",
+    )
+    download_setting.get_provider_payload = lambda: {"host": download_setting.host}
     service = DownloadService(db=db)
     service.setting = SimpleNamespace(
-        download=SimpleNamespace(
-            host="http://qb.example",
-            category="movies",
-            download_path="/downloads",
-            mapping_path="/mapped",
-            trans_mode="move",
-        ),
+        download=download_setting,
         library=SimpleNamespace(video_format=".mp4,.mkv", video_size_minimum=1),
     )
+    service.downloader = FakeQB([], {})
     return service
 
 
 def test_get_downloads_filters_files_and_maps_path():
     db = FakeDB()
     service = build_download_service(db)
-    service.qb = FakeQB(
+    service.downloader = FakeQB(
         torrents=[
             {
                 "hash": "hash-1",
@@ -189,7 +192,7 @@ def test_scrape_download_records_failure_and_notifies(monkeypatch, tmp_path: Pat
         "hash": torrent_hash,
         "is_success": is_success,
     }))
-    monkeypatch.setattr("app.service.download.notify.send_video", lambda payload: notifications.append(payload))
+    monkeypatch.setattr("app.service.download.notification_manager.emit_video_failed", lambda payload: notifications.append(payload))
 
     service.scrape_download(video_service, torrent, "copy")
 
@@ -198,7 +201,6 @@ def test_scrape_download_records_failure_and_notifies(monkeypatch, tmp_path: Pat
     assert history.status == 0
     assert history.num == "MIDV-639"
     assert history.source_path == str(file_path)
-    assert notifications[0].is_success is False
     assert notifications[0].message == "刮削失败"
     assert notifications[0].size == "5.00B"
     assert completed == {"hash": "hash-2", "is_success": False}

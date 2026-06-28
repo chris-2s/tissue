@@ -3,7 +3,9 @@ from types import SimpleNamespace
 import pytest
 
 from app.exception import BizException
+from app.integrations.downloaders.base import AddTorrentResult
 from app.middleware.requestvars import g
+from app.schema.notification import SubscribeStartedPayload
 from app.schema.site import SpiderKey
 from app.schema.subscribe import SubscribeCreate
 from app.schema.video import SourceRef, VideoDownload
@@ -59,10 +61,11 @@ def test_download_video_raises_when_qbittorrent_fails(monkeypatch):
     service = SubscribeService(db=FakeDB())
     video = SubscribeCreate(num="MIDV-639")
     link = build_video_download()
+    service.setting = SimpleNamespace(download=SimpleNamespace(category="movies"))
 
     monkeypatch.setattr(
-        "app.service.subscribe.qbittorent.add_magnet",
-        lambda magnet, download_path, category: SimpleNamespace(status_code=500, hash=None),
+        "app.service.subscribe.downloader_manager.get_active",
+        lambda: SimpleNamespace(add_magnet=lambda magnet, download_path, category: AddTorrentResult(success=False)),
     )
 
     with pytest.raises(BizException, match="下载创建失败"):
@@ -74,13 +77,16 @@ def test_download_video_persists_torrent_and_sends_notification(monkeypatch):
     video = SubscribeCreate(num="MIDV-639", is_zh=True)
     link = build_video_download(is_zh=True, is_uncensored=True)
     captured = {}
+    service.setting = SimpleNamespace(download=SimpleNamespace(category="movies"))
 
     monkeypatch.setattr(
-        "app.service.subscribe.qbittorent.add_magnet",
-        lambda magnet, download_path, category: SimpleNamespace(status_code=200, hash="torrent-hash"),
+        "app.service.subscribe.downloader_manager.get_active",
+        lambda: SimpleNamespace(
+            add_magnet=lambda magnet, download_path, category: AddTorrentResult(success=True, torrent_hash="torrent-hash")
+        ),
     )
     monkeypatch.setattr(
-        "app.service.subscribe.notify.send_subscribe",
+        "app.service.subscribe.notification_manager.emit_subscribe_started",
         lambda payload: captured.setdefault("payload", payload),
     )
 
@@ -89,4 +95,6 @@ def test_download_video_persists_torrent_and_sends_notification(monkeypatch):
     assert len(service.db.added) == 1
     assert service.db.added[0].hash == "torrent-hash"
     assert service.db.added[0].num == "MIDV-639"
-    assert captured["payload"].magnet == "magnet:?xt=urn:btih:123"
+    assert isinstance(captured["payload"], SubscribeStartedPayload)
+    assert captured["payload"].source.site_name == "JavDB"
+    assert captured["payload"].url is None
