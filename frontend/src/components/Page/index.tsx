@@ -1,5 +1,6 @@
-import type {ReactNode, TouchEvent} from "react";
+import type {ReactNode} from "react";
 import React, {useEffect, useEffectEvent, useMemo, useRef, useState} from "react";
+import {DownOutlined, LoadingOutlined} from "@ant-design/icons";
 import Styles from "./index.module.css";
 
 const MAX_PULL_DISTANCE = 96;
@@ -7,18 +8,29 @@ const TRIGGER_DISTANCE = 72;
 const DRAG_RATIO = 0.5;
 const REFRESH_HOLD_DISTANCE = 56;
 const INDICATOR_REVEAL_DISTANCE = 44;
+const PULL_START_THRESHOLD = 18;
+const TOP_TOLERANCE = 2;
 
 interface Props {
     children?: ReactNode
     onRefresh?: (() => Promise<void> | void) | undefined
 }
 
+type PullPhase = "idle" | "pulling" | "ready" | "refreshing";
+
 export default function Page({children, onRefresh}: Props) {
+    const pageRef = useRef<HTMLDivElement | null>(null);
+    const indicatorRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
     const [supportsPullToRefresh, setSupportsPullToRefresh] = useState(false);
-    const [pullDistance, setPullDistance] = useState(0);
     const [refreshing, setRefreshing] = useState(false);
+    const [phase, setPhase] = useState<PullPhase>("idle");
     const startYRef = useRef<number | null>(null);
     const draggingRef = useRef(false);
+    const pullDistanceRef = useRef(0);
+    const phaseRef = useRef<PullPhase>("idle");
+    const refreshingRef = useRef(false);
+    const frameRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -38,28 +50,76 @@ export default function Page({children, onRefresh}: Props) {
         };
     }, []);
 
-    const enabled = Boolean(onRefresh) && supportsPullToRefresh;
-    const ready = pullDistance >= TRIGGER_DISTANCE;
-    const contentOffset = refreshing ? REFRESH_HOLD_DISTANCE : pullDistance;
-    const indicatorVisible = refreshing || pullDistance > 0;
-    const indicatorOffset = Math.min(contentOffset, INDICATOR_REVEAL_DISTANCE) - INDICATOR_REVEAL_DISTANCE;
-    const indicatorOpacity = Math.min(1, contentOffset / INDICATOR_REVEAL_DISTANCE);
+    useEffect(() => {
+        refreshingRef.current = refreshing;
+    }, [refreshing]);
 
     const indicatorText = useMemo(() => {
-        if (refreshing) {
+        if (phase === "refreshing") {
             return "刷新中...";
         }
 
-        if (ready) {
+        if (phase === "ready") {
             return "松开刷新";
         }
 
-        if (pullDistance > 0) {
+        if (phase === "pulling") {
             return "下拉刷新";
         }
 
         return "";
-    }, [pullDistance, ready, refreshing]);
+    }, [phase]);
+
+    const indicatorIcon = useMemo(() => {
+        if (phase === "refreshing") {
+            return <LoadingOutlined className={Styles.iconSpinning}/>;
+        }
+
+        return (
+            <DownOutlined
+                className={`${Styles.icon} ${phase === "ready" ? Styles.iconReady : ""}`}
+            />
+        );
+    }, [phase]);
+
+    const enabled = Boolean(onRefresh) && supportsPullToRefresh;
+
+    const applyPullStyles = useEffectEvent((distance: number, isDragging: boolean) => {
+        const indicator = indicatorRef.current;
+        const content = contentRef.current;
+
+        if (!indicator || !content) {
+            return;
+        }
+
+        const indicatorOffset = Math.min(distance, INDICATOR_REVEAL_DISTANCE) - INDICATOR_REVEAL_DISTANCE;
+        const indicatorOpacity = Math.min(1, Math.max(0, distance) / INDICATOR_REVEAL_DISTANCE);
+
+        if (frameRef.current !== null) {
+            cancelAnimationFrame(frameRef.current);
+        }
+
+        frameRef.current = requestAnimationFrame(() => {
+            indicator.style.opacity = `${indicatorOpacity}`;
+            indicator.style.transform = `translateY(${indicatorOffset}px)`;
+            content.style.transform = `translateY(${distance}px)`;
+
+            if (isDragging) {
+                content.classList.remove(Styles.contentAnimated);
+            } else {
+                content.classList.add(Styles.contentAnimated);
+            }
+        });
+    });
+
+    const updatePhase = useEffectEvent((nextPhase: PullPhase) => {
+        if (phaseRef.current === nextPhase) {
+            return;
+        }
+
+        phaseRef.current = nextPhase;
+        setPhase(nextPhase);
+    });
 
     const runRefresh = useEffectEvent(async () => {
         if (!onRefresh) {
@@ -67,60 +127,37 @@ export default function Page({children, onRefresh}: Props) {
         }
 
         setRefreshing(true);
-        setPullDistance(REFRESH_HOLD_DISTANCE);
+        updatePhase("refreshing");
+        pullDistanceRef.current = REFRESH_HOLD_DISTANCE;
+        applyPullStyles(REFRESH_HOLD_DISTANCE, false);
 
         try {
             await onRefresh();
         } finally {
             setRefreshing(false);
-            setPullDistance(0);
+            pullDistanceRef.current = 0;
+            updatePhase("idle");
+            applyPullStyles(0, false);
         }
     });
 
-    function resetPullState() {
+    const resetPullState = useEffectEvent(() => {
         draggingRef.current = false;
         startYRef.current = null;
-        if (!refreshing) {
-            setPullDistance(0);
+        pullDistanceRef.current = 0;
+        if (!refreshingRef.current) {
+            updatePhase("idle");
+            applyPullStyles(0, false);
         }
-    }
+    });
 
     function isScrollAtTop() {
-        return window.scrollY <= 0
-            && document.documentElement.scrollTop <= 0
-            && document.body.scrollTop <= 0;
+        return window.scrollY <= TOP_TOLERANCE
+            && document.documentElement.scrollTop <= TOP_TOLERANCE
+            && document.body.scrollTop <= TOP_TOLERANCE;
     }
 
-    function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-        if (!enabled || refreshing || event.touches.length !== 1 || !isScrollAtTop()) {
-            return;
-        }
-
-        draggingRef.current = true;
-        startYRef.current = event.touches[0].clientY;
-    }
-
-    function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
-        if (!draggingRef.current || startYRef.current === null || refreshing) {
-            return;
-        }
-
-        const deltaY = event.touches[0].clientY - startYRef.current;
-        if (deltaY <= 0) {
-            setPullDistance(0);
-            return;
-        }
-
-        if (!isScrollAtTop()) {
-            resetPullState();
-            return;
-        }
-
-        event.preventDefault();
-        setPullDistance(Math.min(MAX_PULL_DISTANCE, deltaY * DRAG_RATIO));
-    }
-
-    async function handleTouchEnd() {
+    const finishPull = useEffectEvent(async () => {
         if (!draggingRef.current) {
             return;
         }
@@ -128,44 +165,111 @@ export default function Page({children, onRefresh}: Props) {
         draggingRef.current = false;
         startYRef.current = null;
 
-        if (ready) {
+        if (pullDistanceRef.current >= TRIGGER_DISTANCE) {
             await runRefresh();
             return;
         }
 
-        setPullDistance(0);
-    }
+        pullDistanceRef.current = 0;
+        updatePhase("idle");
+        applyPullStyles(0, false);
+    });
+
+    useEffect(() => {
+        const page = pageRef.current;
+        if (!page || !enabled) {
+            return;
+        }
+
+        function handleTouchStart(event: TouchEvent) {
+            if (refreshing || event.touches.length !== 1 || !isScrollAtTop()) {
+                return;
+            }
+
+            draggingRef.current = true;
+            startYRef.current = event.touches[0].clientY;
+            applyPullStyles(pullDistanceRef.current, true);
+        }
+
+        function handleTouchMove(event: TouchEvent) {
+            if (!draggingRef.current || startYRef.current === null || refreshing) {
+                return;
+            }
+
+            const deltaY = event.touches[0].clientY - startYRef.current;
+            if (deltaY <= 0) {
+                pullDistanceRef.current = 0;
+                updatePhase("idle");
+                applyPullStyles(0, true);
+                return;
+            }
+
+            if (!isScrollAtTop() && pullDistanceRef.current <= 0) {
+                resetPullState();
+                return;
+            }
+
+            if (deltaY < PULL_START_THRESHOLD) {
+                pullDistanceRef.current = 0;
+                updatePhase("idle");
+                applyPullStyles(0, true);
+                return;
+            }
+
+            event.preventDefault();
+            const nextDistance = Math.min(MAX_PULL_DISTANCE, (deltaY - PULL_START_THRESHOLD) * DRAG_RATIO);
+            pullDistanceRef.current = nextDistance;
+            updatePhase(nextDistance >= TRIGGER_DISTANCE ? "ready" : "pulling");
+            applyPullStyles(nextDistance, true);
+        }
+
+        function handleTouchCancel() {
+            resetPullState();
+        }
+
+        function onTouchEnd() {
+            void finishPull();
+        }
+
+        page.addEventListener("touchstart", handleTouchStart, {passive: true});
+        page.addEventListener("touchmove", handleTouchMove, {passive: false});
+        page.addEventListener("touchend", onTouchEnd, {passive: true});
+        page.addEventListener("touchcancel", handleTouchCancel, {passive: true});
+
+        return () => {
+            page.removeEventListener("touchstart", handleTouchStart);
+            page.removeEventListener("touchmove", handleTouchMove);
+            page.removeEventListener("touchend", onTouchEnd);
+            page.removeEventListener("touchcancel", handleTouchCancel);
+        };
+    }, [applyPullStyles, enabled, finishPull, refreshing, resetPullState, updatePhase]);
+
+    useEffect(() => {
+        return () => {
+            if (frameRef.current !== null) {
+                cancelAnimationFrame(frameRef.current);
+            }
+        };
+    }, []);
 
     if (!enabled) {
         return <>{children}</>;
     }
 
     return (
-        <div
-            className={Styles.page}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={() => void handleTouchEnd()}
-            onTouchCancel={resetPullState}
-        >
-            <div
-                className={Styles.indicator}
-                style={{
-                    opacity: indicatorOpacity,
-                    transform: `translateY(${indicatorOffset}px)`,
-                }}
-            >
-                {indicatorVisible && indicatorText && (
-                    <div className={Styles.indicatorInner}>
-                        {refreshing && <span className={Styles.spinner}/>}
-                        <span>{indicatorText}</span>
-                    </div>
-                )}
+        <div ref={pageRef} className={Styles.page}>
+            <div ref={indicatorRef} className={Styles.indicator}>
+                <div
+                    className={`${Styles.indicatorInner} ${phase === "idle" ? Styles.indicatorInnerHidden : ""}`}
+                    aria-hidden={phase === "idle"}
+                >
+                    <span className={Styles.iconWrap} aria-hidden={phase === "idle"}>
+                        {indicatorIcon}
+                    </span>
+                    <span>{indicatorText || "下拉刷新"}</span>
+                </div>
             </div>
-            <div
-                className={`${Styles.content} ${!draggingRef.current ? Styles.contentAnimated : ""}`}
-                style={{transform: `translateY(${contentOffset}px)`}}
-            >
+            <div ref={contentRef} className={`${Styles.content} ${Styles.contentAnimated}`}>
                 {children}
             </div>
         </div>

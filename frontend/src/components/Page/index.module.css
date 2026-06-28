@@ -14,7 +14,7 @@
     justify-content: center;
     align-items: flex-start;
     pointer-events: none;
-    padding-top: calc(env(safe-area-inset-top, 0) + 6px);
+    padding-top: 8px;
     transition: transform 180ms ease, opacity 140ms ease;
 }
 
@@ -32,14 +32,32 @@
     color: var(--ant-color-text-secondary);
     font-size: 13px;
     line-height: 1;
+    white-space: nowrap;
 }
 
-.spinner {
+.indicatorInnerHidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.iconWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 14px;
     height: 14px;
-    border-radius: 999px;
-    border: 2px solid var(--ant-color-primary-border);
-    border-top-color: var(--ant-color-primary);
+    flex: 0 0 auto;
+}
+
+.icon {
+    transition: transform 180ms ease, color 180ms ease;
+}
+
+.iconReady {
+    transform: rotate(180deg);
+}
+
+.iconSpinning {
     animation: page-pull-refresh-spin 0.8s linear infinite;
 }
 
