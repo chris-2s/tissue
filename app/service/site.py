@@ -11,9 +11,9 @@ from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.service.cookiecloud import CookieCloudService
 from app.exception import BizException
+from app.integrations.notifications.manager import notification_manager
 from app.utils.cookies import cookiecloud_items_to_cookies, parse_cookie_header, to_cookie_header
 from app.utils.logger import logger
-from app.utils import notify
 
 
 def get_site_service(db: Session = Depends(get_db)):
@@ -101,7 +101,7 @@ class SiteService(BaseService):
                         domain=domain,
                         message="Cookie已失效，请重新登录"
                     )
-                    notify.send_cookie(cookie_notify)
+                    notification_manager.send_cookie(cookie_notify)
 
                     current_site.cookies = None
                     self.db.commit()

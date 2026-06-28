@@ -4,7 +4,8 @@
 
 - `settings` 表按 `namespace` 一行一条配置记录存储。
 - 每行有自己的 `version`。
-- 当前所有 namespace 的最新版本都是 `v1`。
+- 当前 `library`、`file`、`crawler`、`cookiecloud` 的最新版本是 `v1`。
+- 当前 `download`、`notify` 的最新版本是 `v2`。
 - 无论是：
   - 从 `config/app.conf` 导入旧配置
   - 还是空库初始化默认配置

@@ -18,11 +18,18 @@ function SettingNotify() {
 
     const [form] = Form.useForm()
 
-    const type = Form.useWatch('type', form)
+    const provider = Form.useWatch('provider', form)
 
     const {loading} = useRequest(api.getSettings, {
         onSuccess: (res) => {
-            form.setFieldsValue(res.notify)
+            form.setFieldsValue({
+                provider: 'telegram',
+                providers: {
+                    telegram: {token: '', chat_id: ''},
+                    webhook: {url: ''},
+                },
+                ...res.notify,
+            })
         }
     })
 
@@ -34,10 +41,11 @@ function SettingNotify() {
     })
 
     function onFinish(data: any) {
+        data.provider = data.provider || 'telegram'
         run('notify', data)
     }
 
-    const ItemElement = notifications.find(item => item.value === type)?.element
+    const ItemElement = notifications.find(item => item.value === provider)?.element
 
     return (
         loading ? (
@@ -45,7 +53,7 @@ function SettingNotify() {
         ) : (
             <div className={'w-[600px] max-w-full my-0 mx-auto'}>
                 <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item name={'type'} label={'类型'} initialValue={'telegram'}>
+                    <Form.Item name={'provider'} label={'类型'} initialValue={'telegram'}>
                         <Select>
                             {notifications.map(item => (
                                 <Select.Option key={item.value} value={item.value}>{item.name}</Select.Option>

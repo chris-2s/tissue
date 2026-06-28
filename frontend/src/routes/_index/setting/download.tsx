@@ -4,6 +4,8 @@ import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
 import {TransModeOptions} from "../../../utils/constants.ts";
 
+const defaultProvider = 'qbittorrent'
+
 export const Route = createFileRoute('/_index/setting/download')({
     component: SettingDownload
 })
@@ -14,7 +16,18 @@ function SettingDownload() {
 
     const {loading} = useRequest(api.getSettings, {
         onSuccess: (res) => {
-            form.setFieldsValue(res.download)
+            form.setFieldsValue({
+                provider: defaultProvider,
+                providers: {
+                    qbittorrent: {
+                        host: '',
+                        username: '',
+                        password: '',
+                        tracker_subscribe: '',
+                    },
+                },
+                ...res.download,
+            })
         }
     })
 
@@ -26,6 +39,7 @@ function SettingDownload() {
     })
 
     function onFinish(data: any) {
+        data.provider = data.provider || defaultProvider
         run('download', data)
     }
 
@@ -35,13 +49,18 @@ function SettingDownload() {
         ) : (
             <div className={'w-[600px] max-w-full my-0 mx-auto'}>
                 <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item label={'地址(qBittorrent)'} name={'host'}>
+                    <Form.Item label={'下载器'} name={'provider'} initialValue={defaultProvider}>
+                        <Select disabled>
+                            <Select.Option value={defaultProvider}>qBittorrent</Select.Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item label={'地址(qBittorrent)'} name={['providers', 'qbittorrent', 'host']}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'用户名'} name={'username'}>
+                    <Form.Item label={'用户名'} name={['providers', 'qbittorrent', 'username']}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'密码'} name={'password'}>
+                    <Form.Item label={'密码'} name={['providers', 'qbittorrent', 'password']}>
                         <Input.Password autoComplete={'new-password'}/>
                     </Form.Item>
                     <Form.Item label={'转移模式'} name={'trans_mode'} tooltip={'手动或自动转移使用的转移模式，硬连接仅支持同一磁盘内的目录，软连接可跨盘但依赖原文件存在'}>
@@ -69,7 +88,7 @@ function SettingDownload() {
                     >
                         <Input placeholder={'留空则为所有任务'}/>
                     </Form.Item>
-                    <Form.Item label={'订阅Tracker'} name={'tracker_subscribe'} tooltip={(
+                    <Form.Item label={'订阅Tracker'} name={['providers', 'qbittorrent', 'tracker_subscribe']} tooltip={(
                         <span>通过Tracker订阅链接，自动为任务添加Tracker列表。
                         <a target='_blank' href={'https://trackerslist.com/'}>示例</a>
                     </span>)}

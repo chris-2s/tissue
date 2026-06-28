@@ -7,12 +7,12 @@ from app import utils
 from app.db import get_db, SessionFactory
 from app.db.models import History, Torrent as DBTorrent
 from app.exception import BizException
+from app.integrations.downloaders.manager import downloader_manager
+from app.integrations.notifications.manager import notification_manager
 from app.schema import Torrent, TorrentFile, Setting, VideoNotify, VideoDetail
 from app.service.base import BaseService
 from app.service.video import VideoService
-from app.utils import notify
 from app.utils.logger import logger
-from app.utils.qbittorent import qbittorent
 
 
 def get_download_service(db: Session = Depends(get_db)):
@@ -24,19 +24,24 @@ class DownloadService(BaseService):
     def __init__(self, db: Session):
         super().__init__(db)
         self.setting = Setting()
-        self.qb = qbittorent
+        self.downloader = downloader_manager.get_active()
 
     def get_downloads(self, include_success=False, include_failed=True):
-        if not self.setting.download.host:
+        provider_payload = self.setting.download.get_provider_payload()
+        if not provider_payload.get('host'):
             return []
 
         category = self.setting.download.category if self.setting.download.category else None
-        infos = self.qb.get_torrents(category, include_success=include_success, include_failed=include_failed)
+        infos = self.downloader.get_completed_torrents(
+            category,
+            include_success=include_success,
+            include_failed=include_failed,
+        )
         torrents = []
         for info in infos:
             torrent = Torrent(hash=info['hash'], name=info['name'], size=utils.convert_size(info['total_size']),
                               path=info['save_path'], tags=list(map(lambda i: i.strip(), info['tags'].split(','))))
-            files = self.qb.get_torrent_files(info['hash'])
+            files = self.downloader.get_torrent_files(info['hash'])
             for file in filter(lambda item: item['progress'] == 1 and item['priority'] != 0, files):
                 _, ext_name = os.path.splitext(file['name'])
                 name = file['name'].split('/')[-1]
@@ -54,10 +59,10 @@ class DownloadService(BaseService):
         return torrents
 
     def complete_download(self, torrent_hash: str, is_success: bool = True):
-        self.qb.add_torrent_tags(torrent_hash, ['整理成功' if is_success else '整理失败'])
+        self.downloader.add_tags(torrent_hash, ['整理成功' if is_success else '整理失败'])
 
     def delete_download(self, torrent_hash: str):
-        self.qb.delete_torrent(torrent_hash)
+        self.downloader.delete_torrent(torrent_hash)
 
     @classmethod
     def job_scrape_download(cls):
@@ -114,7 +119,7 @@ class DownloadService(BaseService):
                     video_notify.message = '文件不存在'
                 video_notify.is_success = False
                 logger.warning(f"影片整理失败：{video_notify.message}")
-                notify.send_video(video_notify)
+                notification_manager.send_video(video_notify)
 
         self.complete_download(torrent.hash, not has_error)
 

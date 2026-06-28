@@ -10,9 +10,11 @@ from app.schema.setting import (
     SettingCookieCloud,
     SettingCrawler,
     SettingDownload,
+    SettingDownloadV1,
     SettingFile,
     SettingLibrary,
     SettingNotify,
+    SettingNotifyV1,
     config_path,
 )
 from app.settings.migrations import NAMESPACE_ORDER, get_upgrade, latest_version
@@ -93,7 +95,7 @@ class SettingsManager:
 
     def _build_seed_payloads(self) -> dict[str, dict[str, Any]]:
         if not config_path.exists():
-            return {namespace: self._default_payload(namespace) for namespace in NAMESPACE_ORDER}
+            return {namespace: self._initial_payload(namespace) for namespace in NAMESPACE_ORDER}
 
         parser = ConfigParser()
         parser.read(config_path)
@@ -106,8 +108,8 @@ class SettingsManager:
             **SettingLibrary(**legacy_sections.get('app', {})).model_dump(),
         }
         file_payload = SettingFile(**legacy_sections.get('file', {}))
-        download_payload = SettingDownload(**legacy_sections.get('download', {}))
-        notify_payload = SettingNotify(**legacy_sections.get('notify', {}))
+        download_payload = SettingDownloadV1(**legacy_sections.get('download', {}))
+        notify_payload = SettingNotifyV1(**legacy_sections.get('notify', {}))
         cookiecloud_payload = SettingCookieCloud(**legacy_sections.get('cookiecloud', {}))
 
         return {
@@ -150,6 +152,15 @@ class SettingsManager:
     def _default_payload(self, namespace: str) -> dict[str, Any]:
         model = self.namespace_models[namespace]
         return model().model_dump()
+
+    @staticmethod
+    def _initial_payload(namespace: str) -> dict[str, Any]:
+        if namespace == 'download':
+            return SettingDownloadV1().model_dump()
+        if namespace == 'notify':
+            return SettingNotifyV1().model_dump()
+
+        return SettingsManager.namespace_models[namespace]().model_dump()
 
     @staticmethod
     def _decode_payload(payload: str) -> dict[str, Any]:

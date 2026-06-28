@@ -1,13 +1,13 @@
 import {Form, Input} from "antd";
 
-function Telegram() {
+function Webhook() {
     return (
         <>
-            <Form.Item name={'url'} label={'URL'}>
+            <Form.Item name={['providers', 'webhook', 'url']} label={'URL'}>
                 <Input/>
             </Form.Item>
         </>
     )
 }
 
-export default Telegram
+export default Webhook

@@ -45,6 +45,49 @@ MIGRATIONS: dict[str, dict[int, UpgradeFunc]] = {
 }
 
 
+def upgrade_download_v1_to_v2(payload: dict) -> dict:
+    data = dict(payload)
+    return {
+        'provider': 'qbittorrent',
+        'trans_mode': data.get('trans_mode', 'copy'),
+        'download_path': data.get('download_path', '/downloads'),
+        'mapping_path': data.get('mapping_path', '/downloads'),
+        'trans_auto': data.get('trans_auto', False),
+        'delete_auto': data.get('delete_auto', False),
+        'category': data.get('category', ''),
+        'providers': {
+            'qbittorrent': {
+                'host': data.get('host'),
+                'username': data.get('username'),
+                'password': data.get('password'),
+                'tracker_subscribe': data.get('tracker_subscribe', ''),
+            }
+        }
+    }
+
+
+def upgrade_notify_v1_to_v2(payload: dict) -> dict:
+    data = dict(payload)
+    return {
+        'provider': data.get('type', 'telegram'),
+        'providers': {
+            'telegram': {
+                'token': data.get('telegram_token'),
+                'chat_id': data.get('telegram_chat_id'),
+            },
+            'webhook': {
+                'url': data.get('webhook_url'),
+            },
+        }
+    }
+
+
+LATEST_VERSIONS['download'] = 2
+LATEST_VERSIONS['notify'] = 2
+MIGRATIONS['download'][1] = upgrade_download_v1_to_v2
+MIGRATIONS['notify'][1] = upgrade_notify_v1_to_v2
+
+
 def latest_version(namespace: str) -> int:
     return LATEST_VERSIONS[namespace]
 

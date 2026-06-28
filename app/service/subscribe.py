@@ -11,13 +11,13 @@ from app.db import get_db, SessionFactory
 from app.db.models import Subscribe, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.integrations.downloaders.manager import downloader_manager
+from app.integrations.notifications.manager import notification_manager
 from app.schema import Setting
 from app.schema.r import Page
 from app.service.base import BaseService
 from app.service.spider import SpiderService
-from app.utils import notify
 from app.utils.logger import logger
-from app.utils.qbittorent import qbittorent
 
 
 def get_subscribe_service(db: Session = Depends(get_db)):
@@ -140,21 +140,23 @@ class SubscribeService(BaseService):
 
     def download_video(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
         category = self.setting.download.category if self.setting.download.category else None
-        response = qbittorent.add_magnet(link.magnet, Setting().download.download_path, category)
-        if response.status_code != 200:
+        response = downloader_manager.get_active().add_magnet(link.magnet, Setting().download.download_path, category)
+        if not response.success:
             raise BizException('下载创建失败')
         logger.info(f"下载创建成功")
-        if response.hash:
+        if response.torrent_hash:
             torrent = Torrent()
-            torrent.hash = response.hash
+            torrent.hash = response.torrent_hash
             torrent.num = video.num
             torrent.is_zh = link.is_zh
             torrent.is_uncensored = link.is_uncensored
             self.db.add(torrent)
 
-        subscribe_notify = schema.SubscribeNotify.model_validate(video)
-        subscribe_notify = subscribe_notify.model_copy(update=link.model_dump())
-        notify.send_subscribe(subscribe_notify)
+        subscribe_notify = schema.SubscribeNotify.model_validate({
+            **video.model_dump(),
+            **link.model_dump(),
+        })
+        notification_manager.send_subscribe(subscribe_notify)
 
     @classmethod
     def job_subscribe(cls):

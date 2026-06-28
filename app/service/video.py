@@ -11,11 +11,12 @@ from app import utils
 from app.db import get_db
 from app.db.models import History
 from app.exception import BizException
+from app.integrations.notifications.manager import notification_manager
 from app.schema import VideoList, VideoDetail, Setting, VideoNotify
 from app.service.base import BaseService
 from app.service.resource import ResourceService
 from app.service.spider import SpiderService
-from app.utils import nfo, spider, num_parser, cache, notify
+from app.utils import nfo, spider, num_parser, cache
 from app.utils.image import save_images
 from app.utils.logger import logger
 
@@ -115,7 +116,7 @@ class VideoService(BaseService):
             self.db.commit()
 
             video_notify.is_success = True
-            notify.send_video(video_notify)
+            notification_manager.send_video(video_notify)
 
         video_cache.pop('videos', None)
 
