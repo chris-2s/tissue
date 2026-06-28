@@ -4,11 +4,10 @@ from .setting import *
 from .video import *
 from .file import *
 from .download import *
-from .setting import *
 from .schedule import *
 from .subscribe import *
 from .site import *
-from .cookie import *
+from .notification import *
 from .home import *
 from .history import *
 from .actor import *

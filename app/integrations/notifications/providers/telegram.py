@@ -3,7 +3,7 @@ import os
 import requests
 
 from app.integrations.notifications.base import NotificationEvent, NotificationProvider
-from app.schema import SubscribeNotify, VideoNotify, CookieNotify
+from app.schema.notification import CookieInvalidPayload, SubscribeStartedPayload, VideoFailedPayload, VideoSavedPayload
 from app.schema.setting import NotifyTelegramConfig
 from app.service.resource import ResourceService
 
@@ -18,30 +18,40 @@ class TelegramNotificationProvider(NotificationProvider):
 
     def send(self, event: NotificationEvent) -> None:
         match event.event:
-            case 'video.saved' | 'video.failed':
-                self._send_video(VideoNotify.model_validate(event.payload))
+            case 'video.saved':
+                self._send_video_saved(VideoSavedPayload.model_validate(event.payload))
+            case 'video.failed':
+                self._send_video_failed(VideoFailedPayload.model_validate(event.payload))
             case 'subscribe.started':
-                self._send_subscribe(SubscribeNotify.model_validate(event.payload))
+                self._send_subscribe_started(SubscribeStartedPayload.model_validate(event.payload))
             case 'cookie.invalid':
-                self._send_cookie(CookieNotify.model_validate(event.payload))
+                self._send_cookie_invalid(CookieInvalidPayload.model_validate(event.payload))
 
-    def _send_video(self, video: VideoNotify):
-        if video.is_success:
-            actors = ', '.join(map(lambda item: item.name, video.actors))
-            tags = []
-            if video.is_zh:
-                tags.append('中文')
-            if video.is_uncensored:
-                tags.append('无码')
-            content = f'''
+    def _send_video_saved(self, video: VideoSavedPayload):
+        actors = ', '.join(map(lambda item: item.name, video.actors))
+        tags = []
+        if video.is_zh:
+            tags.append('中文')
+        if video.is_uncensored:
+            tags.append('无码')
+        content = f'''
 <b><tg-spoiler>{video.num}</tg-spoiler>整理成功</b>
 演员：<tg-spoiler>{actors}</tg-spoiler>
 大小：{video.size}
 文件：<tg-spoiler>{video.path}</tg-spoiler>
 标签：<tg-spoiler>{', '.join(tags)}</tg-spoiler>
 '''
-        else:
-            content = f'''
+
+        picture = None
+        picture_name = None
+        if video.cover:
+            picture = ResourceService.fetch_image_bytes(video.cover, 'cover')
+            _, ext_name = os.path.splitext(video.cover)
+            picture_name = f'cover{ext_name}'
+        self._send_message(content, picture=picture, picture_name=picture_name)
+
+    def _send_video_failed(self, video: VideoFailedPayload):
+        content = f'''
 <b>影片整理失败</b>
 文件：<tg-spoiler>{video.path}</tg-spoiler>
 大小：{video.size}
@@ -56,7 +66,7 @@ class TelegramNotificationProvider(NotificationProvider):
             picture_name = f'cover{ext_name}'
         self._send_message(content, picture=picture, picture_name=picture_name)
 
-    def _send_subscribe(self, subscribe: SubscribeNotify):
+    def _send_subscribe_started(self, subscribe: SubscribeStartedPayload):
         tags = []
         if subscribe.is_hd:
             tags.append('高清')
@@ -84,7 +94,7 @@ class TelegramNotificationProvider(NotificationProvider):
             picture_name = f'cover{ext_name}'
         self._send_message(content, picture=picture, picture_name=picture_name)
 
-    def _send_cookie(self, cookie: CookieNotify):
+    def _send_cookie_invalid(self, cookie: CookieInvalidPayload):
         content = f'''
 <b>⚠️ 站点Cookie失效</b>
 站点：<tg-spoiler>{cookie.site_name}</tg-spoiler>

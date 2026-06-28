@@ -6,15 +6,17 @@ from random import randint
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app import schema
 from app.db import get_db, SessionFactory
-from app.db.models import Subscribe, Torrent
+from app.db.models import Subscribe as SubscribeModel, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
 from app.integrations.downloaders.manager import downloader_manager
 from app.integrations.notifications.manager import notification_manager
-from app.schema import Setting
+from app.schema.notification import SubscribeStartedPayload
 from app.schema.r import Page
+from app.schema.setting import Setting
+from app.schema.subscribe import SubscribeCreate, SubscribeUpdate
+from app.schema.video import VideoDownload
 from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.utils.logger import logger
@@ -31,28 +33,28 @@ class SubscribeService(BaseService):
         self.setting = Setting()
 
     def get_subscribes(self):
-        return self.db.query(Subscribe).filter(Subscribe.status != 2).order_by(Subscribe.id.desc()).all()
+        return self.db.query(SubscribeModel).filter(SubscribeModel.status != 2).order_by(SubscribeModel.id.desc()).all()
 
     def get_subscribe_histories(self, page: int = 1, limit: int = 12):
-        query = self.db.query(Subscribe).filter(Subscribe.status == 2)
+        query = self.db.query(SubscribeModel).filter(SubscribeModel.status == 2)
         total = query.count()
-        subscribes = query.order_by(Subscribe.update_time.desc()).offset((page - 1) * limit).limit(limit).all()
+        subscribes = query.order_by(SubscribeModel.update_time.desc()).offset((page - 1) * limit).limit(limit).all()
         return Page(page=page, limit=limit, total=total, data=subscribes)
 
     @transaction
-    def add_subscribe(self, param: schema.SubscribeCreate):
+    def add_subscribe(self, param: SubscribeCreate):
         exists = self.get_subscribes()
 
         if [exist for exist in exists if
             exist.num.upper() == param.num.upper() and exist.is_hd == param.is_hd and exist.is_zh == param.is_zh and exist.is_uncensored == param.is_uncensored]:
             raise BizException('存在相同订阅，无需重复添加')
 
-        subscribe = Subscribe(**param.model_dump())
+        subscribe = SubscribeModel(**param.model_dump())
         subscribe.add(self.db)
 
     @transaction
-    def update_subscribe(self, param: schema.SubscribeUpdate):
-        exist = Subscribe.get(self.db, param.id)
+    def update_subscribe(self, param: SubscribeUpdate):
+        exist = SubscribeModel.get(self.db, param.id)
         if not exist:
             raise BizException("该订阅不存在")
 
@@ -60,14 +62,14 @@ class SubscribeService(BaseService):
 
     @transaction
     def re_subscribe(self, subscribe_id: int):
-        exist = Subscribe.get(self.db, subscribe_id)
-        param = schema.SubscribeCreate(**exist.__dict__)
+        exist = SubscribeModel.get(self.db, subscribe_id)
+        param = SubscribeCreate(**exist.__dict__)
         param.status = 1
         self.add_subscribe(param)
 
     @transaction
     def delete_subscribe(self, subscribe_id: int):
-        exist = Subscribe.get(self.db, subscribe_id)
+        exist = SubscribeModel.get(self.db, subscribe_id)
         exist.delete(self.db)
 
     def search_video(self, num: str):
@@ -77,7 +79,7 @@ class SubscribeService(BaseService):
         return video
 
     @transaction
-    def download_video_manual(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
+    def download_video_manual(self, video: SubscribeCreate, link: VideoDownload):
         self.download_video(video, link)
 
     def do_subscribe(self):
@@ -129,7 +131,7 @@ class SubscribeService(BaseService):
             matched = result[0]
             if matched:
                 try:
-                    self.download_video(schema.SubscribeCreate.model_validate(subscribe), matched)
+                    self.download_video(SubscribeCreate.model_validate(subscribe), matched)
                     logger.info(f"订阅《{subscribe.num}》已完成")
                     subscribe.update(self.db, {'status': 2})
                     self.db.commit()
@@ -138,7 +140,7 @@ class SubscribeService(BaseService):
                     traceback.print_exc()
                     continue
 
-    def download_video(self, video: schema.SubscribeCreate, link: schema.VideoDownload):
+    def download_video(self, video: SubscribeCreate, link: VideoDownload):
         category = self.setting.download.category if self.setting.download.category else None
         response = downloader_manager.get_active().add_magnet(link.magnet, Setting().download.download_path, category)
         if not response.success:
@@ -152,11 +154,20 @@ class SubscribeService(BaseService):
             torrent.is_uncensored = link.is_uncensored
             self.db.add(torrent)
 
-        subscribe_notify = schema.SubscribeNotify.model_validate({
-            **video.model_dump(),
-            **link.model_dump(),
+        subscribe_payload = SubscribeStartedPayload.model_validate({
+            'num': video.num,
+            'cover': video.cover,
+            'actors': video.actors,
+            'is_hd': link.is_hd,
+            'is_zh': link.is_zh,
+            'is_uncensored': link.is_uncensored,
+            'name': link.name,
+            'url': link.url,
+            'size': link.size,
+            'publish_date': link.publish_date,
+            'source': link.source,
         })
-        notification_manager.send_subscribe(subscribe_notify)
+        notification_manager.emit_subscribe_started(subscribe_payload)
 
     @classmethod
     def job_subscribe(cls):

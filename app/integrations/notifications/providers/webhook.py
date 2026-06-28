@@ -13,8 +13,4 @@ class WebhookNotificationProvider(NotificationProvider):
         self.settings = NotifyWebhookConfig(**config)
 
     def send(self, event: NotificationEvent) -> None:
-        requests.post(self.settings.url, json={
-            'event': event.event,
-            'payload': event.payload,
-        }, timeout=10)
-
+        requests.post(self.settings.url, json=event.model_dump(mode='json'), timeout=10)

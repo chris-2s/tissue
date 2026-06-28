@@ -3,8 +3,6 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.schema.video import SourceRef
-
 
 class SubscribeCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -30,13 +28,3 @@ class SubscribeUpdate(SubscribeCreate):
 
 class Subscribe(SubscribeUpdate):
     last_updated: Optional[datetime] = None
-
-
-class SubscribeNotify(SubscribeCreate):
-    name: Optional[str] = None
-    website: Optional[str] = None
-    url: Optional[str] = None
-    size: Optional[str] = None
-    magnet: Optional[str] = None
-    publish_date: Optional[date] = None
-    source: Optional[SourceRef] = None

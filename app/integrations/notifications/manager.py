@@ -1,7 +1,10 @@
+from pydantic import BaseModel
+
 from app.exception import BizException
 from app.integrations.notifications.base import NotificationEvent, NotificationProvider
 from app.integrations.notifications.registry import notification_registry
-from app.schema import CookieNotify, Setting, SubscribeNotify, VideoNotify
+from app.schema.notification import CookieInvalidPayload, SubscribeStartedPayload, VideoFailedPayload, VideoSavedPayload
+from app.schema.setting import Setting
 from app.utils.logger import logger
 
 
@@ -37,24 +40,23 @@ class NotificationManager:
         except Exception as exc:
             logger.warning(f"发送通知失败: {exc}")
 
-    def send_video(self, video: VideoNotify) -> None:
+    def emit_event(self, event_name: str, payload: BaseModel) -> None:
         self.emit(NotificationEvent(
-            event='video.saved' if video.is_success else 'video.failed',
-            payload=video.model_dump(),
+            event=event_name,
+            payload=payload.model_dump(),
         ))
 
-    def send_subscribe(self, subscribe: SubscribeNotify) -> None:
-        self.emit(NotificationEvent(
-            event='subscribe.started',
-            payload=subscribe.model_dump(),
-        ))
+    def emit_video_saved(self, payload: VideoSavedPayload) -> None:
+        self.emit_event('video.saved', payload)
 
-    def send_cookie(self, cookie: CookieNotify) -> None:
-        self.emit(NotificationEvent(
-            event='cookie.invalid',
-            payload=cookie.model_dump(),
-        ))
+    def emit_video_failed(self, payload: VideoFailedPayload) -> None:
+        self.emit_event('video.failed', payload)
+
+    def emit_subscribe_started(self, payload: SubscribeStartedPayload) -> None:
+        self.emit_event('subscribe.started', payload)
+
+    def emit_cookie_invalid(self, payload: CookieInvalidPayload) -> None:
+        self.emit_event('cookie.invalid', payload)
 
 
 notification_manager = NotificationManager()
-

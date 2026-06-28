@@ -9,7 +9,10 @@ from app.db.models import History, Torrent as DBTorrent
 from app.exception import BizException
 from app.integrations.downloaders.manager import downloader_manager
 from app.integrations.notifications.manager import notification_manager
-from app.schema import Torrent, TorrentFile, Setting, VideoNotify, VideoDetail
+from app.schema.download import Torrent, TorrentFile
+from app.schema.notification import VideoFailedPayload
+from app.schema.setting import Setting
+from app.schema.video import VideoDetail
 from app.service.base import BaseService
 from app.service.video import VideoService
 from app.utils.logger import logger
@@ -80,7 +83,7 @@ class DownloadService(BaseService):
         has_error = False
         for file in torrent.files:
             num = None
-            video = VideoNotify(path=file.path)
+            video = VideoFailedPayload(path=file.path)
             try:
                 matched_torrent = self.db.query(DBTorrent).filter_by(hash=torrent.hash).order_by(
                     DBTorrent.id.desc()).limit(1).one_or_none()
@@ -110,16 +113,15 @@ class DownloadService(BaseService):
                                   source_path=file.path, trans_method=trans_mode)
                 history.add(video_service.db)
 
-                video_notify = VideoNotify(**video.model_dump())
+                video_notify = VideoFailedPayload.model_validate(video.model_dump())
                 if os.path.exists(file.path):
                     video_notify.size = utils.convert_size(os.stat(file.path).st_size)
                     video_notify.message = e.message
                 else:
                     video_notify.size = 'N/A'
                     video_notify.message = '文件不存在'
-                video_notify.is_success = False
                 logger.warning(f"影片整理失败：{video_notify.message}")
-                notification_manager.send_video(video_notify)
+                notification_manager.emit_video_failed(video_notify)
 
         self.complete_download(torrent.hash, not has_error)
 

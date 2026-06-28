@@ -122,12 +122,3 @@ class VideoDetail(BaseModel):
     comments: List[VideoComment] = Field(default_factory=list)
     # 站点演员
     site_actors: List[VideoSiteActor] = Field(default_factory=list)
-
-
-class VideoNotify(VideoDetail):
-    is_success: bool = True
-    mode: Optional[str] = None
-    trans_mode: Optional[str] = None
-    torrent_hash: Optional[str] = None
-    size: Optional[str] = None
-    message: Optional[str] = None

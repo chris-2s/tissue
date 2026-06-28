@@ -1,17 +1,16 @@
-from app import schema
-from app.schema import CookieNotify
-
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db, SessionFactory
 from app.db.models import Site
 from app.db.transaction import transaction
-from app.service.base import BaseService
-from app.service.spider import SpiderService
-from app.service.cookiecloud import CookieCloudService
 from app.exception import BizException
 from app.integrations.notifications.manager import notification_manager
+from app.schema.notification import CookieInvalidPayload
+from app.schema.site import LoginSubmit, Site as SiteSchema, SiteUpdate
+from app.service.base import BaseService
+from app.service.cookiecloud import CookieCloudService
+from app.service.spider import SpiderService
 from app.utils.cookies import cookiecloud_items_to_cookies, parse_cookie_header, to_cookie_header
 from app.utils.logger import logger
 
@@ -35,7 +34,7 @@ class SiteService(BaseService):
         spider_name = spider_class.name if spider_class else db_site.spider_key
         capabilities = SpiderService.get_spider_capabilities(spider_key)
 
-        return schema.Site(
+        return SiteSchema(
             id=db_site.id,
             spider_key=spider_key,
             priority=db_site.priority,
@@ -47,7 +46,7 @@ class SiteService(BaseService):
         )
 
     @transaction
-    def modify_site(self, site: schema.SiteUpdate):
+    def modify_site(self, site: SiteUpdate):
         db_site = Site.get(self.db, site.id)
 
         payload = site.model_dump()
@@ -96,12 +95,12 @@ class SiteService(BaseService):
                         continue
 
                     domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
-                    cookie_notify = CookieNotify(
+                    cookie_notify = CookieInvalidPayload(
                         site_name=spider_instance.name,
                         domain=domain,
                         message="Cookie已失效，请重新登录"
                     )
-                    notification_manager.send_cookie(cookie_notify)
+                    notification_manager.emit_cookie_invalid(cookie_notify)
 
                     current_site.cookies = None
                     self.db.commit()
@@ -131,7 +130,7 @@ class SiteService(BaseService):
         finally:
             spider.close()
 
-    def submit_login(self, site_id: int, data: schema.LoginSubmit):
+    def submit_login(self, site_id: int, data: LoginSubmit):
         from urllib.parse import urlparse
 
         site = self.db.query(Site).get(site_id)

@@ -12,7 +12,9 @@ from app.db import get_db
 from app.db.models import History
 from app.exception import BizException
 from app.integrations.notifications.manager import notification_manager
-from app.schema import VideoList, VideoDetail, Setting, VideoNotify
+from app.schema.notification import VideoSavedPayload
+from app.schema.setting import Setting
+from app.schema.video import VideoDetail, VideoList
 from app.service.base import BaseService
 from app.service.resource import ResourceService
 from app.service.spider import SpiderService
@@ -103,10 +105,17 @@ class VideoService(BaseService):
                 trans_mode = 'move'
         source_path = video.path
 
-        video_notify = VideoNotify(**video.model_dump())
-        video_notify.mode = mode
-        video_notify.trans_mode = trans_mode
-        video_notify.size = utils.convert_size(os.stat(source_path).st_size)
+        video_payload = VideoSavedPayload.model_validate({
+            'num': video.num,
+            'cover': video.cover,
+            'path': source_path,
+            'is_zh': video.is_zh,
+            'is_uncensored': video.is_uncensored,
+            'actors': video.actors,
+            'mode': mode,
+            'trans_mode': trans_mode,
+            'size': utils.convert_size(os.stat(source_path).st_size),
+        })
 
         dest_path = self.trans(video, setting.library.video_path, trans_mode)
         if dest_path != source_path:
@@ -115,8 +124,7 @@ class VideoService(BaseService):
             history.add(self.db)
             self.db.commit()
 
-            video_notify.is_success = True
-            notification_manager.send_video(video_notify)
+            notification_manager.emit_video_saved(video_payload)
 
         video_cache.pop('videos', None)
 
