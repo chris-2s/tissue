@@ -64,6 +64,9 @@
 .content {
     min-height: 100%;
     will-change: transform;
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-section-gap, 14px);
 }
 
 .contentAnimated {

@@ -54,7 +54,12 @@ function RouteLayout() {
     }, [token.colorBgLayout])
 
     return (
-        <div>
+        <div style={{
+            ['--page-padding-x' as string]: responsive.md ? '16px' : '12px',
+            ['--page-padding-y' as string]: responsive.md ? '16px' : '12px',
+            ['--page-section-gap' as string]: responsive.md ? '16px' : '14px',
+            ['--page-bottom-extra' as string]: !responsive.md ? '4px' : '0px',
+        }}>
             <ConfigProvider theme={{
                 components: {
                     Layout: {
@@ -89,7 +94,6 @@ function RouteLayout() {
                     )}
                     <Layout style={{position: 'relative'}}>
                         <div className={Styles.header} style={{
-                            background: token.colorBgContainer + '99',
                             borderBlockEndColor: token.colorBorderSecondary
                         }}>
                             <Layout.Header
@@ -106,7 +110,7 @@ function RouteLayout() {
                                 paddingTop: `calc(env(safe-area-inset-top, 0) + ${headerHeight}px)`,
                             }}
                             className={Styles.content}>
-                            <div style={{padding: responsive.md ? 16 : 12}}>
+                            <div className={Styles.contentInner}>
                                 <Outlet/>
                                 <FloatButton.Group className={'index-float-button-group'}>
                                     {floatButtons}
@@ -117,7 +121,6 @@ function RouteLayout() {
                     </Layout>
                     {!responsive.md && (
                         <div className={Styles.footer} style={{
-                            background: token.colorBgContainer + '99',
                             borderBlockStartColor: token.colorBorderSecondary
                         }}>
                             <TabBar/>

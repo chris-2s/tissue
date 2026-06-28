@@ -32,3 +32,10 @@
     padding-right: env(safe-area-inset-right, 0);
     overscroll-behavior: contain;
 }
+
+.contentInner {
+    padding:
+        var(--page-padding-y, 12px)
+        var(--page-padding-x, 12px)
+        calc(var(--page-padding-y, 12px) + var(--page-bottom-extra, 0px));
+}

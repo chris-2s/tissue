@@ -21,6 +21,7 @@ import {useResponsive} from "ahooks";
 import PinView from "../../../components/PinView";
 import {PinMode} from "../../../components/PinView/types.ts";
 import {Link, useRouter} from "@tanstack/react-router";
+import Styles from "./header.module.css";
 
 
 const {useToken} = theme
@@ -158,8 +159,8 @@ function Header(props: Props) {
 
 
     return (
-        <div className={'flex h-full w-full items-center justify-between'}>
-            <div className={'flex h-full items-center'} onClick={() => props.onCollapse?.()}>
+        <div className={Styles.header}>
+            <div className={Styles.leading} onClick={() => props.onCollapse?.()}>
                 {props.collapsible && (
                     <IconButton size={responsive.md ? 'md' : 'lg'}>
                         <MenuOutlined style={{color: token.colorText, fontSize: token.sizeMD}}/>
@@ -172,7 +173,7 @@ function Header(props: Props) {
                         </IconButton>
                     ) : (
                         <Link to={'/'}
-                              className={'flex h-full items-center'}>
+                              className={Styles.brandLink}>
                             <img
                                 className={responsive.lg ? 'ml-4 mr-4 block h-12' : 'mr-1 block h-10'}
                                 src={Logo}
@@ -182,9 +183,9 @@ function Header(props: Props) {
                     )
                 )}
             </div>
-            <div className={'flex h-full flex-1 flex-row-reverse items-center'}>
+            <div className={Styles.actions}>
                 <div
-                    className={'flex h-full items-center'}
+                    className={Styles.actionGroup}
                     style={{gap: responsive.md ? 10 : 8}}
                 >
                     <IconButton

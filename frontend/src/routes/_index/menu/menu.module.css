@@ -1,7 +1,7 @@
 .page {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--page-section-gap, 16px);
 }
 
 .section {
@@ -11,7 +11,7 @@
 .sectionHeader {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .sectionTitle {
