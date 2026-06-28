@@ -12,8 +12,8 @@ from app.schema.actor import Actor, ActorPage
 from app.schema.home import SiteVideo
 from app.schema.r import Page
 from app.utils.media_matcher import detect_flags_with_tag_priority
-from app.utils.spider.spider import Spider
-from app.utils.spider.spider_exception import SpiderException
+from app.crawlers.base import Spider
+from app.crawlers.exceptions import SpiderException
 
 
 class JavBusSpider(Spider):

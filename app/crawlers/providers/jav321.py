@@ -2,8 +2,8 @@ from urllib.parse import urljoin
 from lxml import etree
 
 from app.schema import VideoDetail, VideoPreviewItem, VideoPreview
-from app.utils.spider.spider import Spider
-from app.utils.spider.spider_exception import SpiderException
+from app.crawlers.base import Spider
+from app.crawlers.exceptions import SpiderException
 
 
 class Jav321Spider(Spider):

@@ -12,6 +12,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
+from app.crawlers import DEFAULT_IMPERSONATE, JavDBSpider, Spider
 from app.db import get_db
 from app.db.models import Site
 from app.schema import Setting
@@ -21,8 +22,6 @@ from app.utils import cache
 from app.utils.cookies import is_same_domain_or_subdomain, normalize_host
 from app.utils.logger import logger
 from app.utils.m3u8 import fix_m3u8_paths, is_m3u8
-from app.utils.spider import JavDBSpider
-from app.utils.spider.spider import DEFAULT_IMPERSONATE, Spider
 
 
 ImageCacheType = Literal['cover', 'avatar', 'preview']

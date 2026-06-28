@@ -21,8 +21,8 @@ from app.utils.cookies import (
     to_cookie_header,
 )
 from app.utils.media_matcher import detect_flags_with_tag_priority
-from app.utils.spider.spider import Session, Spider
-from app.utils.spider.spider_exception import SpiderException
+from app.crawlers.base import Session, Spider
+from app.crawlers.exceptions import SpiderException
 
 
 class JavDBSpider(Spider):

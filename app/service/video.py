@@ -18,7 +18,7 @@ from app.schema.video import VideoDetail, VideoList
 from app.service.base import BaseService
 from app.service.resource import ResourceService
 from app.service.spider import SpiderService
-from app.utils import nfo, spider, num_parser, cache
+from app.utils import cache, nfo, num_parser
 from app.utils.image import save_images
 from app.utils.logger import logger
 

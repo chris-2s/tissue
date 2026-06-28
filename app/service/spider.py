@@ -1,24 +1,24 @@
 import asyncio
 import traceback
 from datetime import datetime
-from typing import Type
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
+from app.crawlers.base import Spider
+from app.crawlers.exceptions import SpiderException
+from app.crawlers.registry import crawler_registry
 from app.db import get_db
 from app.db.models import Site
-from app.schema import SiteCapabilities, SpiderKey, VideoDetail
+from app.schema import SpiderKey, VideoDetail
+from app.schema.site import SiteCapabilities
 from app.schema.site import MetadataPriorityFieldKey
 from app.schema.actor import Actor, ActorPage, ImageInfo
 from app.schema.home import SiteVideo
 from app.service.base import BaseService
 from app.service.metadata_priority import MetadataPriorityService
 from app.utils.logger import logger
-from app.utils.spider import DmmSpider, Jav321Spider, JavBusSpider, JavDBSpider
-from app.utils.spider.spider import Spider
-from app.utils.spider.spider_exception import SpiderException
 from app.exception import BizException
 
 
@@ -27,49 +27,24 @@ def get_spider_service(db: Session = Depends(get_db)):
 
 
 class SpiderService(BaseService):
-    SPIDER_REGISTRY: dict[SpiderKey, Type[Spider]] = {
-        SpiderKey.JAVDB: JavDBSpider,
-        SpiderKey.JAVBUS: JavBusSpider,
-        SpiderKey.JAV321: Jav321Spider,
-        SpiderKey.DMM: DmmSpider,
-    }
-
     @staticmethod
     def normalize_spider_key(spider_key: str | SpiderKey) -> SpiderKey | None:
-        if isinstance(spider_key, SpiderKey):
-            return spider_key
-        try:
-            return SpiderKey(spider_key)
-        except ValueError:
-            return None
+        return crawler_registry.normalize_key(spider_key)
 
     @classmethod
-    def get_spider_class(cls, spider_key: str | SpiderKey) -> Type[Spider] | None:
-        normalized_key = cls.normalize_spider_key(spider_key)
-        if not normalized_key:
-            return None
-        return cls.SPIDER_REGISTRY.get(normalized_key)
+    def get_spider_class(cls, spider_key: str | SpiderKey) -> type[Spider] | None:
+        return crawler_registry.get(spider_key)
 
     @classmethod
     def get_spider_capabilities(cls, spider_key: str | SpiderKey) -> SiteCapabilities:
-        spider_class = cls.get_spider_class(spider_key)
-        if not spider_class:
-            return SiteCapabilities(
-                supports_ranking=False,
-                supports_actor=False,
-                supports_login=False,
-                supports_downloads=False,
-                supports_previews=False,
-                supports_comments=False,
-            )
-
+        capabilities = crawler_registry.get_capabilities(spider_key)
         return SiteCapabilities(
-            supports_ranking=spider_class.supports_ranking,
-            supports_actor=spider_class.supports_actor,
-            supports_login=spider_class.supports_login,
-            supports_downloads=spider_class.supports_downloads,
-            supports_previews=spider_class.supports_previews,
-            supports_comments=spider_class.supports_comments,
+            supports_ranking=capabilities.supports_ranking,
+            supports_actor=capabilities.supports_actor,
+            supports_login=capabilities.supports_login,
+            supports_downloads=capabilities.supports_downloads,
+            supports_previews=capabilities.supports_previews,
+            supports_comments=capabilities.supports_comments,
         )
 
     @classmethod

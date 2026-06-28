@@ -3,8 +3,8 @@ from math import floor
 from urllib.parse import urljoin
 
 from app.schema import VideoDetail, VideoActor, VideoPreviewItem, VideoPreview
-from app.utils.spider.spider import Spider
-from app.utils.spider.spider_exception import SpiderException
+from app.crawlers.base import Spider
+from app.crawlers.exceptions import SpiderException
 
 
 DMM_CONTENT_PAGE_QUERY = """
