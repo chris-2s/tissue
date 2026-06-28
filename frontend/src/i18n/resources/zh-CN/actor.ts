@@ -1,0 +1,31 @@
+export default {
+    detail: {
+        loadErrorTitle: '演员作品加载失败',
+        loadErrorDescription: '请检查网络或站点状态后重试',
+        favoriteCreated: '演员收藏成功',
+        favoriteRemoved: '已取消收藏',
+        favoriteMissing: '未找到对应收藏记录',
+        unknownActor: '未知演员',
+        aliasPrefix: '别名：',
+        aliasEmpty: '暂无别名信息',
+        addFavorite: '加入收藏',
+        removeFavorite: '取消收藏',
+        emptyWorks: '暂无作品',
+    },
+    favorite: {
+        pageTitle: '演员收藏',
+        loadErrorTitle: '演员收藏加载失败',
+        loadErrorDescription: '请检查网络后重试',
+        deleteSuccess: '删除成功',
+        empty: '无演员收藏',
+        emptyFiltered: '暂无匹配的演员收藏',
+        openWorks: '查看作品',
+        currentFilters: '当前条件',
+        clearFilters: '清空条件',
+        searchPlaceholder: '搜索演员名称、别名，或输入名称后回车',
+        token: {
+            actor: '演员',
+            alias: '别名',
+        },
+    },
+} as const;

@@ -14,17 +14,12 @@ import * as api from "../../../apis/site.ts";
 import type {MetadataPriorityFieldKey, MetadataPrioritySettings, SiteItem} from "../../../apis/site.ts";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
+import {useTranslation} from "react-i18next";
 
 
 export const Route = createFileRoute('/_index/site/priority')({
     component: SitePriority,
 })
-
-const FIELD_TITLES: Record<MetadataPriorityFieldKey, string> = {
-    cover: '封面',
-    rating: '评分',
-    actors: '演员信息',
-}
 
 const FIELD_KEYS: MetadataPriorityFieldKey[] = ['cover', 'rating', 'actors']
 
@@ -59,6 +54,7 @@ function buildFieldState(settings?: MetadataPrioritySettings): FieldState {
 }
 
 function SitePriority() {
+    const {t} = useTranslation(['site'])
     const queryClient = useQueryClient()
     const metadataQuery = useQuery(metadataPriorityQueryOptions())
     const sitesQuery = useQuery(sitesQueryOptions())
@@ -89,7 +85,7 @@ function SitePriority() {
     const {run: onSave, loading: saving} = useRequest(api.saveMetadataPriority, {
         manual: true,
         onSuccess: async () => {
-            message.success('保存成功')
+            message.success(t('site:priorityPage.saveSuccess'))
             await queryClient.invalidateQueries({queryKey: ['metadata-priority']})
         },
     })
@@ -131,8 +127,8 @@ function SitePriority() {
     if (metadataQuery.isError || sitesQuery.isError) {
         return (
             <RouteErrorState
-                title={'刮削优先级加载失败'}
-                description={'请稍后重试'}
+                title={t('site:priorityPage.loadTitle')}
+                description={t('site:priorityPage.loadDescription')}
                 onRetry={async () => {
                     await Promise.all([metadataQuery.refetch(), sitesQuery.refetch()])
                 }}
@@ -143,19 +139,19 @@ function SitePriority() {
     return (
         <Space direction={'vertical'} size={'large'} style={{display: 'flex'}}>
             <Card
-                title={'刮削优先级'}
+                title={t('site:priorityPage.title')}
                 extra={(
                     <Space>
-                        <Button icon={<ReloadOutlined/>} onClick={resetAll}>恢复全部默认</Button>
+                        <Button icon={<ReloadOutlined/>} onClick={resetAll}>{t('site:priorityPage.resetAll')}</Button>
                         <Button type={'primary'} icon={<SaveOutlined/>} onClick={handleSave} loading={saving}
                                 disabled={!hasChanges}>
-                            保存
+                            {t('site:priorityPage.save')}
                         </Button>
                     </Space>
                 )}
             >
                 <Typography.Text>
-                    主优先级
+                    {t('site:priorityPage.globalTitle')}
                 </Typography.Text>
                 <div style={{marginTop: 12}}>
                     <Space wrap>
@@ -174,11 +170,11 @@ function SitePriority() {
                 return (
                     <Card
                         key={fieldKey}
-                        title={FIELD_TITLES[fieldKey]}
+                        title={t(`site:priorityPage.fields.${fieldKey}`)}
                         extra={(
                             <Space>
-                                <Tag color={isDefault ? 'blue' : 'gold'}>{isDefault ? '使用默认' : '已自定义'}</Tag>
-                                <Button onClick={() => resetField(fieldKey)}>恢复默认</Button>
+                                <Tag color={isDefault ? 'blue' : 'gold'}>{isDefault ? t('site:priorityPage.useDefault') : t('site:priorityPage.customized')}</Tag>
+                                <Button onClick={() => resetField(fieldKey)}>{t('site:priorityPage.resetDefault')}</Button>
                             </Space>
                         )}
                     >

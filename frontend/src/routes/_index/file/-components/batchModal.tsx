@@ -6,6 +6,7 @@ import * as videoApi from "../../../../apis/video.ts";
 import {ColumnsType} from "antd/lib/table";
 import {CheckCircleOutlined, CloseCircleOutlined, SyncOutlined} from "@ant-design/icons";
 import {ManualTransModeOptions} from "../../../../utils/constants.ts";
+import {useTranslation} from "react-i18next";
 
 
 interface Props extends ModalProps {
@@ -13,17 +14,10 @@ interface Props extends ModalProps {
 }
 
 function BatchModal(props: Props) {
-
+    const {t} = useTranslation(['file', 'setting'])
     const {files, ...otherProps} = props
     const [data, setData] = useState<any[]>([])
     const [transMode, setTransMode] = useState<string>('system')
-
-    useEffect(() => {
-        if (props.open && files) {
-            setTransMode('system')
-            run(files)
-        }
-    }, [props.open, files]);
 
     const {run, loading} = useRequest(api.batchParseFiles, {
         manual: true,
@@ -31,6 +25,13 @@ function BatchModal(props: Props) {
             setData(res.data.data)
         }
     })
+
+    useEffect(() => {
+        if (props.open && files) {
+            setTransMode('system')
+            run(files)
+        }
+    }, [files, props.open, run]);
 
     function renderStatus(status: number) {
         if (status === 1) {
@@ -76,7 +77,7 @@ function BatchModal(props: Props) {
 
     const columns: ColumnsType = [
         {
-            title: "文件名",
+            title: t('file:batch.columns.filename'),
             dataIndex: "path",
             render: (path, record) => (
                 <div>
@@ -86,7 +87,7 @@ function BatchModal(props: Props) {
             )
         },
         {
-            title: "番号",
+            title: t('file:batch.columns.num'),
             dataIndex: "num",
             width: 150,
             render: (num, _, index) => (
@@ -97,7 +98,7 @@ function BatchModal(props: Props) {
             )
         },
         {
-            title: "中文",
+            title: t('file:batch.columns.zh'),
             dataIndex: "is_zh",
             width: 75,
             render: (zh, _, index) => (
@@ -108,7 +109,7 @@ function BatchModal(props: Props) {
             )
         },
         {
-            title: "无码",
+            title: t('file:batch.columns.uncensored'),
             dataIndex: "is_uncensored",
             width: 75,
             render: (uncensored, _, index) => (
@@ -121,13 +122,15 @@ function BatchModal(props: Props) {
     ]
 
     return (
-        <Modal title={'选中文件'} width={800} onOk={onSave} confirmLoading={onSaving} {...otherProps}>
+        <Modal title={t('file:batch.modalTitle')} width={800} onOk={onSave} confirmLoading={onSaving} {...otherProps}>
             <Form layout={'vertical'}>
-                <Form.Item label={'转移模式'} tooltip={'默认按系统设置处理，也可仅本次批量整理手动指定'}>
+                <Form.Item label={t('file:batch.transMode')} tooltip={t('file:batch.transModeTooltip')}>
                     <Select value={transMode} className={'w-52'} onChange={setTransMode}
-                            placeholder={'转移模式'}>
+                            placeholder={t('file:batch.transMode')}>
                         {ManualTransModeOptions.map(i => (
-                            <Select.Option key={i.value} value={i.value}>{i.name}</Select.Option>
+                            <Select.Option key={i.value} value={i.value}>
+                                {i.value === 'system' ? t('file:batch.transModeOptions.system') : t(`setting:transMode.${i.value}`)}
+                            </Select.Option>
                         ))}
                     </Select>
                 </Form.Item>

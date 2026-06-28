@@ -29,6 +29,7 @@ import {
     getVideoRatingValue,
     type VideoFilterValue,
 } from "./-components/filterPanel.utils.ts";
+import {useTranslation} from "react-i18next";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
@@ -45,7 +46,7 @@ function videosQueryOptions() {
 }
 
 function Video() {
-
+    const {t} = useTranslation(['video']);
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(videosQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
@@ -149,8 +150,8 @@ function Video() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'视频列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('video:errors.loadTitle')}
+                description={t('video:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -174,9 +175,9 @@ function Video() {
                                                         style={{scrollbarWidth: 'none'}}>
                                                        <Space size={[0, 'small']} wrap className={'flex-1'}>
                                                            {video.is_zh && (
-                                                               <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
+                                                               <Tag color={'blue'} variant={'filled'}>{t('video:filter.flag.zh')}</Tag>)}
                                                            {video.is_uncensored && (
-                                                               <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                                               <Tag color={'green'} variant={'filled'}>{t('video:filter.flag.uncensored')}</Tag>)}
                                                            {getVideoRatingValue(video) !== undefined && (
                                                                <Tag color={'gold'} variant={'filled'}>
                                                                    {formatRating(getVideoRatingValue(video)!)}
@@ -187,7 +188,7 @@ function Video() {
                                                            ))}
                                                        </Space>
                                                    </div>
-                                                   <Tooltip title={'搜索'}>
+                                                   <Tooltip title={t('video:actions.search')}>
                                                        <div className={'ml-1'} onClick={(event) => {
                                                            event.stopPropagation()
                                                            return navigate({
@@ -226,9 +227,9 @@ function Video() {
         content = (
             <Row gutter={[15, 15]}>
                 <Col span={24}>
-                    <Card title={'视频'}>
+                    <Card title={t('video:pageTitle')}>
                         <Empty
-                            description={hasFilter ? '没有符合当前条件的影片' : (<span>无视频，<Link to={'/setting'} hash={'video'}>配置视频</Link></span>)}/>
+                            description={hasFilter ? t('video:empty.filtered') : (<span>{t('video:empty.title')}<Link to={'/setting'} hash={'video'}>{t('video:empty.configure')}</Link></span>)}/>
                     </Card>
                 </Col>
             </Row>
@@ -247,7 +248,7 @@ function Video() {
 
             {content}
             <PageFloatButtons>{floatButtons}</PageFloatButtons>
-            <VideoDetail title={'编辑'}
+            <VideoDetail title={t('video:detailTitle')}
                          mode={'video'}
                          width={1100}
                          path={selected}

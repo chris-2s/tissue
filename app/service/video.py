@@ -11,6 +11,8 @@ from app import utils
 from app.db import get_db
 from app.db.models import History
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.integrations.notifications.manager import notification_manager
 from app.schema.notification import VideoSavedPayload
 from app.schema.setting import Setting
@@ -32,12 +34,6 @@ video_cache = LRUCache(maxsize=1)
 
 class VideoService(BaseService):
     subtitle_formats = {'.ass', '.srt'}
-    trans_mode_labels = {
-        'copy': '复制',
-        'move': '移动',
-        'hardlink': '硬连接',
-        'symlink': '软连接',
-    }
 
     @cached(cache=video_cache, key=lambda self: 'videos')
     def get_videos(self) -> List[VideoList]:
@@ -73,21 +69,21 @@ class VideoService(BaseService):
 
     def parse_video(self, path: str):
         if not os.path.exists(path):
-            raise BizException("视频不存在")
+            raise BizException("视频不存在", error_code=ErrorCode.VIDEO_NOT_FOUND)
         return num_parser.parse(path)
 
     def batch_parse_video(self, paths: List[str]):
         result = []
         for path in paths:
             if not os.path.exists(path):
-                raise BizException(f"视频${path}不存在")
+                raise BizException("视频不存在", error_code=ErrorCode.VIDEO_NOT_FOUND)
             result.append(num_parser.parse(path))
         return result
 
     def scrape_video(self, num: str):
         video = SpiderService(self.db).get_video_info(num)
         if not video:
-            raise BizException("未找到该番号")
+            raise BizException("未找到该番号", error_code=ErrorCode.VIDEO_NUMBER_NOT_FOUND)
         return video
 
     def save_video(self, video: VideoDetail,
@@ -130,11 +126,11 @@ class VideoService(BaseService):
 
     def trans(self, video: VideoDetail, video_path: str, trans_mode: str):
         if not os.path.exists(video.path):
-            raise BizException('视频不存在')
+            raise BizException('视频不存在', error_code=ErrorCode.VIDEO_NOT_FOUND)
 
         subtitle_paths = self.find_subtitle_paths(video.path, video.num)
         if subtitle_paths and not video.is_zh:
-            logger.info(f"影片《{video.num}》匹配到字幕文件，标记为中文字幕")
+            logger.info(translate('log.video.subtitle_detected_mark_zh', {'num': video.num}))
             video.is_zh = True
         _, ext_name = os.path.splitext(video.path)
 
@@ -166,50 +162,53 @@ class VideoService(BaseService):
             utils.remove_empty_directory(video.path)
 
         if video.cover:
-            logger.info(f"生成封面及水印图片")
+            logger.info(translate('log.video.generate_cover'))
             cover_result = ResourceService.fetch_image_file(video.cover, 'cover')
             if cover_result.file_path and os.path.exists(cover_result.file_path):
                 with open(cover_result.file_path, 'rb') as file:
                     cover_data = file.read()
                 save_images(video, video_path, cover_data)
 
-        logger.info(f"生成NFO文件")
+        logger.info(translate('log.video.generate_nfo'))
         new_nfo_path = nfo.get_nfo_path_by_video(video_path)
         nfo.save(new_nfo_path, video)
         shutil.copy(new_nfo_path, os.path.join(save_path, 'movie.nfo'))
 
-        logger.info(f"影片保存完成")
+        logger.info(translate('log.video.save_completed'))
         return video_path
 
     def transfer_file(self, source_path: str, dest_path: str, trans_mode: str, file_label: str):
-        trans_label = self.trans_mode_labels.get(trans_mode, trans_mode)
+        trans_label = translate(f'transfer.mode.{trans_mode}', default=trans_mode)
 
         try:
             if trans_mode == 'move':
-                logger.info(f"开始{trans_label}{file_label}...")
+                logger.info(translate('log.video.transfer_started', {'action': trans_label, 'label': file_label}))
                 shutil.move(source_path, dest_path)
             elif trans_mode == 'hardlink':
-                logger.info(f"开始创建{file_label}硬连接...")
+                logger.info(translate('log.video.hardlink_started', {'label': file_label}))
                 os.link(source_path, dest_path)
             elif trans_mode == 'symlink':
-                logger.info(f"开始创建{file_label}软连接...")
+                logger.info(translate('log.video.symlink_started', {'label': file_label}))
                 os.symlink(source_path, dest_path)
             else:
-                logger.info(f"开始{trans_label}{file_label}...")
+                logger.info(translate('log.video.transfer_started', {'action': trans_label, 'label': file_label}))
                 shutil.copy(source_path, dest_path)
         except OSError as exc:
             if trans_mode == 'hardlink' and exc.errno == errno.EXDEV:
-                raise BizException('硬连接仅支持同一磁盘内的目录，跨盘时请改用复制或移动') from exc
+                raise BizException(
+                    '硬连接仅支持同一磁盘内的目录，跨盘时请改用复制或移动',
+                    error_code=ErrorCode.VIDEO_TRANS_ACROSS_DISK_UNSUPPORTED,
+                ) from exc
             raise
 
         if trans_mode in {'hardlink', 'symlink'}:
-            logger.info(f"{file_label}{trans_label}创建完成: {dest_path}")
+            logger.info(translate('log.video.link_created', {'label': file_label, 'action': trans_label, 'path': dest_path}))
         else:
-            logger.info(f"{trans_label}{file_label}完成: {dest_path}")
+            logger.info(translate('log.video.transfer_finished', {'action': trans_label, 'label': file_label, 'path': dest_path}))
 
     def delete_video(self, path):
         if not os.path.exists(path):
-            raise BizException("视频不存在")
+            raise BizException("视频不存在", error_code=ErrorCode.VIDEO_NOT_FOUND)
         self.delete_video_meta(path)
         self.delete_subtitles(path)
         os.remove(path)
@@ -264,7 +263,10 @@ class VideoService(BaseService):
             if ext_matches:
                 ext_matches.sort(key=lambda p: (len(os.path.basename(p)), os.path.basename(p).lower()))
                 if len(ext_matches) > 1:
-                    logger.warning(f"影片《{video_num}》存在多个{ext_name}字幕候选，使用：{ext_matches[0]}")
+                    logger.warning(translate(
+                        'log.video.multiple_subtitle_candidates',
+                        {'num': video_num, 'ext': ext_name, 'path': ext_matches[0]},
+                    ))
                 matched_paths.append(ext_matches[0])
 
         return matched_paths
@@ -285,7 +287,7 @@ class VideoService(BaseService):
 
             if os.path.exists(dest_subtitle_path):
                 if os.stat(dest_subtitle_path).st_size != os.stat(subtitle_path).st_size:
-                    logger.warning(f"字幕文件已存在且大小不同，跳过：{dest_subtitle_path}")
+                    logger.warning(translate('log.video.subtitle_exists_size_diff', {'path': dest_subtitle_path}))
                     continue
                 if trans_mode == 'move':
                     os.remove(subtitle_path)

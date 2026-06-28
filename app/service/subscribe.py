@@ -10,6 +10,8 @@ from app.db import get_db, SessionFactory
 from app.db.models import Subscribe as SubscribeModel, Torrent
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.integrations.downloaders.manager import downloader_manager
 from app.integrations.notifications.manager import notification_manager
 from app.schema.notification import SubscribeStartedPayload
@@ -47,7 +49,7 @@ class SubscribeService(BaseService):
 
         if [exist for exist in exists if
             exist.num.upper() == param.num.upper() and exist.is_hd == param.is_hd and exist.is_zh == param.is_zh and exist.is_uncensored == param.is_uncensored]:
-            raise BizException('存在相同订阅，无需重复添加')
+            raise BizException('订阅已存在', error_code=ErrorCode.SUBSCRIBE_ALREADY_EXISTS)
 
         subscribe = SubscribeModel(**param.model_dump())
         subscribe.add(self.db)
@@ -56,7 +58,7 @@ class SubscribeService(BaseService):
     def update_subscribe(self, param: SubscribeUpdate):
         exist = SubscribeModel.get(self.db, param.id)
         if not exist:
-            raise BizException("该订阅不存在")
+            raise BizException("订阅不存在", error_code=ErrorCode.SUBSCRIBE_NOT_FOUND)
 
         exist.update(self.db, param.model_dump())
 
@@ -75,7 +77,7 @@ class SubscribeService(BaseService):
     def search_video(self, num: str):
         video = SpiderService(self.db).get_video(num)
         if not video:
-            raise BizException("未找到影片")
+            raise BizException("未找到影片", error_code=ErrorCode.SUBSCRIBE_VIDEO_NOT_FOUND)
         return video
 
     @transaction
@@ -84,7 +86,7 @@ class SubscribeService(BaseService):
 
     def do_subscribe(self):
         subscribes = self.get_subscribes()
-        logger.info(f"获取到{len(subscribes)}个订阅")
+        logger.info(translate('log.subscribe.found_total', {'count': len(subscribes)}))
         pause_seconds = max(self.setting.crawler.subscribe_pause_seconds, 1)
         for index, subscribe in enumerate(subscribes):
             if index > 0:
@@ -93,50 +95,50 @@ class SubscribeService(BaseService):
                     jitter_ratio=0.1,
                     minimum=1,
                 )
-                logger.debug(f"订阅任务暂停 {actual_pause_seconds} 秒后继续")
+                logger.debug(translate('log.subscribe.paused_before_continue', {'seconds': actual_pause_seconds}))
                 time.sleep(actual_pause_seconds)
 
             result = SpiderService(self.db).get_video(subscribe.num, include_comments=False)
             if not result:
-                logger.warning(f"订阅《{subscribe.num}》未从任何站点获取到影片")
+                logger.warning(translate('log.subscribe.no_video_found_any_site', {'num': subscribe.num}))
                 continue
 
             def get_matched(item):
                 if subscribe.is_hd and not item.is_hd:
-                    logger.debug(f"{item.name} 不匹配高清，已跳过")
+                    logger.debug(translate('log.subscribe.filter_hd_skip', {'name': item.name}))
                     return False
                 if subscribe.is_zh and not item.is_zh:
-                    logger.debug(f"{item.name} 不匹配中文，已跳过")
+                    logger.debug(translate('log.subscribe.filter_zh_skip', {'name': item.name}))
                     return False
                 if subscribe.is_uncensored and not item.is_uncensored:
-                    logger.debug(f"{item.name} 不匹配无码，已跳过")
+                    logger.debug(translate('log.subscribe.filter_uncensored_skip', {'name': item.name}))
                     return False
 
                 if subscribe.include_keyword and not re.search(subscribe.include_keyword, item.name, re.IGNORECASE):
-                    logger.debug(f"{item.name} 不匹配包含关键字，已跳过")
+                    logger.debug(translate('log.subscribe.filter_include_keyword_skip', {'name': item.name}))
                     return False
 
                 if subscribe.exclude_keyword and re.search(subscribe.exclude_keyword, item.name, re.IGNORECASE):
-                    logger.debug(f"{item.name} 匹配排除关键字，已跳过")
+                    logger.debug(translate('log.subscribe.filter_exclude_keyword_skip', {'name': item.name}))
                     return False
 
                 return True
 
             result = list(filter(get_matched, result.downloads))
             if not result:
-                logger.info(f"订阅《{subscribe.num}》未匹配到符合条件的影片")
+                logger.info(translate('log.subscribe.no_match_found', {'num': subscribe.num}))
                 continue
 
-            logger.info(f"匹配到符合条件的影片{len(result)}部，将选择最新发布的影片")
+            logger.info(translate('log.subscribe.matched_candidates_select_latest', {'count': len(result)}))
             matched = result[0]
             if matched:
                 try:
                     self.download_video(SubscribeCreate.model_validate(subscribe), matched)
-                    logger.info(f"订阅《{subscribe.num}》已完成")
+                    logger.info(translate('log.subscribe.completed', {'num': subscribe.num}))
                     subscribe.update(self.db, {'status': 2})
                     self.db.commit()
                 except Exception:
-                    logger.error(f"订阅《{subscribe.num}》下载任务创建失败")
+                    logger.error(translate('log.subscribe.create_download_failed', {'num': subscribe.num}))
                     traceback.print_exc()
                     continue
 
@@ -144,8 +146,8 @@ class SubscribeService(BaseService):
         category = self.setting.download.category if self.setting.download.category else None
         response = downloader_manager.get_active().add_magnet(link.magnet, Setting().download.download_path, category)
         if not response.success:
-            raise BizException('下载创建失败')
-        logger.info(f"下载创建成功")
+            raise BizException('下载创建失败', error_code=ErrorCode.SUBSCRIBE_DOWNLOAD_CREATE_FAILED)
+        logger.info(translate('log.subscribe.download_created'))
         if response.torrent_hash:
             torrent = Torrent()
             torrent.hash = response.torrent_hash

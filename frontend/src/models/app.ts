@@ -3,6 +3,14 @@ import type {ReactNode} from "react";
 import {RootModel} from "./index";
 import {themes} from "../utils/constants";
 
+interface State {
+    themeMode: string
+    goodBoy: boolean
+    canBack: boolean
+    pin: string | null
+    floatButtons: ReactNode | null
+}
+
 export const app = createModel<RootModel>()({
     state: {
         themeMode: localStorage.getItem('themeMode') || themes[0].name,
@@ -10,7 +18,7 @@ export const app = createModel<RootModel>()({
         canBack: false,
         pin: localStorage.getItem('pin'),
         floatButtons: null as ReactNode,
-    },
+    } as State,
     reducers: {
         setThemeMode(state, payload: string) {
             localStorage.setItem('themeMode', payload)

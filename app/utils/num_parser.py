@@ -1,5 +1,6 @@
 import os.path
 
+from app.i18n import translate
 from app.schema import VideoDetail
 from app.utils.logger import logger
 from app.utils.media_matcher import parse_path
@@ -8,7 +9,7 @@ from app.utils.media_matcher import parse_path
 def parse(path: str):
     file_name = os.path.splitext(os.path.split(path)[-1])[0]
 
-    logger.debug(f"提取文件名番号信息：{file_name}")
+    logger.debug(translate('log.num_parser.parse_started', {'file_name': file_name}))
 
     video = VideoDetail(path=path)
 
@@ -18,10 +19,13 @@ def parse(path: str):
     video.is_uncensored = result.is_uncensored.value
 
     if video.num:
-        logger.debug(f"提取到番号：{video.num}, 中文：{video.is_zh}，无码：{video.is_uncensored}")
+        logger.debug(translate(
+            'log.num_parser.parse_succeeded',
+            {'num': video.num, 'is_zh': video.is_zh, 'is_uncensored': video.is_uncensored},
+        ))
         return video
     else:
-        logger.warning(f"提取番号失败：{file_name}")
+        logger.warning(translate('log.num_parser.parse_failed', {'file_name': file_name}))
         return None
 
 

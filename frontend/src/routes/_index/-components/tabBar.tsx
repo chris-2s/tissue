@@ -2,6 +2,7 @@ import {CarryOutOutlined, HomeOutlined, MenuOutlined, SearchOutlined, VideoCamer
 import React from "react";
 import {theme} from "antd";
 import {Link, useLocation} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import Styles from "./tabBar.module.css";
 
 const {useToken} = theme
@@ -10,32 +11,33 @@ function TabBar() {
 
     const {token} = useToken()
     const location = useLocation()
+    const {t} = useTranslation('routes')
 
     const menus = [
         {
             link: '/home',
             icon: <HomeOutlined/>,
-            label: '首页',
+            label: t('routes:home'),
         },
         {
             link: '/video',
             icon: <VideoCameraOutlined/>,
-            label: '影片',
+            label: t('routes:video'),
         },
         {
             link: '/subscribe',
             icon: <CarryOutOutlined/>,
-            label: '订阅',
+            label: t('routes:subscribe'),
         },
         {
             link: '/search',
             icon: <SearchOutlined/>,
-            label: '搜索',
+            label: t('routes:search'),
         },
         {
             link: '/menu',
             icon: <MenuOutlined/>,
-            label: '菜单',
+            label: t('routes:menu'),
         }
     ]
 

@@ -7,6 +7,12 @@ import {
 } from "./filterPanel.utils.ts";
 
 describe("subscribe filter panel utils", () => {
+    const texts = {
+        numLabel: "番号",
+        actorLabel: "演员",
+        titleLabel: "标题",
+    } as const;
+
     const subscribes = [
         {
             id: 1,
@@ -27,11 +33,11 @@ describe("subscribe filter panel utils", () => {
 
         expect(value).toBe("actor:三上悠亚");
         expect(decodeToken(value)).toEqual({kind: "actor", value: "三上悠亚"});
-        expect(getTokenLabel({kind: "num", value: "IPX-001"})).toBe("番号: IPX-001");
+        expect(getTokenLabel({kind: "num", value: "IPX-001"}, texts)).toBe("番号: IPX-001");
     });
 
     it("builds grouped autocomplete options", () => {
-        const groups = buildAutocompleteGroups(subscribes, "三");
+        const groups = buildAutocompleteGroups(subscribes, "三", texts);
 
         expect(groups).toHaveLength(1);
         expect(groups[0]).toMatchObject({

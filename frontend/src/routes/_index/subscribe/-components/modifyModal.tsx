@@ -5,6 +5,7 @@ import React, {useMemo} from "react";
 import {FormModalProps} from "../../../../utils/useFormModal.ts";
 import RemoteImageEditor from "../../../../components/RemoteImage/editor.tsx";
 import {useRouter} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 
 const {Text} = Typography;
 
@@ -13,7 +14,7 @@ interface Props extends FormModalProps {
 }
 
 function ModifyModal(props: Props) {
-
+    const {t} = useTranslation(['subscribe', 'common']);
     const {form, onDelete, ...otherProps} = props
     const router = useRouter()
     const id = Form.useWatch('id', form)
@@ -40,13 +41,13 @@ function ModifyModal(props: Props) {
 
     function handleSearch() {
         const num = form?.getFieldValue('num').toUpperCase()
-        if (!num) return message.error("请输入番号")
+        if (!num) return message.error(t('subscribe:modal.numRequired'))
         onSearch(num)
     }
 
     function handleDelete() {
         Modal.confirm({
-            title: '是否确认删除',
+            title: t('subscribe:modal.deleteConfirm'),
             onOk: () => {
                 onDelete?.(id)
             }
@@ -59,16 +60,16 @@ function ModifyModal(props: Props) {
                 <Text>{value}</Text>
             </div>
         ) : (
-            <Text type={'secondary'}>暂无</Text>
+            <Text type={'secondary'}>{t('subscribe:modal.emptyValue')}</Text>
         )
     }
 
     return (
-        <Modal {...otherProps} title={id ? '编辑订阅' : '新增订阅'} footer={[
-            id && <Button key={'delete'} danger onClick={handleDelete}>删除</Button>,
-            <Button key={'scrape'} onClick={props.onCancel}>取消</Button>,
+        <Modal {...otherProps} title={id ? t('subscribe:modal.editTitle') : t('subscribe:modal.createTitle')} footer={[
+            id && <Button key={'delete'} danger onClick={handleDelete}>{t('common:actions.delete')}</Button>,
+            <Button key={'scrape'} onClick={props.onCancel}>{t('common:actions.cancel')}</Button>,
             <Button key={'save'} type={"primary"} loading={props.confirmLoading}
-                    onClick={() => props.onOk?.()}>确定</Button>,
+                    onClick={() => props.onOk?.()}>{t('video:detail.actions.confirm')}</Button>,
         ]}>
             <Form form={form} layout={'vertical'}>
                 <Form.Item noStyle name={'id'}>
@@ -83,26 +84,26 @@ function ModifyModal(props: Props) {
                     <Col span={24} md={13} lg={13}>
                         <Row gutter={[15, 0]}>
                             <Col span={12}>
-                                <Form.Item label={'番号'} name={'num'}>
-                                    <Input.Search disabled={false} placeholder={'请输入番号'} enterButton
+                                <Form.Item label={t('subscribe:modal.fields.num')} name={'num'}>
+                                    <Input.Search disabled={false} placeholder={t('subscribe:modal.numRequired')} enterButton
                                                   onSearch={handleSearch} loading={onSearching}/>
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item label={'发布日期'} name={'premiered'}>
+                                <Form.Item label={t('subscribe:modal.fields.premiered')} name={'premiered'}>
                                     {renderReadonlyValue(premiered)}
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
-                                <Form.Item label={'标题'} name={'title'}>
+                                <Form.Item label={t('subscribe:modal.fields.title')} name={'title'}>
                                     <div
                                         className={'min-h-8 rounded-lg bg-[var(--ant-color-fill-quaternary)] px-3 py-2'}>
-                                        {title ? <Text>{title}</Text> : <Text type={'secondary'}>暂无</Text>}
+                                        {title ? <Text>{title}</Text> : <Text type={'secondary'}>{t('subscribe:modal.emptyValue')}</Text>}
                                     </div>
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
-                                <Form.Item label={'演员'} name={'actors'}>
+                                <Form.Item label={t('subscribe:modal.fields.actors')} name={'actors'}>
                                     {actorItems.length ? (
                                         <Space size={[8, 8]} wrap>
                                             {actorItems.map((actor) => (
@@ -123,32 +124,32 @@ function ModifyModal(props: Props) {
                                             ))}
                                         </Space>
                                     ) : (
-                                        <Text type={'secondary'}>暂无</Text>
+                                        <Text type={'secondary'}>{t('subscribe:modal.emptyValue')}</Text>
                                     )}
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item label={'包含关键字'} name={'include_keyword'} tooltip={'支持正则表达式'}>
+                                <Form.Item label={t('subscribe:modal.fields.includeKeyword')} name={'include_keyword'} tooltip={t('subscribe:modal.regexTooltip')}>
                                     <Input disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item label={'排除关键字'} name={'exclude_keyword'} tooltip={'支持正则表达式'}>
+                                <Form.Item label={t('subscribe:modal.fields.excludeKeyword')} name={'exclude_keyword'} tooltip={t('subscribe:modal.regexTooltip')}>
                                     <Input disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
-                                <Form.Item label={'高清'} name={'is_hd'} valuePropName={'checked'} initialValue={true}>
+                                <Form.Item label={t('subscribe:modal.fields.hd')} name={'is_hd'} valuePropName={'checked'} initialValue={true}>
                                     <Checkbox disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
-                                <Form.Item label={'中文'} name={'is_zh'} valuePropName={'checked'} initialValue={false}>
+                                <Form.Item label={t('subscribe:modal.fields.zh')} name={'is_zh'} valuePropName={'checked'} initialValue={false}>
                                     <Checkbox disabled={false}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
-                                <Form.Item label={'无码'} name={'is_uncensored'} valuePropName={'checked'}
+                                <Form.Item label={t('subscribe:modal.fields.uncensored')} name={'is_uncensored'} valuePropName={'checked'}
                                            initialValue={false}>
                                     <Checkbox disabled={false}/>
                                 </Form.Item>

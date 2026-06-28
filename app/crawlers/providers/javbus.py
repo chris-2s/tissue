@@ -7,6 +7,7 @@ from lxml import etree
 from urllib.parse import urljoin
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoSiteActor
 from app.schema.actor import Actor, ActorPage
 from app.schema.home import SiteVideo
@@ -222,7 +223,7 @@ class JavBusSpider(Spider):
 
         total = self._parse_movie_total(html)
         if total is None:
-            raise BizException("未找到该演员")
+            raise BizException("未找到该演员", error_code=ErrorCode.ACTOR_NOT_FOUND)
 
         actor = Actor(code=code, source=self.source_ref())
 

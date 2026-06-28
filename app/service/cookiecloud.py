@@ -1,5 +1,6 @@
 from PyCookieCloud import PyCookieCloud
 
+from app.i18n import translate
 from app.db import get_db
 from app.db.models import Site
 from app.schema import Setting
@@ -18,18 +19,18 @@ class CookieCloudService:
     def sync(self):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.debug("CookieCloud 未启用，跳过同步")
+            logger.debug(translate('log.cookiecloud.sync_disabled'))
             return
 
         if not setting.host or not setting.uuid or not setting.password:
-            logger.warning("CookieCloud 配置不完整")
+            logger.warning(translate('log.cookiecloud.config_incomplete'))
             return
 
         try:
             cookie_cloud = PyCookieCloud(setting.host, setting.uuid, setting.password)
             decrypted_data = cookie_cloud.get_decrypted_data()
             if not decrypted_data:
-                logger.warning("CookieCloud 返回数据为空")
+                logger.warning(translate('log.cookiecloud.empty_data'))
                 return
 
             db = next(get_db())
@@ -57,28 +58,28 @@ class CookieCloudService:
                         site.cookies = cookie_str
                         db.commit()
                         matched_count += 1
-                        logger.info(f"站点 {site.spider_key} 同步 cookie 成功")
+                        logger.info(translate('log.cookiecloud.site_sync_success', {'site_key': site.spider_key}))
                         continue
 
                     for domain, _ in matched_entries:
                         self.delete_remote_cookie(domain)
-                    logger.warning(f"站点 {site.spider_key} 匹配到的 CookieCloud cookie 无效，已删除远端")
+                    logger.warning(translate('log.cookiecloud.invalid_cookie_deleted_remote', {'site_key': site.spider_key}))
                 finally:
                     spider.close()
 
-            logger.info(f"CookieCloud 同步完成，共匹配 {matched_count} 个站点")
+            logger.info(translate('log.cookiecloud.sync_completed', {'count': matched_count}))
 
         except Exception as e:
-            logger.error(f"CookieCloud 同步失败: {e}")
+            logger.error(translate('log.cookiecloud.sync_failed', {'error': str(e)}))
 
     def push_cookie(self, cookies: list, domain: str):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.debug("CookieCloud 未启用，跳过推送")
+            logger.debug(translate('log.cookiecloud.push_disabled'))
             return
 
         if not setting.host or not setting.uuid or not setting.password:
-            logger.warning("CookieCloud 配置不完整")
+            logger.warning(translate('log.cookiecloud.config_incomplete'))
             return
 
         try:
@@ -91,43 +92,43 @@ class CookieCloudService:
             decrypted_data[domain] = normalized_items
 
             if not cookie_cloud.update_cookie(decrypted_data):
-                logger.warning("CookieCloud 推送失败")
+                logger.warning(translate('log.cookiecloud.push_failed'))
                 return
 
-            logger.info(f"站点 {domain} cookie 推送成功")
+            logger.info(translate('log.cookiecloud.push_success', {'domain': domain}))
 
         except Exception as e:
-            logger.error(f"CookieCloud 推送失败: {e}")
+            logger.error(translate('log.cookiecloud.push_failed_with_error', {'error': str(e)}))
 
     def delete_remote_cookie(self, domain: str):
         setting = Setting().cookiecloud
         if not setting.enabled:
-            logger.debug("CookieCloud 未启用，跳过删除")
+            logger.debug(translate('log.cookiecloud.delete_disabled'))
             return
 
         if not setting.host or not setting.uuid or not setting.password:
-            logger.warning("CookieCloud 配置不完整")
+            logger.warning(translate('log.cookiecloud.config_incomplete'))
             return
 
         try:
             cookie_cloud = PyCookieCloud(setting.host, setting.uuid, setting.password)
             decrypted_data = cookie_cloud.get_decrypted_data()
             if not decrypted_data:
-                logger.warning("CookieCloud 返回数据为空")
+                logger.warning(translate('log.cookiecloud.empty_data'))
                 return
 
             if domain not in decrypted_data:
-                logger.debug(f"CookieCloud 上未找到域名 {domain} 的 cookie")
+                logger.debug(translate('log.cookiecloud.domain_not_found', {'domain': domain}))
                 return
 
             del decrypted_data[domain]
             if cookie_cloud.update_cookie(decrypted_data):
-                logger.info(f"站点 {domain} cookie 已从 CookieCloud 删除")
+                logger.info(translate('log.cookiecloud.remote_deleted', {'domain': domain}))
             else:
-                logger.warning("CookieCloud 删除失败")
+                logger.warning(translate('log.cookiecloud.delete_failed'))
 
         except Exception as e:
-            logger.error(f"CookieCloud 删除失败: {e}")
+            logger.error(translate('log.cookiecloud.delete_failed_with_error', {'error': str(e)}))
 
     def _find_matching_cookie_entries(self, origin_host: str, cookie_dict: dict) -> list[tuple[str, list[dict]]]:
         host_domain = normalize_host(origin_host)

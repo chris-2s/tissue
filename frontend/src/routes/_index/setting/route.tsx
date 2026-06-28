@@ -2,6 +2,7 @@ import {AppstoreOutlined, CloudDownloadOutlined, CloudOutlined, FolderOpenOutlin
 import {Card, Tabs} from "antd";
 import React from "react";
 import {createFileRoute, Outlet, useLocation, useNavigate} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 
 export const Route = createFileRoute('/_index/setting')({
     component: Setting
@@ -9,38 +10,39 @@ export const Route = createFileRoute('/_index/setting')({
 
 function Setting() {
 
+    const {t} = useTranslation(['setting'])
     const navigate = useNavigate()
     const selected = useLocation().pathname
 
     const items = [
         {
             key: '/setting/library',
-            label: '媒体库',
+            label: t('setting:tabs.library'),
             icon: <AppstoreOutlined/>,
         },
         {
             key: '/setting/crawler',
-            label: '爬虫',
+            label: t('setting:tabs.crawler'),
             icon: <GlobalOutlined/>,
         },
         {
             key: '/setting/file',
-            label: '文件',
+            label: t('setting:tabs.file'),
             icon: <FolderOpenOutlined/>,
         },
         {
             key: '/setting/download',
-            label: '下载',
+            label: t('setting:tabs.download'),
             icon: <CloudDownloadOutlined/>,
         },
         {
             key: '/setting/notify',
-            label: '通知',
+            label: t('setting:tabs.notify'),
             icon: <NotificationOutlined/>,
         },
         {
             key: '/setting/cookiecloud',
-            label: 'CookieCloud',
+            label: t('setting:tabs.cookiecloud'),
             icon: <CloudOutlined/>,
         },
     ]

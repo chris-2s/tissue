@@ -1,4 +1,5 @@
 import {Col, Row, theme} from "antd";
+import {useTranslation} from "react-i18next";
 import Styles from "./pad.module.css";
 
 const {useToken} = theme
@@ -35,6 +36,7 @@ interface Props {
 }
 
 function PinPad(props: Props) {
+    const {t} = useTranslation(['common']);
 
     const {numbers, onEnter, onDelete} = props
 
@@ -49,7 +51,7 @@ function PinPad(props: Props) {
             ))}
             {numbers.length > 0 && (
                 <Col span={8}>
-                    <PinPadButton onClick={onDelete} variant={'action'}>删除</PinPadButton>
+                    <PinPadButton onClick={onDelete} variant={'action'}>{t('common:actions.delete')}</PinPadButton>
                 </Col>
             )}
         </Row>

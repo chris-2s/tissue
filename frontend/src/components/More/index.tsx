@@ -1,6 +1,7 @@
 import React from "react";
 import {DeleteOutlined, EditOutlined, MoreOutlined} from "@ant-design/icons";
 import {Dropdown, theme} from "antd";
+import {useTranslation} from "react-i18next";
 import IconButton from "../IconButton";
 
 const {useToken} = theme
@@ -13,17 +14,18 @@ interface Props {
 
 function More(props: Props) {
 
+    const {t} = useTranslation(['common'])
     const {token} = useToken()
 
     const items = props.items || [
         {
             key: 'edit',
-            label: '编辑',
+            label: t('common:actions.edit'),
             icon: <EditOutlined/>
         },
         {
             key: 'delete',
-            label: '删除',
+            label: t('common:actions.delete'),
             icon: <DeleteOutlined/>
         },
     ] as any

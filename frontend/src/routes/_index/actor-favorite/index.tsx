@@ -12,6 +12,7 @@ import {IMAGE_TYPES} from "../../../constants/image";
 import FilterPanel from "./-components/filterPanel.tsx";
 import type {ActorFavoriteFilterValue} from "./-components/filterPanel.utils.ts";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
+import {useTranslation} from "react-i18next";
 
 const {Paragraph, Text} = Typography;
 
@@ -30,6 +31,7 @@ function favoritesQueryOptions() {
 }
 
 function ActorFavoritePage() {
+    const {t} = useTranslation(['actor', 'common']);
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const {data = [], isPending, isError, refetch} = useQuery(favoritesQueryOptions());
@@ -41,7 +43,7 @@ function ActorFavoritePage() {
     const {run: onDelete, loading: deleting} = useRequest(actorApi.deleteActorFavorite, {
         manual: true,
         onSuccess: async () => {
-            message.success('删除成功');
+            message.success(t('actor:favorite.deleteSuccess'));
             await queryClient.invalidateQueries({queryKey: ['actorFavorites']});
         }
     });
@@ -84,8 +86,8 @@ function ActorFavoritePage() {
     if (isError) {
         return (
             <RouteErrorState
-                title={'演员收藏加载失败'}
-                description={'请检查网络后重试'}
+                title={t('actor:favorite.loadErrorTitle')}
+                description={t('actor:favorite.loadErrorDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -94,7 +96,7 @@ function ActorFavoritePage() {
     }
 
     if (data.length === 0) {
-        return <Empty description={'无演员收藏'}/>;
+        return <Empty description={t('actor:favorite.empty')}/>;
     }
 
     return (
@@ -118,13 +120,13 @@ function ActorFavoritePage() {
                                         size={'small'}
                                         actions={[
                                             <Button key={'open'}
-                                                    type={'link'}
-                                                    icon={<RightOutlined/>}
-                                                    onClick={() => navigate({
+                                                type={'link'}
+                                                icon={<RightOutlined/>}
+                                                onClick={() => navigate({
                                                         to: '/actor',
                                                         search: {site_id: favorite.site_id, code: favorite.actor_code} as never
                                                     })}>
-                                                查看作品
+                                                {t('actor:favorite.openWorks')}
                                             </Button>,
                                             <Button key={'delete'}
                                                     type={'link'}
@@ -132,7 +134,7 @@ function ActorFavoritePage() {
                                                     loading={deleting}
                                                     icon={<DeleteOutlined/>}
                                                     onClick={() => onDelete(favorite.id)}>
-                                                删除
+                                                {t('common:actions.delete')}
                                             </Button>
                                         ]}
                                     >
@@ -153,11 +155,11 @@ function ActorFavoritePage() {
                                                 </Space>
                                                 {aliasText ? (
                                                     <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
-                                                        别名：{aliasText}
+                                                        {t('actor:detail.aliasPrefix')}{aliasText}
                                                     </Paragraph>
                                                 ) : (
                                                     <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
-                                                        暂无别名信息
+                                                        {t('actor:detail.aliasEmpty')}
                                                     </Paragraph>
                                                 )}
                                             </div>
@@ -183,7 +185,7 @@ function ActorFavoritePage() {
                     </div>
                 </>
             ) : (
-                <Empty description={'暂无匹配的演员收藏'}/>
+                <Empty description={t('actor:favorite.emptyFiltered')}/>
             )}
         </div>
     );

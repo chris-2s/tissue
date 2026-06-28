@@ -5,6 +5,7 @@ from app import schema
 from app.db import User, get_db
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.service.base import BaseService
 from app.utils.security import get_password_hash
 
@@ -25,7 +26,7 @@ class UserService(BaseService):
     def create_user(self, params: schema.UserCreate):
         exist = User.get_by_username(self.db, params.username)
         if exist:
-            raise BizException("该用户名已存在")
+            raise BizException("用户名已存在", error_code=ErrorCode.USER_USERNAME_EXISTS)
         user = User(**params.model_dump())
         user.password = get_password_hash(params.password)
         user.add(self.db)
@@ -34,7 +35,7 @@ class UserService(BaseService):
     def update_user(self, params: schema.UserUpdate):
         exist = User.get_by_username(self.db, params.username)
         if exist and exist.id != params.id:
-            raise BizException("该用户名已存在")
+            raise BizException("用户名已存在", error_code=ErrorCode.USER_USERNAME_EXISTS)
         user = User.get(self.db, params.id)
         if params.password:
             params.password = get_password_hash(params.password)

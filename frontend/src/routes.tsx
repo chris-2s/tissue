@@ -15,6 +15,7 @@ import {
     WomanOutlined,
 } from "@ant-design/icons";
 import {createRouter} from "@tanstack/react-router";
+import type {ReactNode} from "react";
 import {queryClient} from "./queryClient.ts";
 import {routeTree} from "./routeTree.gen.ts";
 
@@ -22,7 +23,7 @@ export const router = createRouter({
     routeTree,
     context: {
         userToken: undefined,
-        queryClient
+        queryClient,
     },
     scrollRestoration: true
 })
@@ -33,98 +34,108 @@ declare module '@tanstack/react-router' {
     }
 }
 
+export interface NavigationRouteItem {
+    titleKey: string
+    path?: string
+    icon?: ReactNode
+    type?: 'group'
+    hidden?: boolean
+    group?: string
+    children?: NavigationRouteItem[]
+}
+
 export default [
     {
-        title: '首页',
+        titleKey: 'home',
         path: '/home',
         icon: (<HomeOutlined/>),
     },
     {
-        title: '菜单',
+        titleKey: 'menu',
         path: '/menu',
         icon: (<MenuOutlined/>),
         hidden: true,
     },
     {
-        title: '整理',
+        titleKey: 'organize',
         type: 'group',
         children: [
             {
-                title: '影片',
+                titleKey: 'video',
                 path: '/video',
                 icon: (<VideoCameraOutlined/>),
             },
             {
-                title: '文件',
+                titleKey: 'file',
                 path: '/file',
                 icon: (<FolderOpenOutlined/>),
             },
             {
-                title: '下载',
+                titleKey: 'download',
                 path: '/download',
                 icon: (<CloudDownloadOutlined/>),
             },
             {
-                title: '历史',
+                titleKey: 'history',
                 path: '/history',
                 icon: (<HistoryOutlined/>),
             },
         ]
     },
     {
-        title: '订阅',
+        titleKey: 'subscribe',
         type: 'group',
         children: [
             {
-                title: '订阅',
+                titleKey: 'subscribe',
                 path: '/subscribe',
                 icon: (<CarryOutOutlined/>),
             },
             {
-                title: '演员',
+                titleKey: 'actorFavorite',
                 path: '/actor-favorite',
                 icon: (<WomanOutlined />),
             },
             {
-                title: '搜索',
+                titleKey: 'search',
                 path: '/search',
                 icon: (<SearchOutlined/>),
             },
             {
-                title: '站点',
+                titleKey: 'site',
                 path: '/site',
                 icon: (<GlobalOutlined />),
             },
         ]
     },
     {
-        title: '设置',
+        titleKey: 'setting',
         type: 'group',
         children: [
             {
-                title: '用户',
+                titleKey: 'user',
                 path: '/user',
                 icon: (<UserOutlined/>),
-                group: '系统'
+                group: 'system'
             },
             {
-                title: '设置',
+                titleKey: 'setting',
                 path: '/setting',
                 icon: (<SettingOutlined/>),
-                group: '系统'
+                group: 'system'
             },
             {
-                title: '任务',
+                titleKey: 'schedule',
                 path: '/schedule',
                 icon: (<ScheduleOutlined/>),
-                group: '系统'
+                group: 'system'
             },
             {
-                title: '关于',
+                titleKey: 'about',
                 path: '/about',
                 icon: (<InfoCircleOutlined/>),
-                group: '系统'
+                group: 'system'
             },
         ]
     }
-]
+] as NavigationRouteItem[]

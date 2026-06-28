@@ -2,6 +2,7 @@ import {Button, Form, Input, message, Select, Skeleton} from "antd";
 import * as api from "../../../apis/setting.ts";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import {TransModeOptions} from "../../../utils/constants.ts";
 
 
@@ -12,6 +13,7 @@ export const Route = createFileRoute('/_index/setting/file')({
 function SettingFile() {
 
     const [form] = Form.useForm()
+    const {t} = useTranslation(['common', 'setting'])
 
     const {loading} = useRequest(api.getSettings, {
         onSuccess: (res) => {
@@ -22,7 +24,7 @@ function SettingFile() {
     const {run, loading: saving} = useRequest(api.saveSetting, {
         manual: true,
         onSuccess: () => {
-            message.success("设置成功")
+            message.success(t('common:feedback.settingsSaved'))
         }
     })
 
@@ -36,17 +38,17 @@ function SettingFile() {
         ) : (
             <div className={'w-[600px] max-w-full my-0 mx-auto'}>
                 <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item label={'文件路径'} name={'path'}>
+                    <Form.Item label={t('setting:file.path')} name={'path'}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'转移模式'} name={'trans_mode'} tooltip={'硬连接仅支持同一磁盘内的目录，软连接可跨盘但依赖原文件存在'}>
+                    <Form.Item label={t('setting:file.transMode')} name={'trans_mode'} tooltip={t('setting:file.transModeTooltip')}>
                         <Select>
-                            {TransModeOptions.map(i => (<Select.Option key={i.value}>{i.name}</Select.Option>))}
+                            {TransModeOptions.map(i => (<Select.Option key={i.value}>{t(`setting:transMode.${i.value}`)}</Select.Option>))}
                         </Select>
                     </Form.Item>
                     <div style={{textAlign: 'center'}}>
                         <Button type={'primary'} style={{width: 150}} loading={saving}
-                                htmlType={"submit"}>提交</Button>
+                                htmlType={"submit"}>{t('common:actions.submit')}</Button>
                     </div>
                 </Form>
             </div>

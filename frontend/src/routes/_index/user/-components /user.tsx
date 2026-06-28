@@ -8,13 +8,15 @@ import {useAntdTable} from "ahooks";
 import More from "../../../../components/More";
 import IconButton from "../../../../components/IconButton";
 import {useFormModal} from "../../../../utils/useFormModal.ts";
+import {useTranslation} from "react-i18next";
 
 function UserList() {
+    const {t} = useTranslation(['user', 'common'])
     const {tableProps, refresh} = useAntdTable(api.getUsers)
     const {setOpen, modalProps} = useFormModal({
         service: api.modifyUser,
         onOk: () => {
-            message.success("保存成功")
+            message.success(t('user:feedback.saved'))
             setOpen(false)
             refresh()
         }
@@ -22,17 +24,17 @@ function UserList() {
 
     const columns: ColumnsType<any> = [
         {
-            title: '名称',
+            title: t('user:fields.name'),
             dataIndex: 'name',
         },
         {
-            title: '用户名',
+            title: t('user:fields.username'),
             dataIndex: 'username',
         },
         {
-            title: '管理员',
+            title: t('user:fields.admin'),
             dataIndex: 'is_admin',
-            render: (is_admin) => is_admin ? '是' : '否'
+            render: (is_admin) => is_admin ? t('user:status.yes') : t('user:status.no')
         },
         {
             title: '',
@@ -53,7 +55,7 @@ function UserList() {
     }
 
     return (
-        <Card title={'用户管理'} extra={(
+        <Card title={t('user:list.title')} extra={(
             <IconButton onClick={() => setOpen(true)}>
                 <PlusOutlined/>
             </IconButton>

@@ -6,6 +6,7 @@ import {
 } from "@ant-design/icons";
 import React, {useEffect, useState} from "react";
 import {cacheSearchHistory, clearSearchHistories, getSearchHistories} from "./history.ts";
+import {useTranslation} from "react-i18next";
 
 const {Text} = Typography;
 
@@ -16,6 +17,7 @@ interface SearchPanelProps {
 }
 
 function SearchPanel(props: SearchPanelProps) {
+    const {t} = useTranslation(['search']);
     const {submittedKeyword, onSubmitActor, onSubmitVideo} = props;
     const {token} = theme.useToken();
     const [draftKeyword, setDraftKeyword] = useState(submittedKeyword);
@@ -77,7 +79,7 @@ function SearchPanel(props: SearchPanelProps) {
         <div>
             <Input.Search
                 className={'flex-1'}
-                placeholder={'搜索电影、剧集以及更多...'}
+                placeholder={t('search:panel.placeholder')}
                 enterButton
                 allowClear
                 value={draftKeyword}
@@ -88,7 +90,7 @@ function SearchPanel(props: SearchPanelProps) {
             {showHistoryPanel && (
                 <div className={'mt-4'}>
                     <div className={'flex items-center justify-between gap-3'}>
-                        <Text strong>最近搜索</Text>
+                        <Text strong>{t('search:panel.recent')}</Text>
                         {!!histories.length && (
                             <Button
                                 type={'link'}
@@ -96,7 +98,7 @@ function SearchPanel(props: SearchPanelProps) {
                                 className={'px-0'}
                                 onClick={handleClearHistories}
                             >
-                                清空历史
+                                {t('search:panel.clearHistory')}
                             </Button>
                         )}
                     </div>
@@ -114,14 +116,14 @@ function SearchPanel(props: SearchPanelProps) {
                                 <span className={'block whitespace-normal break-all'}>{item}</span>
                             </Button>
                         )) : (
-                            <Text type={'secondary'}>暂无历史记录</Text>
+                            <Text type={'secondary'}>{t('search:empty.history')}</Text>
                         )}
                     </div>
                 </div>
             )}
             {showActionPanel && (
                 <div className={'mt-4'}>
-                    <Text strong type={'secondary'}>选择搜索方式</Text>
+                    <Text strong type={'secondary'}>{t('search:panel.chooseMode')}</Text>
                     <div className={'mt-3 grid gap-2'}>
                         <button
                             type={'button'}
@@ -134,9 +136,9 @@ function SearchPanel(props: SearchPanelProps) {
                         >
                             <Avatar icon={<VideoCameraOutlined/>} style={{background: token.colorPrimary}}/>
                             <div className={'flex-1 overflow-hidden'}>
-                                <div className={'font-medium'}>搜索影片</div>
+                                <div className={'font-medium'}>{t('search:panel.searchVideo')}</div>
                                 <div
-                                    className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的影片结果
+                                    className={'truncate text-sm opacity-70'}>{t('search:panel.searchVideoHint', {keyword: trimmedDraftKeyword})}
                                 </div>
                             </div>
                             <SearchOutlined/>
@@ -152,9 +154,9 @@ function SearchPanel(props: SearchPanelProps) {
                         >
                             <Avatar icon={<UserOutlined/>} style={{background: token.colorPrimary}}/>
                             <div className={'flex-1 overflow-hidden'}>
-                                <div className={'font-medium'}>搜索演员</div>
+                                <div className={'font-medium'}>{t('search:panel.searchActor')}</div>
                                 <div
-                                    className={'truncate text-sm opacity-70'}>搜索 {trimmedDraftKeyword} 相关的演员结果
+                                    className={'truncate text-sm opacity-70'}>{t('search:panel.searchActorHint', {keyword: trimmedDraftKeyword})}
                                 </div>
                             </div>
                             <SearchOutlined/>

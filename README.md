@@ -30,6 +30,7 @@ docker run \
   -d \
   --name=tissue \
   -e TZ="Asia/Shanghai" \
+  -e DEFAULT_LOCALE="zh-CN" \
   -p '9193:9193' \
   -v '/path/for/config':'/app/config' \
   -v '/path/for/video':'/data/video' \
@@ -40,12 +41,13 @@ docker run \
 
 ### Docker环境变量
 
-| 变量    | 说明             | 是否必填 | 默认值 |
-|-------|----------------|------|-----|
-| PUID  | 运行程序的用户ID      | 否    | 0   |
-| PGID  | 运行程序的用户组ID     | 否    | 0   |
-| UMASK | 掩码权限           | 否    | 000 |
+| 变量 | 说明 | 是否必填 | 默认值 |
+|------|------|------|-----|
+| PUID | 运行程序的用户ID | 否 | 0 |
+| PGID | 运行程序的用户组ID | 否 | 0 |
+| UMASK | 掩码权限 | 否 | 000 |
 | JWT_SECRET | 随机字符串，不提供将随机生成 | 否 | 无 |
+| DEFAULT_LOCALE | 后端通知和用户可见日志的默认语言，可选 `zh-CN` / `en-US` | 否 | `zh-CN` |
 
 ### 端口映射
 

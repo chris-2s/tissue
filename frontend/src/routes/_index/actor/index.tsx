@@ -13,6 +13,7 @@ import VideoItem from "../home/-components/item.tsx";
 import type {Dispatch} from "../../../models";
 import {useRequest, useResponsive} from "ahooks";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
+import {useTranslation} from "react-i18next";
 
 const {Paragraph, Text, Title} = Typography;
 
@@ -35,12 +36,13 @@ function actorQueryOptions(search: ActorSearch) {
 }
 
 function ActorError(props: ErrorComponentProps) {
+    const {t} = useTranslation(['actor']);
     const router = useRouter();
 
     return (
         <RouteErrorState
-            title={'演员作品加载失败'}
-            description={'请检查网络或站点状态后重试'}
+            title={t('actor:detail.loadErrorTitle')}
+            description={t('actor:detail.loadErrorDescription')}
             onRetry={async () => {
                 props.reset();
                 await router.invalidate({
@@ -66,6 +68,7 @@ export const Route = createFileRoute('/_index/actor/')({
 });
 
 function Actor() {
+    const {t} = useTranslation(['actor']);
     const search = Route.useSearch() as ActorSearch;
     const normalizedSearch: ActorSearch = {
         ...search,
@@ -87,7 +90,7 @@ function Actor() {
     const {run: onCreateFavorite, loading: creatingFavorite} = useRequest(actorApi.createActorFavorite, {
         manual: true,
         onSuccess: async () => {
-            message.success('演员收藏成功');
+            message.success(t('actor:detail.favoriteCreated'));
             await refetch();
             setFavoriteRefreshing(false);
         },
@@ -99,7 +102,7 @@ function Actor() {
     const {run: onDeleteFavorite, loading: deletingFavorite} = useRequest(actorApi.deleteActorFavorite, {
         manual: true,
         onSuccess: async () => {
-            message.success('已取消收藏');
+            message.success(t('actor:detail.favoriteRemoved'));
             await refetch();
             setFavoriteRefreshing(false);
         },
@@ -122,7 +125,7 @@ function Actor() {
             ));
             if (!favorite) {
                 setFavoriteRefreshing(false);
-                message.error('未找到对应收藏记录');
+                message.error(t('actor:detail.favoriteMissing'));
                 return;
             }
             onDeleteFavorite(favorite.id);
@@ -155,19 +158,19 @@ function Actor() {
                         <div>
                             <Space wrap size={[8, 8]}>
                                 <Title level={4} className={'!mb-0'}>
-                                    {actor.name || actor.code || '未知演员'}
+                                    {actor.name || actor.code || t('actor:detail.unknownActor')}
                                 </Title>
                                 <Tag color={'purple'} variant={'filled'}>{actor.source.site_name}</Tag>
                             </Space>
                             {aliasText ? (
                                 <Tooltip title={aliasText}>
                                     <Paragraph type={'secondary'} className={'!mb-0 !mt-2'}>
-                                        别名：{aliasText}
+                                        {t('actor:detail.aliasPrefix')}{aliasText}
                                     </Paragraph>
                                 </Tooltip>
                             ) : (
                                 <Text type={'secondary'} className={'block mt-2'}>
-                                    暂无别名信息
+                                    {t('actor:detail.aliasEmpty')}
                                 </Text>
                             )}
                         </div>
@@ -179,7 +182,7 @@ function Actor() {
                         loading={favoriteLoading}
                         onClick={() => void onFavoriteToggle()}
                     >
-                        {actorPage.is_favorite ? '取消收藏' : '加入收藏'}
+                        {actorPage.is_favorite ? t('actor:detail.removeFavorite') : t('actor:detail.addFavorite')}
                     </Button>
                 </div>
             </Card>
@@ -207,7 +210,7 @@ function Actor() {
                     </div>
                 </Row>
             ) : (
-                <Empty className={'mt-10'} description={'暂无作品'}/>
+                <Empty className={'mt-10'} description={t('actor:detail.emptyWorks')}/>
             )}
         </div>
     );

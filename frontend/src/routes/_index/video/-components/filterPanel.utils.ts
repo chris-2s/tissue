@@ -19,6 +19,16 @@ export interface VideoFilterValue {
     ratingValue: number | null;
 }
 
+export interface VideoFilterTexts {
+    numLabel: string;
+    actorLabel: string;
+    titleLabel: string;
+    zhLabel: string;
+    uncensoredLabel: string;
+    includePrefix: string;
+    excludePrefix: string;
+}
+
 export function encodeToken(token: VideoSearchToken) {
     return `${token.kind}:${token.value}`;
 }
@@ -34,14 +44,14 @@ export function decodeToken(value: string): VideoSearchToken {
     return {kind: "title", value: value.trim()};
 }
 
-export function getTokenLabel(token: VideoSearchToken) {
+export function getTokenLabel(token: VideoSearchToken, texts: VideoFilterTexts) {
     switch (token.kind) {
         case "num":
-            return `番号: ${token.value}`;
+            return `${texts.numLabel}: ${token.value}`;
         case "actor":
-            return `演员: ${token.value}`;
+            return `${texts.actorLabel}: ${token.value}`;
         default:
-            return `标题: ${token.value}`;
+            return `${texts.titleLabel}: ${token.value}`;
     }
 }
 
@@ -53,7 +63,7 @@ function includesNormalized(source: string | undefined, keyword: string) {
     return normalizeText(source || "").includes(keyword);
 }
 
-export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) {
+export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string, texts: VideoFilterTexts) {
     const normalizedKeyword = normalizeText(keyword);
 
     if (!normalizedKeyword) {
@@ -75,7 +85,7 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
         ) {
             numSeen.add(num.toUpperCase());
             numOptions.push({
-                label: `番号 · ${num}`,
+                label: `${texts.numLabel} · ${num}`,
                 value: encodeToken({kind: "num", value: num}),
             });
         }
@@ -89,7 +99,7 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
             if (name && includesNormalized(name, normalizedKeyword) && !actorSeen.has(name.toUpperCase())) {
                 actorSeen.add(name.toUpperCase());
                 actorOptions.push({
-                    label: `演员 · ${name}`,
+                    label: `${texts.actorLabel} · ${name}`,
                     value: encodeToken({kind: "actor", value: name}),
                 });
             }
@@ -105,10 +115,10 @@ export function buildAutocompleteGroups(videos: VideoDetail[], keyword: string) 
 
     const groups = [];
     if (numOptions.length > 0) {
-        groups.push({label: "番号", options: numOptions});
+        groups.push({label: texts.numLabel, options: numOptions});
     }
     if (actorOptions.length > 0) {
-        groups.push({label: "演员", options: actorOptions});
+        groups.push({label: texts.actorLabel, options: actorOptions});
     }
     return groups;
 }
@@ -132,12 +142,12 @@ export function cycleFlagFilter(value: VideoFlagFilter): VideoFlagFilter {
     return null;
 }
 
-export function getFlagFilterLabel(name: string, value: VideoFlagFilter) {
+export function getFlagFilterLabel(name: string, value: VideoFlagFilter, texts: Pick<VideoFilterTexts, 'includePrefix' | 'excludePrefix'>) {
     if (value === "include") {
-        return `仅${name}`;
+        return `${texts.includePrefix}${name}`;
     }
     if (value === "exclude") {
-        return `非${name}`;
+        return `${texts.excludePrefix}${name}`;
     }
     return name;
 }

@@ -1,0 +1,17 @@
+export default {
+    home: '首页',
+    menu: '菜单',
+    organize: '整理',
+    video: '影片',
+    file: '文件',
+    download: '下载',
+    history: '历史',
+    subscribe: '订阅',
+    actorFavorite: '演员',
+    search: '搜索',
+    site: '站点',
+    setting: '设置',
+    user: '用户',
+    schedule: '任务',
+    about: '关于',
+} as const;

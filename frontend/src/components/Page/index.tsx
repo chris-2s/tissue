@@ -3,6 +3,7 @@ import React, {useEffect, useEffectEvent, useMemo, useRef, useState} from "react
 import {DownOutlined, LoadingOutlined} from "@ant-design/icons";
 import Styles from "./index.module.css";
 import {vibrateLight} from "../../utils/haptics.ts";
+import {useTranslation} from "react-i18next";
 
 const MAX_PULL_DISTANCE = 96;
 const TRIGGER_DISTANCE = 72;
@@ -20,6 +21,7 @@ interface Props {
 type PullPhase = "idle" | "pulling" | "ready" | "refreshing";
 
 export default function Page({children, onRefresh}: Props) {
+    const {t} = useTranslation(['common']);
     const pageRef = useRef<HTMLDivElement | null>(null);
     const indicatorRef = useRef<HTMLDivElement | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -57,19 +59,19 @@ export default function Page({children, onRefresh}: Props) {
 
     const indicatorText = useMemo(() => {
         if (phase === "refreshing") {
-            return "刷新中...";
+            return t('common:pullToRefresh.refreshing');
         }
 
         if (phase === "ready") {
-            return "松开刷新";
+            return t('common:pullToRefresh.release');
         }
 
         if (phase === "pulling") {
-            return "下拉刷新";
+            return t('common:pullToRefresh.pulling');
         }
 
         return "";
-    }, [phase]);
+    }, [phase, t]);
 
     const indicatorIcon = useMemo(() => {
         if (phase === "refreshing") {
@@ -271,7 +273,7 @@ export default function Page({children, onRefresh}: Props) {
                     <span className={Styles.iconWrap} aria-hidden={phase === "idle"}>
                         {indicatorIcon}
                     </span>
-                    <span>{indicatorText || "下拉刷新"}</span>
+                    <span>{indicatorText || t('common:pullToRefresh.pulling')}</span>
                 </div>
             </div>
             <div ref={contentRef} className={`${Styles.content} ${Styles.contentAnimated}`}>

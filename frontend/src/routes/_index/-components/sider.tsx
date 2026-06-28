@@ -1,5 +1,6 @@
 import React from "react";
 import {Menu} from "antd";
+import {useTranslation} from "react-i18next";
 import routes from "../../../routes";
 import Logo from "../../../assets/logo.png";
 import {Link, useMatches, useNavigate} from "@tanstack/react-router";
@@ -12,6 +13,7 @@ interface Props {
 function Sider(props: Props) {
 
     const {showLogo = true} = props
+    const {t} = useTranslation('routes')
     const matches = useMatches()
     const selected = matches.slice(2).map((item) => {
         return item.pathname.endsWith('/') ? item.pathname.slice(0, -1) : item.pathname
@@ -22,7 +24,7 @@ function Sider(props: Props) {
         return {
             key: item.path,
             icon: item.icon,
-            label: item.title,
+            label: t(`routes:${item.titleKey}`),
             type: item.type,
         }
     }

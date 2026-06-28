@@ -3,6 +3,7 @@ import {Card, theme} from "antd";
 import {useResponsive} from "ahooks";
 import React from "react";
 import {createFileRoute, Link, Navigate, useLocation} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import Styles from "./menu.module.css";
 
 const {useToken} = theme
@@ -14,6 +15,7 @@ export const Route = createFileRoute('/_index/menu/')({
 function Menu() {
 
     const {token} = useToken();
+    const {t} = useTranslation('routes')
     const responsive = useResponsive()
     const location = useLocation()
 
@@ -22,10 +24,10 @@ function Menu() {
             const children = item.children || [item]
 
             return (
-                <section key={item.title} className={Styles.section}>
+                <section key={item.titleKey} className={Styles.section}>
                     <div className={Styles.sectionHeader}>
                         <div className={Styles.sectionTitle} style={{color: token.colorTextHeading}}>
-                            {item.title}
+                            {t(`routes:${item.titleKey}`)}
                         </div>
                     </div>
                     <div className={Styles.grid}>
@@ -47,7 +49,7 @@ function Menu() {
                     </div>
                     <div className={Styles.label}>
                         <div className={Styles.title} style={{color: active ? token.colorPrimary : token.colorText}}>
-                            {menu.title}
+                            {t(`routes:${menu.titleKey}`)}
                         </div>
                     </div>
                 </div>

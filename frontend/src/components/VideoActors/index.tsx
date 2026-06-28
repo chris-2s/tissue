@@ -1,5 +1,6 @@
 import {Avatar, message, Tooltip} from "antd";
 import React, {useState} from "react";
+import {useTranslation} from "react-i18next";
 import ModifyModal from "./modifyModal";
 import RemoteImage from "../RemoteImage";
 import {IMAGE_TYPES} from "../../constants/image";
@@ -16,6 +17,7 @@ interface Props {
 
 function VideoActors(props: Props) {
 
+    const {t} = useTranslation(['video'])
     const {value, onChange} = props
     const [editMode, setEditMode] = useState<string | undefined>(undefined)
     const [selected, setSelected] = useState<number | undefined>(undefined)
@@ -23,7 +25,7 @@ function VideoActors(props: Props) {
     function onSave(data: any) {
         if (editMode === 'add') {
             if (value?.some((i) => i.name === data.name)) {
-                return message.error("该演员已存在")
+                return message.error(t('video:detail.messages.actorExists'))
             }
             onChange?.([...(value || []), data])
         } else if (editMode == 'edit' && value && selected !== undefined) {
@@ -62,7 +64,7 @@ function VideoActors(props: Props) {
                             </div>
                         </Tooltip>
                     ))}
-                    <Tooltip title={'新增'}>
+                    <Tooltip title={t('video:detail.actions.addActor')}>
                         <Avatar style={{cursor: 'pointer'}} size={"large"} onClick={() => {
                             setEditMode('add')
                             setSelected(undefined)

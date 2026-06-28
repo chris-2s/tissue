@@ -1,5 +1,6 @@
 import {AutoComplete, Card, Input, Space, Tag, Typography} from "antd";
 import {useDeferredValue, useEffect, useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {Subscribe} from "../../../../apis/subscribe.ts";
 import {
     buildAutocompleteGroups,
@@ -21,10 +22,16 @@ interface Props {
 }
 
 function FilterPanel(props: Props) {
+    const {t} = useTranslation(['subscribe']);
     const {subscribes, total, filteredTotal, value, onChange} = props;
     const [searchText, setSearchText] = useState("");
     const [filterValue, setFilterValue] = useState<SubscribeFilterValue>(value);
     const deferredSearchText = useDeferredValue(searchText);
+    const texts = useMemo(() => ({
+        numLabel: t('subscribe:filter.token.num'),
+        actorLabel: t('subscribe:filter.token.actor'),
+        titleLabel: t('subscribe:filter.token.title'),
+    }), [t]);
 
     useEffect(() => {
         setFilterValue(value);
@@ -35,8 +42,8 @@ function FilterPanel(props: Props) {
     }, [filterValue, onChange]);
 
     const autocompleteOptions = useMemo(
-        () => buildAutocompleteGroups(subscribes, deferredSearchText),
-        [deferredSearchText, subscribes]
+        () => buildAutocompleteGroups(subscribes, deferredSearchText, texts),
+        [deferredSearchText, subscribes, texts]
     );
 
     function upsertToken(token: SubscribeSearchToken) {
@@ -85,15 +92,15 @@ function FilterPanel(props: Props) {
     const activeFilterTags = useMemo(() => {
         return filterValue.tokens.map((token) => ({
             key: encodeToken(token),
-            label: getTokenLabel(token),
+            label: getTokenLabel(token, texts),
             onClose: () => removeToken(token),
         }));
-    }, [filterValue.tokens]);
+    }, [filterValue.tokens, texts]);
 
     return (
         <Card className={'mb-4'}>
             <div className={'flex flex-wrap items-center justify-between gap-3'}>
-                <div className={'text-lg font-medium'}>订阅</div>
+                <div className={'text-lg font-medium'}>{t('subscribe:pageTitle')}</div>
                 <Text type={'secondary'}>{filteredTotal} / {total}</Text>
             </div>
 
@@ -106,7 +113,7 @@ function FilterPanel(props: Props) {
                 >
                     <Input
                         allowClear
-                        placeholder={'搜索番号、演员，或输入标题后回车'}
+                        placeholder={t('subscribe:filter.searchPlaceholder')}
                         value={searchText}
                         onChange={(event) => setSearchText(event.target.value)}
                         onPressEnter={handleSearchConfirm}
@@ -115,7 +122,7 @@ function FilterPanel(props: Props) {
 
                 {activeFilterTags.length > 0 && (
                     <div className={'flex flex-wrap items-center gap-2'}>
-                        <Text type={'secondary'}>当前条件</Text>
+                        <Text type={'secondary'}>{t('subscribe:filter.currentFilters')}</Text>
                         <Space size={[8, 8]} wrap>
                             {activeFilterTags.map((item) => (
                                 <Tag key={item.key} closable onClose={item.onClose}>
@@ -123,7 +130,7 @@ function FilterPanel(props: Props) {
                                 </Tag>
                             ))}
                         </Space>
-                        <a onClick={clearFilters}>清空条件</a>
+                        <a onClick={clearFilters}>{t('subscribe:filter.clearFilters')}</a>
                     </div>
                 )}
             </div>

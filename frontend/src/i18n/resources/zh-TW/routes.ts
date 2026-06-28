@@ -1,0 +1,17 @@
+export default {
+    home: '首頁',
+    menu: '選單',
+    organize: '整理',
+    video: '影片',
+    file: '檔案',
+    download: '下載',
+    history: '歷史',
+    subscribe: '訂閱',
+    actorFavorite: '演員',
+    search: '搜尋',
+    site: '站點',
+    setting: '設定',
+    user: '用戶',
+    schedule: '任務',
+    about: '關於',
+} as const;

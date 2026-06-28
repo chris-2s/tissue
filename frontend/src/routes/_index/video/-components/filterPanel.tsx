@@ -1,5 +1,6 @@
 import {AutoComplete, Card, Input, InputNumber, Space, Tag, Typography} from "antd";
 import {useDeferredValue, useEffect, useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {VideoDetail} from "../../../../types/video";
 import {
     buildAutocompleteGroups,
@@ -26,11 +27,21 @@ interface Props {
 }
 
 function FilterPanel(props: Props) {
+    const {t} = useTranslation(['video']);
     const {videos, total, filteredTotal, value, onChange} = props;
     const [searchText, setSearchText] = useState("");
     const [advancedOpen, setAdvancedOpen] = useState(false);
     const [filterValue, setFilterValue] = useState<VideoFilterValue>(value);
     const deferredSearchText = useDeferredValue(searchText);
+    const texts = useMemo(() => ({
+        numLabel: t('video:filter.token.num'),
+        actorLabel: t('video:filter.token.actor'),
+        titleLabel: t('video:filter.token.title'),
+        zhLabel: t('video:filter.flag.zh'),
+        uncensoredLabel: t('video:filter.flag.uncensored'),
+        includePrefix: t('video:filter.prefix.include'),
+        excludePrefix: t('video:filter.prefix.exclude'),
+    }), [t]);
 
     useEffect(() => {
         setFilterValue(value);
@@ -41,8 +52,8 @@ function FilterPanel(props: Props) {
     }, [filterValue, onChange]);
 
     const autocompleteOptions = useMemo(
-        () => buildAutocompleteGroups(videos, deferredSearchText),
-        [deferredSearchText, videos]
+        () => buildAutocompleteGroups(videos, deferredSearchText, texts),
+        [deferredSearchText, texts, videos]
     );
 
     function upsertToken(token: VideoSearchToken) {
@@ -97,14 +108,14 @@ function FilterPanel(props: Props) {
     const activeFilterTags = useMemo(() => {
         const tags = filterValue.tokens.map((token) => ({
             key: encodeToken(token),
-            label: getTokenLabel(token),
+            label: getTokenLabel(token, texts),
             onClose: () => removeToken(token),
         }));
 
         if (filterValue.zh !== null) {
             tags.push({
                 key: "switch:zh",
-                label: getFlagFilterLabel("中文", filterValue.zh),
+                label: getFlagFilterLabel(texts.zhLabel, filterValue.zh, texts),
                 onClose: () => setFilterValue((current) => ({...current, zh: null})),
             });
         }
@@ -112,7 +123,7 @@ function FilterPanel(props: Props) {
         if (filterValue.uncensored !== null) {
             tags.push({
                 key: "switch:uncensored",
-                label: getFlagFilterLabel("无码", filterValue.uncensored),
+                label: getFlagFilterLabel(texts.uncensoredLabel, filterValue.uncensored, texts),
                 onClose: () => setFilterValue((current) => ({...current, uncensored: null})),
             });
         }
@@ -120,18 +131,18 @@ function FilterPanel(props: Props) {
         if (filterValue.ratingValue !== null) {
             tags.push({
                 key: "rating",
-                label: `评分 ${filterValue.ratingOperator === "gte" ? ">=" : "<="} ${formatRating(filterValue.ratingValue)}`,
+                label: `${t('video:filter.rating')} ${filterValue.ratingOperator === "gte" ? ">=" : "<="} ${formatRating(filterValue.ratingValue)}`,
                 onClose: () => setFilterValue((current) => ({...current, ratingValue: null})),
             });
         }
 
         return tags;
-    }, [filterValue]);
+    }, [filterValue, t, texts]);
 
     return (
         <Card className={'mb-4'}>
             <div className={'flex flex-wrap items-center justify-between gap-3'}>
-                <div className={'text-lg font-medium'}>影片库</div>
+                <div className={'text-lg font-medium'}>{t('video:pageTitle')}</div>
                 <Text type={'secondary'}>{filteredTotal} / {total}</Text>
             </div>
 
@@ -144,7 +155,7 @@ function FilterPanel(props: Props) {
                 >
                     <Input
                         allowClear
-                        placeholder={'搜索番号、演员，或输入标题后回车'}
+                        placeholder={t('video:filter.searchPlaceholder')}
                         value={searchText}
                         onChange={(event) => setSearchText(event.target.value)}
                         onPressEnter={handleSearchConfirm}
@@ -159,7 +170,7 @@ function FilterPanel(props: Props) {
                             zh: cycleFlagFilter(current.zh),
                         }))}
                     >
-                        {getFlagFilterLabel("中文", filterValue.zh)}
+                        {getFlagFilterLabel(texts.zhLabel, filterValue.zh, texts)}
                     </Tag.CheckableTag>
                     <Tag.CheckableTag
                         checked={filterValue.uncensored !== null}
@@ -168,17 +179,17 @@ function FilterPanel(props: Props) {
                             uncensored: cycleFlagFilter(current.uncensored),
                         }))}
                     >
-                        {getFlagFilterLabel("无码", filterValue.uncensored)}
+                        {getFlagFilterLabel(texts.uncensoredLabel, filterValue.uncensored, texts)}
                     </Tag.CheckableTag>
-                    <Tag.CheckableTag checked={advancedOpen} onChange={setAdvancedOpen}>更多筛选</Tag.CheckableTag>
+                    <Tag.CheckableTag checked={advancedOpen} onChange={setAdvancedOpen}>{t('video:actions.moreFilters')}</Tag.CheckableTag>
                     {activeFilterTags.length > 0 && (
-                        <a onClick={clearFilters}>清空条件</a>
+                        <a onClick={clearFilters}>{t('video:filter.clearFilters')}</a>
                     )}
                 </div>
 
                 {advancedOpen && (
                     <div className={'flex flex-wrap items-center gap-3 rounded-lg border border-solid border-gray-200 px-3 py-2'}>
-                        <Text strong>评分</Text>
+                        <Text strong>{t('video:filter.rating')}</Text>
                         <Space size={[8, 8]} wrap>
                             <Tag.CheckableTag
                                 checked={filterValue.ratingOperator === "gte"}
@@ -199,7 +210,7 @@ function FilterPanel(props: Props) {
                             step={0.1}
                             variant={'borderless'}
                             value={filterValue.ratingValue ?? undefined}
-                            placeholder={'不限'}
+                            placeholder={t('video:filter.ratingUnlimited')}
                             style={{width: 96}}
                             onChange={(value) => {
                                 if (typeof value !== "number" || value <= 0) {
@@ -228,7 +239,7 @@ function FilterPanel(props: Props) {
 
                 {activeFilterTags.length > 0 && (
                     <div className={'flex flex-wrap items-center gap-2'}>
-                        <Text type={'secondary'}>当前条件</Text>
+                        <Text type={'secondary'}>{t('video:filter.currentFilters')}</Text>
                         <Space size={[8, 8]} wrap>
                             {activeFilterTags.map((item) => (
                                 <Tag key={item.key} closable onClose={item.onClose}>

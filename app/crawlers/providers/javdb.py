@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 from lxml import etree
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.schema import VideoDetail, VideoActor, VideoDownload, VideoPreviewItem, VideoPreview, VideoCommentItem, \
     VideoComment, VideoSiteActor
 from app.schema.actor import Actor, ActorPage
@@ -106,7 +107,7 @@ class JavDBSpider(Spider):
         if response.status_code == 302 and '/login' not in response.headers["Location"]:
             return cookies_to_cookiecloud_items(cookiejar_to_cookies(session.cookies))
 
-        raise BizException("登录失败，请检查账号密码和验证码")
+        raise BizException("登录失败，请检查账号密码或验证码", error_code=ErrorCode.SITE_LOGIN_FAILED)
 
     def get_info(self, num: str, url: str | None = None, include_downloads=False, include_previews=False,
                  include_comments=False):
@@ -347,7 +348,7 @@ class JavDBSpider(Spider):
 
         section_element = html.xpath('//div[contains(@class, "section-columns")]')
         if not section_element:
-            raise BizException("未找到该演员")
+            raise BizException("未找到该演员", error_code=ErrorCode.ACTOR_NOT_FOUND)
 
         pages = Page()
         pages.page = page

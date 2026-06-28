@@ -7,8 +7,10 @@ import React, {useState} from "react";
 import * as api from "../../../../apis/user";
 import More from "../../../../components/More";
 import IconButton from "../../../../components/IconButton";
+import {useTranslation} from "react-i18next";
 
 function ApiKeyPanel() {
+    const {t} = useTranslation(['user'])
     const [createOpen, setCreateOpen] = useState(false)
     const [renameOpen, setRenameOpen] = useState(false)
     const [createdKey, setCreatedKey] = useState<string>()
@@ -25,7 +27,7 @@ function ApiKeyPanel() {
             setCreateOpen(false)
             createForm.resetFields()
             refresh()
-            message.success('创建成功')
+            message.success(t('user:feedback.created'))
         }
     })
 
@@ -35,7 +37,7 @@ function ApiKeyPanel() {
             manual: true,
             onSuccess: () => {
                 refresh()
-                message.success('保存成功')
+                message.success(t('user:feedback.saved'))
             }
         }
     )
@@ -44,36 +46,36 @@ function ApiKeyPanel() {
         manual: true,
         onSuccess: () => {
             refresh()
-            message.success('删除成功')
+            message.success(t('user:feedback.deleted'))
         }
     })
 
     const columns: ColumnsType<api.ApiKeyItem> = [
         {
-            title: '名称',
+            title: t('user:fields.name'),
             dataIndex: 'name',
         },
         {
-            title: 'Key',
+            title: t('user:apiKey.keyLabel'),
             dataIndex: 'key',
             render: (value: string) => <Typography.Text code>{value}</Typography.Text>
         },
         {
-            title: '状态',
+            title: t('user:fields.status'),
             dataIndex: 'enabled',
             render: (enabled: boolean, record) => (
                 <Space>
                     <Switch checked={enabled}
-                            checkedChildren={'启用'}
-                            unCheckedChildren={'禁用'}
+                            checkedChildren={t('user:status.enabled')}
+                            unCheckedChildren={t('user:status.disabled')}
                             onChange={(checked) => onUpdate({id: record.id, data: {enabled: checked}})}
                     />
-                    <Tag color={enabled ? 'success' : 'default'}>{enabled ? '启用' : '禁用'}</Tag>
+                    <Tag color={enabled ? 'success' : 'default'}>{enabled ? t('user:status.enabled') : t('user:status.disabled')}</Tag>
                 </Space>
             )
         },
         {
-            title: '创建时间',
+            title: t('user:fields.createdAt'),
             dataIndex: 'create_time',
             render: (value?: string | null) => value ? dayjs(value).format('lll') : '-'
         },
@@ -83,8 +85,8 @@ function ApiKeyPanel() {
             width: 20,
             render: (_, record) => (
                 <More items={[
-                    {key: 'edit', label: '重命名', icon: <EditOutlined/>},
-                    {key: 'delete', label: '删除', icon: <DeleteOutlined/>},
+                    {key: 'edit', label: t('user:actions.rename'), icon: <EditOutlined/>},
+                    {key: 'delete', label: t('common:actions.delete'), icon: <DeleteOutlined/>},
                 ]} onClick={(key) => onMoreClick(key, record)}/>
             )
         }
@@ -111,7 +113,7 @@ function ApiKeyPanel() {
             return
         }
         Modal.confirm({
-            title: '是否确认删除该 API Key',
+            title: t('user:apiKey.deleteConfirmTitle'),
             onOk: () => onDelete(record.id)
         })
     }
@@ -119,53 +121,53 @@ function ApiKeyPanel() {
     async function copyApiKey() {
         if (!createdKey) return
         await navigator.clipboard.writeText(createdKey)
-        message.success('已复制')
+        message.success(t('user:feedback.copied'))
     }
 
     return (
-        <Card title={'API Key 管理'} extra={(
+        <Card title={t('user:apiKey.title')} extra={(
             <IconButton onClick={() => setCreateOpen(true)}>
                 <PlusOutlined/>
             </IconButton>
         )}>
             <Table rowKey={'id'} columns={columns} dataSource={data} loading={loading || updating} pagination={false}/>
 
-            <Modal title={'新建 API Key'}
+            <Modal title={t('user:apiKey.createDialogTitle')}
                    open={createOpen}
                    onCancel={() => setCreateOpen(false)}
                    onOk={onCreateSubmit}
                    confirmLoading={creating}>
                 <Form layout={'vertical'} form={createForm}>
-                    <Form.Item name={'name'} label={'名称'} rules={[{required: true, message: '请输入名称'}]}>
-                        <Input placeholder={'例如：Jellyfin 同步脚本'}/>
+                    <Form.Item name={'name'} label={t('user:fields.name')} rules={[{required: true, message: t('user:validation.nameRequired')}]}>
+                        <Input placeholder={t('user:apiKey.createPlaceholder')}/>
                     </Form.Item>
                 </Form>
             </Modal>
 
-            <Modal title={'重命名 API Key'}
+            <Modal title={t('user:apiKey.renameDialogTitle')}
                    open={renameOpen}
                    onCancel={() => setRenameOpen(false)}
                    onOk={onRenameSubmit}
                    confirmLoading={updating}>
                 <Form layout={'vertical'} form={renameForm}>
-                    <Form.Item name={'name'} label={'名称'} rules={[{required: true, message: '请输入名称'}]}>
+                    <Form.Item name={'name'} label={t('user:fields.name')} rules={[{required: true, message: t('user:validation.nameRequired')}]}>
                         <Input/>
                     </Form.Item>
                 </Form>
             </Modal>
 
-            <Modal title={'API Key 已创建'}
+            <Modal title={t('user:apiKey.createdDialogTitle')}
                    open={!!createdKey}
                    onCancel={() => setCreatedKey(undefined)}
                    onOk={() => setCreatedKey(undefined)}
-                   okText={'我已保存'}>
+                   okText={t('user:apiKey.createdDialogConfirm')}>
                 <Typography.Paragraph>
-                    完整 Key 仅展示一次，请立即保存：
+                    {t('user:apiKey.createdDialogDescription')}
                 </Typography.Paragraph>
                 <Typography.Paragraph copyable={{text: createdKey}}>
                     <Typography.Text code>{createdKey}</Typography.Text>
                 </Typography.Paragraph>
-                <Button onClick={copyApiKey}>复制</Button>
+                <Button onClick={copyApiKey}>{t('user:actions.copy')}</Button>
             </Modal>
         </Card>
     )

@@ -1,0 +1,17 @@
+export default {
+    home: 'Home',
+    menu: 'Menu',
+    organize: 'Organize',
+    video: 'Videos',
+    file: 'Files',
+    download: 'Downloads',
+    history: 'History',
+    subscribe: 'Subscriptions',
+    actorFavorite: 'Actors',
+    search: 'Search',
+    site: 'Sites',
+    setting: 'Settings',
+    user: 'Users',
+    schedule: 'Tasks',
+    about: 'About',
+} as const;

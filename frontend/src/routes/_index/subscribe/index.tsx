@@ -17,6 +17,7 @@ import PageFloatButtons from "../../../components/PageFloatButtons";
 import FilterPanel from "./-components/filterPanel.tsx";
 import type {SubscribeFilterValue} from "./-components/filterPanel.utils.ts";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
+import {useTranslation} from "react-i18next";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -33,7 +34,7 @@ function subscribesQueryOptions() {
 }
 
 function Subscribe() {
-
+    const {t} = useTranslation(['subscribe']);
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(subscribesQueryOptions())
@@ -60,7 +61,7 @@ function Subscribe() {
     const {run: onDelete} = useRequest(api.deleteSubscribe, {
         manual: true,
         onSuccess: () => {
-            message.success("删除成功")
+            message.success(t('subscribe:deleteSuccess'))
             setOpen(false)
             return queryClient.invalidateQueries({queryKey: ['subscribes']})
         }
@@ -108,8 +109,8 @@ function Subscribe() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'订阅列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('subscribe:errors.loadTitle')}
+                description={t('subscribe:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -134,13 +135,13 @@ function Subscribe() {
                                                            <Tag variant={'filled'}>{subscribe.premiered}</Tag>
                                                        )}
                                                        {subscribe.is_hd && (
-                                                           <Tag color={'red'} variant={'filled'}>高清</Tag>)}
+                                                           <Tag color={'red'} variant={'filled'}>{t('subscribe:flags.hd')}</Tag>)}
                                                        {subscribe.is_zh && (
-                                                           <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
+                                                           <Tag color={'blue'} variant={'filled'}>{t('subscribe:flags.zh')}</Tag>)}
                                                        {subscribe.is_uncensored && (
-                                                           <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                                           <Tag color={'green'} variant={'filled'}>{t('subscribe:flags.uncensored')}</Tag>)}
                                                    </Space>
-                                                   <Tooltip title={'搜索'}>
+                                                   <Tooltip title={t('subscribe:history.actions.search')}>
                                                        <div className={'px-2'} onClick={() => {
                                                            return navigate({
                                                                to: '/home/detail',
@@ -178,7 +179,7 @@ function Subscribe() {
         content = (
             <Row gutter={[15, 15]}>
                 <Col span={24}>
-                    <Empty description={'无订阅'}/>
+                    <Empty description={t('subscribe:empty.title')}/>
                 </Col>
             </Row>
         );

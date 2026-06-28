@@ -38,6 +38,7 @@ import DownloadModal from "./-components/downloadModal.tsx";
 import Comment from "./-components/comment.tsx";
 import ActorsModal from "./-components/actorsModal.tsx";
 import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
+import {useTranslation} from "react-i18next";
 
 type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
 type DetailSearch = homeApi.GetDetailParams;
@@ -65,12 +66,13 @@ function detailQueryOptions(search: DetailSearch) {
 }
 
 function DetailError(props: ErrorComponentProps) {
+    const {t} = useTranslation(['home']);
     const router = useRouter();
 
     return (
         <RouteErrorState
-            title={'详情加载失败'}
-            description={'请检查网络或数据源状态后重试。'}
+            title={t('home:detail.loadTitle')}
+            description={t('home:detail.loadDescription')}
             onRetry={async () => {
                 props.reset();
                 await router.invalidate({
@@ -94,6 +96,7 @@ export const Route = createFileRoute('/_index/home/detail')({
 });
 
 function Detail() {
+    const {t} = useTranslation(['home']);
     const router = useRouter();
     const responsive = useResponsive();
     const search = Route.useSearch() as DetailSearch;
@@ -125,7 +128,7 @@ function Detail() {
         service: subscribeApi.modifySubscribe,
         onOk: () => {
             setSubscribeOpen(false);
-            return message.success("订阅添加成功");
+            return message.success(t('home:detail.subscribeSuccess'));
         }
     });
 
@@ -133,7 +136,7 @@ function Detail() {
         manual: true,
         onSuccess: () => {
             setSelectedDownload(undefined);
-            return message.success("下载任务创建成功");
+            return message.success(t('home:detail.downloadSuccess'));
         }
     });
 
@@ -145,14 +148,14 @@ function Detail() {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        return message.success("磁力链接已复制");
+        return message.success(t('home:detail.copyMagnetSuccess'));
     }
 
     function renderItems(video: SearchVideoView) {
         return [
             {
                 key: 'actors',
-                label: '演员',
+                label: t('home:detail.fields.actors'),
                 span: 24,
                 children: video.actors && (
                     <div className={'cursor-pointer'} onClick={() => setActorsModalOpen(true)}>
@@ -163,55 +166,55 @@ function Detail() {
             },
             {
                 key: 'num',
-                label: '影片',
+                label: t('home:detail.fields.video'),
                 span: 8,
                 children: video.num,
             },
             {
                 key: 'premiered',
-                label: '发布日期',
+                label: t('home:detail.fields.premiered'),
                 span: 8,
                 children: video.premiered,
             },
             {
                 key: 'rating',
-                label: '评分',
+                label: t('home:detail.fields.rating'),
                 span: 8,
                 children: video.rating,
             },
             {
                 key: 'title',
-                label: '标题',
+                label: t('home:detail.fields.title'),
                 span: 24,
                 children: video.title,
             },
             {
                 key: 'outline',
-                label: '大纲',
+                label: t('home:detail.fields.outline'),
                 span: 24,
                 children: <span className={'whitespace-pre-wrap'}>{video.outline}</span>,
             },
             {
                 key: 'studio',
-                label: '制造商',
+                label: t('home:detail.fields.studio'),
                 span: 8,
                 children: video.studio,
             },
             {
                 key: 'publisher',
-                label: '发行商',
+                label: t('home:detail.fields.publisher'),
                 span: 8,
                 children: video.publisher,
             },
             {
                 key: 'director',
-                label: '导演',
+                label: t('home:detail.fields.director'),
                 span: 8,
                 children: video.director,
             },
             {
                 key: 'tags',
-                label: '类别',
+                label: t('home:detail.fields.tags'),
                 span: 24,
                 children: (
                     <div className={'leading-7'}>
@@ -223,19 +226,19 @@ function Detail() {
             },
             {
                 key: 'series',
-                label: '系列',
+                label: t('home:detail.fields.series'),
                 span: 16,
                 children: video.series,
             },
             {
                 key: 'runtime',
-                label: '时长',
+                label: t('home:detail.fields.runtime'),
                 span: 8,
                 children: video.runtime,
             },
             {
                 key: 'websites',
-                label: '网站',
+                label: t('home:detail.fields.websites'),
                 span: 24,
                 children: <Websites value={video.website} readonly/>,
             },
@@ -257,18 +260,18 @@ function Detail() {
                         <RemoteImage src={video.cover} num={video.num} imageType={IMAGE_TYPES.COVER}/>
                     </div>
                     <div className={'text-center'}>
-                        <Tooltip title={'添加订阅'}>
+                        <Tooltip title={t('home:detail.actions.addSubscription')}>
                             <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
                                     onClick={() => setSubscribeOpen(true, video)}/>
                         </Tooltip>
-                        <Tooltip title={'刷新'}>
+                        <Tooltip title={t('home:detail.actions.refresh')}>
                             <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'}
                                     className={'ml-4'}
                                     loading={isFetching}
                                     onClick={() => void refetch()}/>
                         </Tooltip>
                         {!isSearchMode && (
-                            <Tooltip title={'搜索'}>
+                            <Tooltip title={t('home:detail.actions.search')}>
                                 <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
                                         className={'ml-4'}
                                         onClick={() => {
@@ -292,7 +295,7 @@ function Detail() {
             </Col>
             <Col span={24} lg={16} md={12}>
                 {video.previews.length > 0 && (
-                    <Card title={'预览'} className={'mb-4'} extra={(
+                    <Card title={t('home:detail.sections.preview')} className={'mb-4'} extra={(
                         <Segmented
                             value={previewSelected}
                             onChange={(value: number) => setPreviewSelected(value)}
@@ -305,25 +308,25 @@ function Detail() {
                         <Preview data={(video.previews.find((item) => item.source.site_id === previewSelected) || video.previews[0]).items}/>
                     </Card>
                 )}
-                <Card title={'资源列表'} extra={(
+                <Card title={t('home:detail.sections.resources')} extra={(
                     <>
                         <Tag color={filter.isHd ? 'red' : 'default'} className={'cursor-pointer'}
-                             onClick={() => setFilter({...filter, isHd: !filter.isHd})}>高清</Tag>
+                             onClick={() => setFilter({...filter, isHd: !filter.isHd})}>{t('home:detail.flags.hd')}</Tag>
                         <Tag color={filter.isZh ? 'blue' : 'default'} className={'cursor-pointer'}
-                             onClick={() => setFilter({...filter, isZh: !filter.isZh})}>中文</Tag>
+                             onClick={() => setFilter({...filter, isZh: !filter.isZh})}>{t('home:detail.flags.zh')}</Tag>
                         <Tag color={filter.isUncensored ? 'green' : 'default'} className={'cursor-pointer'}
-                             onClick={() => setFilter({...filter, isUncensored: !filter.isUncensored})}>无码</Tag>
+                             onClick={() => setFilter({...filter, isUncensored: !filter.isUncensored})}>{t('home:detail.flags.uncensored')}</Tag>
                     </>
                 )}>
                     {filteredDownloads.length > 0 ? (
                         <List dataSource={filteredDownloads} renderItem={(item) => (
                             <List.Item actions={[
-                                <Tooltip title={'发送到下载器'} key={'download'}>
+                                <Tooltip title={t('home:detail.actions.sendToDownloader')} key={'download'}>
                                     <Button type={'primary'} icon={<CloudDownloadOutlined/>}
                                             shape={'circle'}
                                             onClick={() => setSelectedDownload(item)}/>
                                 </Tooltip>,
-                                <Tooltip title={'复制磁力链接'} key={'copy'}>
+                                <Tooltip title={t('home:detail.actions.copyMagnet')} key={'copy'}>
                                     <Button type={'primary'} icon={<CopyOutlined/>} shape={'circle'}
                                             onClick={() => onCopyClick(item)}/>
                                 </Tooltip>
@@ -338,10 +341,10 @@ function Detail() {
                                                             <Tag>{item.size}</Tag>
                                                         </div>
                                                         <div>
-                                                            {item.is_hd && <Tag color={'red'} variant={'filled'}>高清</Tag>}
-                                                            {item.is_zh && <Tag color={'blue'} variant={'filled'}>中文</Tag>}
+                                                            {item.is_hd && <Tag color={'red'} variant={'filled'}>{t('home:detail.flags.hd')}</Tag>}
+                                                            {item.is_zh && <Tag color={'blue'} variant={'filled'}>{t('home:detail.flags.zh')}</Tag>}
                                                             {item.is_uncensored &&
-                                                                <Tag color={'green'} variant={'filled'}>无码</Tag>}
+                                                                <Tag color={'green'} variant={'filled'}>{t('home:detail.flags.uncensored')}</Tag>}
                                                         </div>
                                                         <div>{item.publish_date}</div>
                                                     </Space>
@@ -350,12 +353,12 @@ function Detail() {
                         )}/>
                     ) : (
                         <div className={'py-8 text-center text-[var(--ant-color-text-secondary)]'}>
-                            暂无资源
+                            {t('home:detail.emptyResources')}
                         </div>
                     )}
                 </Card>
                 {video.comments.length > 0 && (
-                    <Card title={'评论'} className={'mt-4'} extra={(
+                    <Card title={t('home:detail.sections.comments')} className={'mt-4'} extra={(
                         <Segmented
                             value={commentSelected}
                             onChange={(value: number) => setCommentSelected(value)}
@@ -375,7 +378,7 @@ function Detail() {
                            onCancel={() => setSelectedDownload(undefined)}
                            onDownload={(item) => {
                                if (!video.num) {
-                                   message.error('视频信息缺失，请重试');
+                                   message.error(t('home:detail.missingVideoInfo'));
                                    return;
                                }
                                onDownload({...video, num: video.num}, item);

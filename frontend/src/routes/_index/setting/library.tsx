@@ -2,6 +2,7 @@ import {Button, Form, Input, message, Skeleton} from "antd";
 import * as api from "../../../apis/setting.ts";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 
 
 export const Route = createFileRoute('/_index/setting/library')({
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/_index/setting/library')({
 function SettingLibrary() {
 
     const [form] = Form.useForm()
+    const {t} = useTranslation(['common', 'setting'])
 
     const {loading} = useRequest(api.getSettings, {
         onSuccess: (res) => {
@@ -21,7 +23,7 @@ function SettingLibrary() {
     const {run, loading: saving} = useRequest(api.saveSetting, {
         manual: true,
         onSuccess: () => {
-            message.success("设置成功")
+            message.success(t('common:feedback.settingsSaved'))
         }
     })
 
@@ -35,17 +37,17 @@ function SettingLibrary() {
         ) : (
             <div className={'w-[600px] max-w-full my-0 mx-auto'}>
                 <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item label={'视频路径'} name={'video_path'}>
+                    <Form.Item label={t('setting:library.videoPath')} name={'video_path'}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'视频格式'} name={'video_format'}>
+                    <Form.Item label={t('setting:library.videoFormat')} name={'video_format'}>
                         <Input/>
                     </Form.Item>
-                    <Form.Item label={'视频最小容量'} name={'video_size_minimum'}>
+                    <Form.Item label={t('setting:library.videoSizeMinimum')} name={'video_size_minimum'}>
                         <Input/>
                     </Form.Item>
                     <div style={{textAlign: 'center'}}>
-                        <Button type={'primary'} style={{width: 150}} loading={saving} htmlType={"submit"}>提交</Button>
+                        <Button type={'primary'} style={{width: 150}} loading={saving} htmlType={"submit"}>{t('common:actions.submit')}</Button>
                     </div>
                 </Form>
             </div>

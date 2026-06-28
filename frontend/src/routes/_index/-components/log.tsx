@@ -11,6 +11,7 @@ import {
     SearchOutlined,
 } from "@ant-design/icons";
 import {useResponsive} from "ahooks";
+import {useTranslation} from "react-i18next";
 
 type ConnectionStatus = 'connecting' | 'connected' | 'error' | 'closed'
 type LevelFilter = 'ALL' | 'ISSUE' | 'INFO' | 'DEBUG'
@@ -32,14 +33,15 @@ const tagColorMap: { [key: string]: string } = {
 }
 
 const levelFilterOptions = [
-    {label: '全部', value: 'ALL'},
-    {label: '问题', value: 'ISSUE'},
-    {label: '信息', value: 'INFO'},
-    {label: '调试', value: 'DEBUG'},
-]
+    {key: 'log:levels.all', value: 'ALL'},
+    {key: 'log:levels.issue', value: 'ISSUE'},
+    {key: 'log:levels.info', value: 'INFO'},
+    {key: 'log:levels.debug', value: 'DEBUG'},
+] as const
 
 function Log() {
 
+    const {t} = useTranslation(['log'])
     const responsive = useResponsive()
     const {token} = theme.useToken()
     const {userToken} = useSelector((state: RootState) => state.auth)
@@ -70,7 +72,7 @@ function Log() {
                     return
                 }
                 setStatus('error')
-                throw new Error(`日志连接失败: ${response.status}`)
+                throw new Error(t('log:errors.connectFailed', {status: response.status}))
             },
             onmessage(msg) {
                 if (!active || !msg.data) {
@@ -117,7 +119,7 @@ function Log() {
             active = false
             ctrl.abort()
         }
-    }, [userToken])
+    }, [t, userToken])
 
     const filteredMessages = useMemo(() => {
         const normalizedKeyword = keyword.trim().toLowerCase()
@@ -152,15 +154,15 @@ function Log() {
 
     function renderStatus() {
         if (status === 'connected') {
-            return <Badge status="success" text="已连接"/>
+            return <Badge status="success" text={t('log:status.connected')}/>
         }
         if (status === 'connecting') {
-            return <Badge status="processing" text="连接中"/>
+            return <Badge status="processing" text={t('log:status.connecting')}/>
         }
         if (status === 'closed') {
-            return <Badge status="default" text="已关闭"/>
+            return <Badge status="default" text={t('log:status.closed')}/>
         }
-        return <Badge status="error" text="连接异常"/>
+        return <Badge status="error" text={t('log:status.error')}/>
     }
 
     return (
@@ -189,7 +191,7 @@ function Log() {
                         <Segmented
                             block={!responsive.md}
                             value={levelFilter}
-                            options={levelFilterOptions}
+                            options={levelFilterOptions.map((item) => ({label: t(item.key), value: item.value}))}
                             onChange={(value) => setLevelFilter(value as LevelFilter)}
                         />
                         <Space size={12} wrap>
@@ -209,7 +211,7 @@ function Log() {
                             value={keyword}
                             onChange={event => setKeyword(event.target.value)}
                             prefix={<SearchOutlined/>}
-                            placeholder={'搜索模块或日志内容'}
+                            placeholder={t('log:controls.searchPlaceholder')}
                         />
                         <div style={{
                             display: 'flex',
@@ -220,7 +222,7 @@ function Log() {
                         }}>
                             <Space size={8}>
                                 <Switch checked={autoScroll} onChange={setAutoScroll}/>
-                                <span style={{color: token.colorTextSecondary, fontSize: 12}}>自动滚动</span>
+                                <span style={{color: token.colorTextSecondary, fontSize: 12}}>{t('log:controls.autoScroll')}</span>
                             </Space>
                             <Button
                                 type={'text'}
@@ -231,7 +233,7 @@ function Log() {
                                     color: token.colorTextSecondary,
                                 }}
                             >
-                                清空视图
+                                {t('log:controls.clear')}
                             </Button>
                         </div>
                     </div>
@@ -257,7 +259,7 @@ function Log() {
                     }}>
                         <Empty
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description={messages.length === 0 ? '暂无日志' : '没有匹配的日志'}
+                            description={messages.length === 0 ? t('log:empty.noLogs') : t('log:empty.noMatches')}
                         />
                     </div>
                 ) : (

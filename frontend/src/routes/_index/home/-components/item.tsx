@@ -5,11 +5,12 @@ import {IMAGE_TYPES} from "../../../../constants/image";
 import {SearchOutlined} from "@ant-design/icons";
 import {useRouter} from "@tanstack/react-router";
 import type {SiteVideo} from "../../../../types/video";
+import {useTranslation} from "react-i18next";
 
 const {useToken} = theme
 
 function VideoItem(props: { item: SiteVideo }) {
-
+    const {t} = useTranslation(['home']);
     const {token} = useToken();
     const {item} = props;
     const {navigate} = useRouter()
@@ -31,12 +32,12 @@ function VideoItem(props: { item: SiteVideo }) {
                     </div>
                     <div className={'flex items-center my-2'}>
                         <Rate disabled allowHalf value={item.rank}></Rate>
-                        <div className={'mx-1'}>{item.rank}分</div>
-                        <div>由{item.rank_count || 0}人评价</div>
+                        <div className={'mx-1'}>{item.rank}{t('home:item.scoreUnit')}</div>
+                        <div>{t('home:item.ratedBy', {count: item.rank_count || 0})}</div>
                     </div>
                     <div className={'flex items-center'}>
                         <div className={'flex-1'}>{item.publish_date}</div>
-                        <Tooltip title={'搜索'}>
+                        <Tooltip title={t('home:item.search')}>
                             <div onClick={(event) => {
                                 event.stopPropagation()
                                 return navigate({
@@ -55,7 +56,7 @@ function VideoItem(props: { item: SiteVideo }) {
 
     return (
         item.isZh ? (
-            <Badge.Ribbon text={'中文'}>
+            <Badge.Ribbon text={t('home:item.zhRibbon')}>
                 {render()}
             </Badge.Ribbon>
         ) : (

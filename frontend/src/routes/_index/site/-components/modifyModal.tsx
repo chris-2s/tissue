@@ -1,8 +1,10 @@
 import {Checkbox, Form, Input, Modal, Select} from "antd";
 import {FormModalProps} from "../../../../utils/useFormModal.ts";
 import React from "react";
+import {useTranslation} from "react-i18next";
 
 function ModifyModal(props: FormModalProps) {
+    const {t} = useTranslation(['site'])
 
     const {form, initValues, ...otherProps} = props
 
@@ -12,19 +14,19 @@ function ModifyModal(props: FormModalProps) {
                 <Form.Item noStyle name={'id'}>
                     <Input style={{display: 'none'}}/>
                 </Form.Item>
-                <Form.Item name={'alternate_host'} label={'替代域名'}>
-                    <Input placeholder={'当域名失效或替代域名时填写'}/>
+                <Form.Item name={'alternate_host'} label={t('site:modals.alternateHost')}>
+                    <Input placeholder={t('site:modals.alternateHostPlaceholder')}/>
                 </Form.Item>
-                <Form.Item name={'priority'} label={'优先级'} initialValue={0}>
+                <Form.Item name={'priority'} label={t('site:modals.priority')} initialValue={0}>
                     <Select>{Array(101).fill(0).map((_, index) => (
                         <Select.Option value={index}>{index}</Select.Option>))}</Select>
                 </Form.Item>
-                <Form.Item name={'status'} label={'状态'} valuePropName={'checked'}>
-                    <Checkbox>启用</Checkbox>
+                <Form.Item name={'status'} label={t('site:modals.status')} valuePropName={'checked'}>
+                    <Checkbox>{t('site:modals.enabled')}</Checkbox>
                 </Form.Item>
-                <Form.Item name={'cookies'} label={'Cookie'}>
+                <Form.Item name={'cookies'} label={t('site:modals.cookies')}>
                     <Input.TextArea
-                        placeholder={'从浏览器开发者工具复制的 cookie 字符串'}
+                        placeholder={t('site:modals.cookiesPlaceholder')}
                         rows={4}
                         style={{fontFamily: 'monospace'}}
                     />

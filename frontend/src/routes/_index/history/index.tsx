@@ -14,6 +14,7 @@ import VideoDetail from "../../../components/VideoDetail";
 import {TransModeOptions} from "../../../utils/constants.ts";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
 import type {PagedResponse} from "../../../types/video.ts";
+import {useTranslation} from "react-i18next";
 
 export const Route = createFileRoute('/_index/history/')({
     component: History,
@@ -40,6 +41,7 @@ function historiesQueryOptions(search: HistorySearch) {
 }
 
 function History() {
+    const {t} = useTranslation(['history'])
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const search = Route.useSearch() as HistorySearch
@@ -57,32 +59,32 @@ function History() {
     const {run: onDelete} = useRequest(api.deleteHistory, {
         manual: true,
         onSuccess: () => {
-            message.success("删除成功")
+            message.success(t('history:deleteSuccess'))
             queryClient.invalidateQueries({queryKey: ['histories']})
         }
     })
 
     const columns: ColumnsType<any> = [
         {
-            title: '状态',
+            title: t('history:columns.status'),
             dataIndex: 'status',
-            render: (value) => (value ? (<Tag color={'success'}>成功</Tag>) : (<Tag color={'error'}>失败</Tag>))
+            render: (value) => (value ? (<Tag color={'success'}>{t('history:status.success')}</Tag>) : (<Tag color={'error'}>{t('history:status.failed')}</Tag>))
         },
         {
-            title: '番号',
+            title: t('history:columns.num'),
             dataIndex: 'num',
             render: (value, record: any) => (
                 <div>
                     <b>{value}</b>
                     <div>
-                        {record.is_zh && (<Tag color={'blue'}>中文</Tag>)}
-                        {record.is_uncensored && (<Tag color={'green'}>无码</Tag>)}
+                        {record.is_zh && (<Tag color={'blue'}>{t('history:flags.zh')}</Tag>)}
+                        {record.is_uncensored && (<Tag color={'green'}>{t('history:flags.uncensored')}</Tag>)}
                     </div>
                 </div>
             )
         },
         {
-            title: '路径',
+            title: t('history:columns.path'),
             dataIndex: 'path',
             render: (_, record: any) => (
                 <div style={{WebkitTextSizeAdjust: '100%', fontSize: 14, maxWidth: 680}}>
@@ -93,17 +95,17 @@ function History() {
             )
         },
         {
-            title: '转移方式',
+            title: t('history:columns.transMethod'),
             dataIndex: 'trans_method',
             render: (value: string) => {
                 const method = TransModeOptions.find((i: any) => i.value === value)
                 return (
-                    <Tag color={method?.color}>{method?.name}</Tag>
+                    <Tag color={method?.color}>{method ? t(`history:transMode.${method.value}`) : value}</Tag>
                 )
             }
         },
         {
-            title: '时间',
+            title: t('history:columns.time'),
             dataIndex: 'create_time',
             render: (value) => dayjs(value).format('lll')
         },
@@ -123,12 +125,12 @@ function History() {
     const items = [
         {
             key: 'edit',
-            label: '重新整理',
+            label: t('history:actions.reprocess'),
             icon: <EditOutlined/>
         },
         {
             key: 'delete',
-            label: '删除记录',
+            label: t('history:actions.deleteRecord'),
             icon: <DeleteOutlined/>
         },
     ] as any
@@ -138,7 +140,7 @@ function History() {
             setSelected(record)
         } else if (key === 'delete') {
             Modal.confirm({
-                title: '是否确认删除记录',
+                title: t('history:confirm.deleteRecord'),
                 onOk: () => {
                     onDelete(record.id)
                 }
@@ -164,8 +166,8 @@ function History() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'历史记录加载失败'}
-                description={'请检查网络后重试'}
+                title={t('history:errors.loadTitle')}
+                description={t('history:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -199,17 +201,17 @@ function History() {
     }
 
     return (
-        <Card title={'历史记录'}
+        <Card title={t('history:pageTitle')}
               extra={(
                   <Input.Search
                       value={inputValue}
                       onChange={e => setInputValue(e.target.value)}
                       onSearch={handleSearch}
-                      placeholder={'搜索'}
+                      placeholder={t('history:searchPlaceholder')}
                   />
               )}>
             {content}
-            <VideoDetail title={'重新整理'}
+            <VideoDetail title={t('history:detailTitle')}
                          mode={'history'}
                          transMode={selected?.status ? 'move' : selected?.trans_mode}
                          width={1100}

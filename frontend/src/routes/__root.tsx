@@ -1,22 +1,16 @@
 import React from 'react';
-import zhCN from "antd/locale/zh_CN";
-import dayjs from "dayjs";
-import localizedFormat from 'dayjs/plugin/localizedFormat';
-import relativeTime from "dayjs/plugin/relativeTime";
-import 'dayjs/locale/zh-cn'
 import {useTheme} from "ahooks";
 import {useSelector} from "react-redux";
 
 import {ConfigProvider, theme} from "antd";
 import {StyleProvider} from '@ant-design/cssinjs';
 import type {QueryClient} from "@tanstack/react-query";
+import {useTranslation} from "react-i18next";
+import {getAntdLocale} from "../i18n/third-party/antd";
+import {syncDayjsLocale} from "../i18n/third-party/dayjs";
+import {DEFAULT_LOCALE, normalizeLocale} from "../i18n/locale";
 import {RootState} from "../models";
 import {createRootRouteWithContext, Outlet} from "@tanstack/react-router";
-
-
-dayjs.extend(relativeTime)
-dayjs.extend(localizedFormat)
-dayjs.locale('zh-cn')
 
 interface MyRouteContext {
     userToken?: string
@@ -29,8 +23,15 @@ export const Route = createRootRouteWithContext<MyRouteContext>()({
 
 function App() {
 
-    const themeMode = useSelector((state: RootState) => state.app?.themeMode)
+    const {i18n} = useTranslation()
+    const {themeMode} = useSelector((state: RootState) => state.app)
     const {theme: systemTheme} = useTheme()
+    const locale = normalizeLocale(i18n.resolvedLanguage ?? DEFAULT_LOCALE)
+    const antdLocale = getAntdLocale(locale)
+
+    React.useEffect(() => {
+        syncDayjsLocale(locale)
+    }, [locale])
 
     const handleThemeChange = () => {
         switch (themeMode) {
@@ -46,7 +47,7 @@ function App() {
     return (
         <StyleProvider layer>
             <ConfigProvider
-                locale={zhCN}
+                locale={antdLocale}
                 theme={{
                     algorithm: handleThemeChange(),
                 }}>

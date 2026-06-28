@@ -11,6 +11,7 @@ import {Dispatch, RootState} from "../../models";
 import Styles from "./index.module.css";
 import {vibrateError} from "../../utils/haptics.ts";
 import {PinMode} from "./types.ts";
+import {useTranslation} from "react-i18next";
 
 const {useToken} = theme
 
@@ -21,7 +22,7 @@ interface Props {
 }
 
 function PinView(props: Props) {
-
+    const {t} = useTranslation(['common'])
     const {pin, mode, onClose} = props;
     const {token} = useToken()
     const [numbers, setNumbers] = useState<string[]>([])
@@ -52,7 +53,7 @@ function PinView(props: Props) {
                     onClose()
                 } else {
                     setNumbers([])
-                    triggerErrorFeedback('密码错误')
+                    triggerErrorFeedback(t('common:pin.incorrect'))
                 }
             } else if (mode === PinMode.setting) {
                 if (repeatNumbers.length === 0) {
@@ -60,14 +61,14 @@ function PinView(props: Props) {
                     setNumbers([])
                 } else {
                     if (repeatNumbers.join('') !== newNumbers.join('')) {
-                        triggerErrorFeedback('两次输入密码不匹配')
+                        triggerErrorFeedback(t('common:pin.mismatch'))
                         setRepeatNumbers([])
                         setNumbers([])
                     } else {
                         const hash = sha256.create()
                         hash.update(newNumbers.join(''))
                         dispatch.setPin(hash.hex())
-                        message.success('密码设置成功')
+                        message.success(t('common:pin.setSuccess'))
                         onClose()
                     }
                 }
@@ -86,7 +87,7 @@ function PinView(props: Props) {
         return (mode === PinMode.setting) && (
             <div className={'flex flex-col items-center mt-8 font-light text-xs'}>
                 <div>
-                    由于系统及兼容性限制，可靠性无法保证
+                    {t('common:pin.warning')}
                 </div>
             </div>
         )
@@ -105,9 +106,9 @@ function PinView(props: Props) {
                             >
                                 <div style={{color: token.colorText}}>
                                     {repeatNumbers.length > 0 ? (
-                                        '请再次输入密码 '
+                                        t('common:pin.repeat')
                                     ) : (
-                                        '请输入密码'
+                                        t('common:pin.enter')
                                     )}
                                 </div>
                                 <Space className={'flex justify-center mt-8'}>
@@ -119,9 +120,9 @@ function PinView(props: Props) {
                                 {(pin && mode === PinMode.setting) && (
                                     <Button type={'link'} className={'mt-4'} onClick={() => {
                                         dispatch.setPin(null)
-                                        message.success('密码取消成功')
+                                        message.success(t('common:pin.cleared'))
                                         onClose()
-                                    }}>清空密码</Button>
+                                    }}>{t('common:pin.clear')}</Button>
                                 )}
                                 <div className={'h-14 flex items-center'} style={{color: token.colorError}}>
                                     {errorMessage}

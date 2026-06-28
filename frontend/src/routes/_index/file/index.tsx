@@ -10,6 +10,7 @@ import RoutePendingState from "../../../components/RoutePendingState";
 import {createFileRoute, Link} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 import BatchModal from "./-components/batchModal.tsx";
+import {useTranslation} from "react-i18next";
 
 const {useToken} = theme
 
@@ -28,7 +29,7 @@ function filesQueryOptions() {
 }
 
 function File() {
-
+    const {t} = useTranslation(['file']);
     const {token} = useToken()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(filesQueryOptions())
@@ -64,8 +65,8 @@ function File() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'文件列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('file:errors.loadTitle')}
+                description={t('file:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -82,7 +83,7 @@ function File() {
                           </div>
                           <div className={'flex-1'}>
                               <List.Item actions={[
-                                  <Tooltip title={'整理'}>
+                                  <Tooltip title={t('file:organize')}>
                                       <IconButton onClick={() => setSelectedVideo(item.fullPath)}>
                                           <FolderViewOutlined style={{fontSize: token.sizeLG}}/>
                                       </IconButton>
@@ -100,28 +101,28 @@ function File() {
             />
         );
     } else {
-        content = <Empty description={(<span>无文件，<Link to={'/setting/file'}>配置文件</Link></span>)}/>;
+        content = <Empty description={(<span>{t('file:empty.title')}<Link to={'/setting/file'}>{t('file:empty.configure')}</Link></span>)}/>;
     }
 
     return (
         <Card title={(
             <div className={'flex items-center'}>
                 <Checkbox checked={allSelected} onClick={toggleAll} indeterminate={partiallySelected}/>
-                <div className={'ant-card-head-title ml-3'}>文件列表</div>
+                <div className={'ant-card-head-title ml-3'}>{t('file:pageTitle')}</div>
             </div>
         )}
               extra={(
                   <Space>
                       {selected.length > 0 ? (
-                          <Button type={'primary'} onClick={() => setBatchModalOpen(true)}>批量整理</Button>
+                          <Button type={'primary'} onClick={() => setBatchModalOpen(true)}>{t('file:batchTitle')}</Button>
                       ) : (
                           <Input.Search className={'w-48'} value={keyword} onChange={e => setKeyword(e.target.value)}
-                                        placeholder={'搜索'}/>
+                                        placeholder={t('file:searchPlaceholder')}/>
                       )}
                   </Space>
               )}>
             {content}
-            <VideoDetail title={'文件整理'}
+            <VideoDetail title={t('file:detailTitle')}
                          mode={'file'}
                          width={1100}
                          path={selectedVideo}

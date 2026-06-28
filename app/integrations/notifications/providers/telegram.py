@@ -2,6 +2,7 @@ import os
 
 import requests
 
+from app.i18n import translate
 from app.integrations.notifications.base import NotificationEvent, NotificationProvider
 from app.schema.notification import CookieInvalidPayload, SubscribeStartedPayload, VideoFailedPayload, VideoSavedPayload
 from app.schema.setting import NotifyTelegramConfig
@@ -31,16 +32,20 @@ class TelegramNotificationProvider(NotificationProvider):
         actors = ', '.join(map(lambda item: item.name, video.actors))
         tags = []
         if video.is_zh:
-            tags.append('中文')
+            tags.append(translate('notify.tag.zh'))
         if video.is_uncensored:
-            tags.append('无码')
-        content = f'''
-<b><tg-spoiler>{video.num}</tg-spoiler>整理成功</b>
-演员：<tg-spoiler>{actors}</tg-spoiler>
-大小：{video.size}
-文件：<tg-spoiler>{video.path}</tg-spoiler>
-标签：<tg-spoiler>{', '.join(tags)}</tg-spoiler>
-'''
+            tags.append(translate('notify.tag.uncensored'))
+        content = self._build_message(
+            title_key='notify.video.saved.title',
+            body_key='notify.video.saved.body',
+            params={
+                'num': video.num or '-',
+                'actors': actors or '-',
+                'size': video.size or '-',
+                'path': video.path or '-',
+                'tags': ', '.join(tags) if tags else '-',
+            },
+        )
 
         picture = None
         picture_name = None
@@ -51,12 +56,15 @@ class TelegramNotificationProvider(NotificationProvider):
         self._send_message(content, picture=picture, picture_name=picture_name)
 
     def _send_video_failed(self, video: VideoFailedPayload):
-        content = f'''
-<b>影片整理失败</b>
-文件：<tg-spoiler>{video.path}</tg-spoiler>
-大小：{video.size}
-消息: <tg-spoiler>{video.message}</tg-spoiler>
-'''
+        content = self._build_message(
+            title_key='notify.video.failed.title',
+            body_key='notify.video.failed.body',
+            params={
+                'path': video.path or '-',
+                'size': video.size or '-',
+                'message': video.message or '-',
+            },
+        )
 
         picture = None
         picture_name = None
@@ -69,22 +77,30 @@ class TelegramNotificationProvider(NotificationProvider):
     def _send_subscribe_started(self, subscribe: SubscribeStartedPayload):
         tags = []
         if subscribe.is_hd:
-            tags.append('高清')
+            tags.append(translate('notify.tag.hd'))
         if subscribe.is_zh:
-            tags.append('中文')
+            tags.append(translate('notify.tag.zh'))
         if subscribe.is_uncensored:
-            tags.append('无码')
+            tags.append(translate('notify.tag.uncensored'))
 
-        content = f'''
-<b><tg-spoiler>{subscribe.num}</tg-spoiler>开始下载</b>
-演员：<tg-spoiler>{subscribe.actors}</tg-spoiler>
-大小：{subscribe.size}
-名称：<tg-spoiler>{subscribe.name}</tg-spoiler>
-站点：<tg-spoiler>{subscribe.source.site_name if subscribe.source else ''}</tg-spoiler>
-链接：<a href='{subscribe.url}'>点击</a>
-日期：{subscribe.publish_date}
-标签：<tg-spoiler>{', '.join(tags)}</tg-spoiler>
-'''
+        link_text = (
+            f"<a href='{subscribe.url}'>{translate('notify.action.click')}</a>"
+            if subscribe.url else '-'
+        )
+        content = self._build_message(
+            title_key='notify.subscribe.started.title',
+            body_key='notify.subscribe.started.body',
+            params={
+                'num': subscribe.num,
+                'actors': subscribe.actors or '-',
+                'size': subscribe.size or '-',
+                'name': subscribe.name or '-',
+                'site': subscribe.source.site_name if subscribe.source else '-',
+                'link': link_text,
+                'publish_date': subscribe.publish_date or '-',
+                'tags': ', '.join(tags) if tags else '-',
+            },
+        )
 
         picture = None
         picture_name = None
@@ -95,13 +111,22 @@ class TelegramNotificationProvider(NotificationProvider):
         self._send_message(content, picture=picture, picture_name=picture_name)
 
     def _send_cookie_invalid(self, cookie: CookieInvalidPayload):
-        content = f'''
-<b>⚠️ 站点Cookie失效</b>
-站点：<tg-spoiler>{cookie.site_name}</tg-spoiler>
-域名：<tg-spoiler>{cookie.domain}</tg-spoiler>
-原因：<tg-spoiler>{cookie.message}</tg-spoiler>
-'''
+        content = self._build_message(
+            title_key='notify.cookie.invalid.title',
+            body_key='notify.cookie.invalid.body',
+            params={
+                'site_name': cookie.site_name,
+                'domain': cookie.domain,
+                'message': cookie.message,
+            },
+        )
         self._send_message(content)
+
+    @staticmethod
+    def _build_message(title_key: str, body_key: str, params: dict[str, object]) -> str:
+        title = translate(title_key, params)
+        body = translate(body_key, params)
+        return f"\n<b>{title}</b>\n{body}\n"
 
     def _send_message(self, content: str, picture: bytes | None = None, picture_name: str | None = None):
         token = self.settings.token

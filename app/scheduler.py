@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
+from app.i18n import translate
 from app.schema import Setting
 from app.service.actor_favorite import ActorFavoriteService
 from app.service.cookiecloud import CookieCloudService
@@ -49,32 +50,32 @@ class Job(BaseModel):
 class Scheduler:
     jobs = {
         'subscribe': Job(key='subscribe',
-                         name='订阅下载',
+                         name='scheduler.job.subscribe',
                          job=SubscribeService.job_subscribe,
                          schedule_provider=build_subscribe_schedule),
         'actor_favorite_thumb_update': Job(key='actor_favorite_thumb_update',
-                                           name='演员收藏头像刷新',
+                                           name='scheduler.job.actor_favorite_thumb_update',
                                            job=ActorFavoriteService.job_refresh_missing_thumb,
                                            schedule_provider=build_fixed_schedule(interval=100 * 60, jitter=6 * 60 * 60)),
         'scrape_download': Job(key='scrape_download',
-                               name='整理已完成下载',
+                               name='scheduler.job.scrape_download',
                                job=DownloadService.job_scrape_download,
                                schedule_provider=build_fixed_schedule(interval=5)),
         'delete_complete_download': Job(key='delete_complete_download',
-                                        name='删除已整理下载',
+                                        name='scheduler.job.delete_complete_download',
                                         job=DownloadService.job_delete_complete_download,
                                         schedule_provider=build_fixed_schedule(interval=5)),
         'clean_image_cache': Job(key='clean_image_cache',
-                                 name='清理图片缓存',
+                                 name='scheduler.job.clean_image_cache',
                                  job=ResourceService.job_clean_cache,
                                  schedule_provider=build_fixed_schedule(interval=12 * 60, jitter=60)),
         'refresh_available_sites': Job(key='refresh_available_sites',
-                                       name='刷新可用站点',
+                                       name='scheduler.job.refresh_available_sites',
                                        job=SiteService.job_testing_sites,
                                        schedule_provider=build_fixed_schedule(interval=1 * 24 * 60, jitter=2 * 60 * 60),
                                        immediate=True),
         'cookiecloud_sync': Job(key='cookiecloud_sync',
-                                name='CookieCloud 同步',
+                                name='scheduler.job.cookiecloud_sync',
                                 job=CookieCloudService().sync,
                                 schedule_provider=build_fixed_schedule(interval=60),
                                 immediate=True),
@@ -117,7 +118,8 @@ class Scheduler:
         jitter: int | None = None,
     ):
         job = self.jobs.get(key)
-        logger.info(f"启动任务，{job.name}")
+        job_name = translate(job.name)
+        logger.info(translate('log.scheduler.job_started', {'job_name': job_name}))
         job_kwargs = {}
         if job.immediate or run_now:
             job_kwargs['next_run_time'] = datetime.now()
@@ -130,7 +132,7 @@ class Scheduler:
         self.scheduler.add_job(self.do_job,
                                trigger=IntervalTrigger(**{interval_unit: resolved_interval}, jitter=resolved_jitter),
                                id=job.key,
-                               name=job.name,
+                               name=job_name,
                                args=[job.key],
                                max_instances=job.max_instances,
                                misfire_grace_time=job.misfire_grace_time,
@@ -139,7 +141,7 @@ class Scheduler:
     def remove(self, key: str):
         job = self.scheduler.get_job(key)
         if job:
-            logger.info(f"停止任务，{job.name}")
+            logger.info(translate('log.scheduler.job_stopped', {'job_name': job.name}))
             self.scheduler.remove_job(key)
 
     def manually(self, key: str):
@@ -150,7 +152,7 @@ class Scheduler:
     def do_job(cls, key):
         job = cls.jobs[key]
         try:
-            logger.info(f'执行任务，{job.name}')
+            logger.info(translate('log.scheduler.job_running', {'job_name': translate(job.name)}))
             job.running += 1
             job.job()
         finally:

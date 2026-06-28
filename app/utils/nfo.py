@@ -4,6 +4,7 @@ import traceback
 from app.schema import VideoDetail, VideoActor, VideoList
 import xml.etree.ElementTree as ET
 
+from app.i18n import translate
 from app.utils.logger import logger
 
 
@@ -64,7 +65,7 @@ def get_basic(video: str, include_actor: bool = False):
         )
         return nfo
     except Exception:
-        logger.warning(f'{video} NFO文件读取失败')
+        logger.warning(translate('log.nfo.read_failed', {'video': video}))
         traceback.print_exc()
         return None
 

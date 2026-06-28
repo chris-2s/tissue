@@ -21,10 +21,13 @@
     "axios": "^1.18.0",
     "compare-versions": "^6.1.1",
     "hls.js": "^1.6.16",
+    "i18next": "^25.5.3",
+    "i18next-browser-languagedetector": "^8.2.0",
     "js-cookie": "^3.0.8",
     "js-sha256": "^0.11.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-i18next": "^15.7.3",
     "react-lazy-load-image-component": "^1.6.3",
     "react-redux": "^9.3.0",
     "yet-another-react-lightbox": "^3.32.0"

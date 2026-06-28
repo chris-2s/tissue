@@ -15,6 +15,7 @@ from starlette.concurrency import run_in_threadpool
 from app.crawlers import DEFAULT_IMPERSONATE, JavDBSpider, Spider
 from app.db import get_db
 from app.db.models import Site
+from app.i18n import translate
 from app.schema import Setting
 from app.service.base import BaseService
 from app.service.spider import SpiderService
@@ -218,7 +219,7 @@ class ResourceService(BaseService):
         )
 
         if response.status_code == 416 and request_headers.get("Range"):
-            logger.warning("上游返回 416，尝试不带 Range 重试: %s", url)
+            logger.warning(translate('log.resource.upstream_416_retry', {'url': url}))
             response.close()
             retry_headers = {k: v for k, v in request_headers.items() if k.lower() != "range"}
             response = curl_requests.get(
@@ -273,7 +274,7 @@ class ResourceService(BaseService):
             m3u8_text, upstream_headers = await run_in_threadpool(self._fetch_m3u8_via_cffi, url, headers, cookie_str)
         except Exception as exc:
             status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
-            logger.warning("代理 m3u8 失败: %s %s", status_code, url)
+            logger.warning(translate('log.resource.proxy_m3u8_failed', {'status_code': status_code, 'url': url}))
             return Response(status_code=status_code)
 
         effective_base_url = base_url or str(request.base_url).rstrip("/")
@@ -292,7 +293,7 @@ class ResourceService(BaseService):
                                                                           cookie_str)
         except Exception as exc:
             status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
-            logger.warning("代理视频流失败: %s %s", status_code, url)
+            logger.warning(translate('log.resource.proxy_video_failed', {'status_code': status_code, 'url': url}))
             return Response(status_code=status_code)
 
         excluded_headers = {
@@ -331,7 +332,8 @@ class ResourceService(BaseService):
     @classmethod
     def job_clean_cache(cls):
         result = cache.cleanup_expired_cache()
-        logger.info(
-            f"图片缓存清理完成，删除元数据 {result['removed_metadata']} 个，"
-            f"删除数据文件 {result['removed_data']} 个，删除空目录 {result['removed_dirs']} 个"
-        )
+        logger.info(translate('log.resource.cache_cleanup_completed', {
+            'removed_metadata': result['removed_metadata'],
+            'removed_data': result['removed_data'],
+            'removed_dirs': result['removed_dirs'],
+        }))

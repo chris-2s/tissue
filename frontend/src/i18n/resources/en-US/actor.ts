@@ -1,0 +1,31 @@
+export default {
+    detail: {
+        loadErrorTitle: 'Failed to load actor works',
+        loadErrorDescription: 'Check the network or site status and try again',
+        favoriteCreated: 'Actor added to favorites',
+        favoriteRemoved: 'Favorite removed',
+        favoriteMissing: 'Matching favorite record was not found',
+        unknownActor: 'Unknown actor',
+        aliasPrefix: 'Aliases: ',
+        aliasEmpty: 'No alias information',
+        addFavorite: 'Add to Favorites',
+        removeFavorite: 'Remove Favorite',
+        emptyWorks: 'No works',
+    },
+    favorite: {
+        pageTitle: 'Actor Favorites',
+        loadErrorTitle: 'Failed to load actor favorites',
+        loadErrorDescription: 'Check the network and try again',
+        deleteSuccess: 'Deleted successfully',
+        empty: 'No actor favorites',
+        emptyFiltered: 'No matching actor favorites',
+        openWorks: 'View Works',
+        currentFilters: 'Current filters',
+        clearFilters: 'Clear filters',
+        searchPlaceholder: 'Search actor names or aliases, or press Enter after typing a name',
+        token: {
+            actor: 'Actor',
+            alias: 'Alias',
+        },
+    },
+} as const;

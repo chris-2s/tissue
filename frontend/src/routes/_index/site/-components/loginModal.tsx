@@ -2,6 +2,7 @@ import {Button, Form, Image, Input, message, Modal, Space} from "antd";
 import {useRequest} from "ahooks";
 import * as api from "../../../../apis/site.ts";
 import React, {useState} from "react";
+import {useTranslation} from "react-i18next";
 
 interface LoginModalProps {
     siteId: number;
@@ -18,6 +19,7 @@ interface LoginFormValues {
 }
 
 function LoginModal(props: LoginModalProps) {
+    const {t} = useTranslation(['site', 'common'])
     const {siteId, siteName, open, onClose, onSuccess} = props
 
     const [form] = Form.useForm()
@@ -42,7 +44,7 @@ function LoginModal(props: LoginModalProps) {
     const {run: submitLogin, loading: logging} = useRequest(api.submitLogin, {
         manual: true,
         onSuccess: () => {
-            message.success('登录成功')
+            message.success(t('site:modals.loginSuccess'))
             onSuccess()
             handleClose()
         },
@@ -66,7 +68,7 @@ function LoginModal(props: LoginModalProps) {
 
     const handleFinish = (values: LoginFormValues) => {
         if (!loginData) {
-            message.error('登录信息已过期，请重新打开')
+            message.error(t('site:modals.loginExpired'))
             return
         }
         submitLogin(siteId, {
@@ -85,34 +87,34 @@ function LoginModal(props: LoginModalProps) {
     return (
         <Modal
             open={open}
-            title={`登录 ${siteName}`}
+            title={t('site:modals.loginTitle', {siteName})}
             onCancel={handleClose}
             footer={null}
             destroyOnHidden
         >
             <Form form={form} layout={'vertical'} onFinish={handleFinish}>
-                <Form.Item label={'验证码'}>
+                <Form.Item label={t('site:modals.captcha')}>
                     <Space>
                         {captchaImg ? (
                             <Image src={captchaImg} height={40} preview={false} />
                         ) : (
                             <div style={{height: 40, width: 100, background: '#f0f0f0'}} />
                         )}
-                        <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin}>换一张</Button>
+                        <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin}>{t('site:modals.refreshCaptcha')}</Button>
                     </Space>
                 </Form.Item>
-                <Form.Item name={'username'} label={'账号'} rules={[{required: true}]}>
-                    <Input placeholder={'请输入账号'} />
+                <Form.Item name={'username'} label={t('site:modals.username')} rules={[{required: true}]}>
+                    <Input placeholder={t('site:modals.usernamePlaceholder')} />
                 </Form.Item>
-                <Form.Item name={'password'} label={'密码'} rules={[{required: true}]}>
-                    <Input.Password placeholder={'请输入密码'} />
+                <Form.Item name={'password'} label={t('site:modals.password')} rules={[{required: true}]}>
+                    <Input.Password placeholder={t('site:modals.passwordPlaceholder')} />
                 </Form.Item>
-                <Form.Item name={'captcha'} label={'验证码'} rules={[{required: true}]}>
-                    <Input placeholder={'请输入验证码'} />
+                <Form.Item name={'captcha'} label={t('site:modals.captcha')} rules={[{required: true}]}>
+                    <Input placeholder={t('site:modals.captchaPlaceholder')} />
                 </Form.Item>
                 <div style={{textAlign: 'center'}}>
-                    <Button onClick={handleClose} style={{marginRight: 8}}>取消</Button>
-                    <Button type={'primary'} htmlType={'submit'} loading={logging}>登录</Button>
+                    <Button onClick={handleClose} style={{marginRight: 8}}>{t('common:actions.cancel')}</Button>
+                    <Button type={'primary'} htmlType={'submit'} loading={logging}>{t('site:capabilities.login')}</Button>
                 </div>
             </Form>
         </Modal>

@@ -3,26 +3,26 @@ import type {ComponentType} from "react";
 import themeAutoSvg from "../assets/theme-auto.svg?raw";
 
 type ThemeOption = {
-    title: string
+    titleKey: string
     name: string
     icon?: ComponentType<any>
     svg?: string
 }
 
 export const themes: ThemeOption[] = [
-    {title: '跟随系统', name: 'system', svg: themeAutoSvg},
-    {title: '明亮', name: 'light', icon: SunOutlined},
-    {title: '暗黑', name: 'dark', icon: MoonOutlined},
+    {titleKey: 'common:theme.system', name: 'system', svg: themeAutoSvg},
+    {titleKey: 'common:theme.light', name: 'light', icon: SunOutlined},
+    {titleKey: 'common:theme.dark', name: 'dark', icon: MoonOutlined},
 ]
 
 export const TransModeOptions = [
-    {name: '复制', value: 'copy', color: 'blue'},
-    {name: '移动', value: 'move', color: 'purple'},
-    {name: '硬连接', value: 'hardlink', color: 'cyan'},
-    {name: '软连接', value: 'symlink', color: 'gold'},
+    {value: 'copy', color: 'blue'},
+    {value: 'move', color: 'purple'},
+    {value: 'hardlink', color: 'cyan'},
+    {value: 'symlink', color: 'gold'},
 ]
 
 export const ManualTransModeOptions = [
-    {name: '使用系统设置', value: 'system'},
+    {value: 'system'},
     ...TransModeOptions,
 ]

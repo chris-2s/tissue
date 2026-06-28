@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {Dispatch, RootState} from "../../models";
 import Logo from "../../assets/logo.png";
 import {createFileRoute, redirect} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import Styles from "./index.module.css";
 
 const {useToken} = theme
@@ -24,6 +25,7 @@ export const Route = createFileRoute('/login/')({
 function Login() {
 
     const [form] = Form.useForm()
+    const {t} = useTranslation('auth')
     const {token} = useToken()
     const themeMode = useSelector((state: RootState) => state.app.themeMode)
     const {theme: systemTheme} = useTheme()
@@ -78,25 +80,25 @@ function Login() {
                 <div className={Styles.brand}>
                     <img src={Logo} alt="Tissue"/>
                 </div>
-                <h1 className={Styles.title}>登录</h1>
+                <h1 className={Styles.title}>{t('auth:login.title')}</h1>
                 <Form className={Styles.form} size={'large'} form={form} onFinish={(values) => authDispatch.login(values)}>
                     <Form.Item name={'username'}>
-                        <Input prefix={<UserOutlined/>} placeholder={'用户名'}/>
+                        <Input prefix={<UserOutlined/>} placeholder={t('auth:login.usernamePlaceholder')}/>
                     </Form.Item>
                     <Form.Item name={'password'}>
-                        <Input.Password prefix={<LockOutlined/>} placeholder={'密码'}/>
+                        <Input.Password prefix={<LockOutlined/>} placeholder={t('auth:login.passwordPlaceholder')}/>
                     </Form.Item>
                     <div className={Styles.remember}>
                         <Form.Item noStyle name={'remember'} valuePropName={'checked'}>
-                            <Checkbox>保持登录</Checkbox>
+                            <Checkbox>{t('auth:login.remember')}</Checkbox>
                         </Form.Item>
                     </div>
                     <Button className={Styles.submit} type={'primary'} style={{width: '100%', background: token.colorPrimary}} loading={logging}
-                            htmlType={'submit'}>登录</Button>
+                            htmlType={'submit'}>{t('auth:login.submit')}</Button>
                 </Form>
                 <div className={Styles.version}>
-                    {versions?.current ? <span>当前版本 {versions.current}</span> : <span>版本信息加载中</span>}
-                    {versions?.hasNew && <span className={Styles.versionBadge}>新版本 {versions.latest}</span>}
+                    {versions?.current ? <span>{t('auth:login.currentVersion', {version: versions.current})}</span> : <span>{t('auth:login.loadingVersion')}</span>}
+                    {versions?.hasNew && <span className={Styles.versionBadge}>{t('auth:login.newVersion', {version: versions.latest})}</span>}
                 </div>
             </section>
         </div>

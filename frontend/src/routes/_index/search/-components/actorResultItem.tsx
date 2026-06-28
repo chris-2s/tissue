@@ -1,5 +1,6 @@
-import {List, Tag} from "antd";
+import {List} from "antd";
 import React from "react";
+import {useTranslation} from "react-i18next";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
 import type {ActorCandidate} from "./types";
@@ -10,6 +11,7 @@ interface ActorResultItemProps {
 }
 
 function ActorResultItem(props: ActorResultItemProps) {
+    const {t} = useTranslation(['search']);
     const {item, onClick} = props;
 
     return (
@@ -23,9 +25,9 @@ function ActorResultItem(props: ActorResultItemProps) {
                 )}
                 title={item.name}
                 description={(item.alias && item.alias.length > 0) ? (
-                    <div>别名：{item.alias.join("，")}</div>
+                    <div>{t('search:actorResults.aliasLabel')}: {item.alias.join("，")}</div>
                 ) : (
-                    <div>暂无别名</div>
+                    <div>{t('search:actorResults.noAlias')}</div>
                 )}
             />
         </List.Item>

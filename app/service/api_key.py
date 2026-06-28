@@ -8,6 +8,7 @@ from app.db import get_db
 from app.db.models.api_key import ApiKey
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.service.base import BaseService
 
 
@@ -29,7 +30,7 @@ class ApiKeyService(BaseService):
             exist = ApiKey.get_by_key(self.db, candidate)
             if not exist:
                 return candidate
-        raise BizException("API Key 生成失败，请重试")
+        raise BizException("API Key 生成失败", error_code=ErrorCode.API_KEY_CREATE_FAILED)
 
     def list_api_keys(self, user_id: int):
         keys = ApiKey.list_by_user_id(self.db, user_id)
@@ -63,9 +64,9 @@ class ApiKeyService(BaseService):
     def update_api_key(self, user_id: int, api_key_id: int, params: schema.ApiKeyUpdate):
         record = ApiKey.get(self.db, api_key_id)
         if not record:
-            raise BizException("API Key 不存在")
+            raise BizException("API Key 不存在", error_code=ErrorCode.API_KEY_NOT_FOUND)
         if record.user_id != user_id:
-            raise BizException("无权限操作该 API Key")
+            raise BizException("无权限操作该 API Key", error_code=ErrorCode.API_KEY_FORBIDDEN)
         payload = params.model_dump(exclude_none=True)
         if not payload:
             return
@@ -75,7 +76,7 @@ class ApiKeyService(BaseService):
     def delete_api_key(self, user_id: int, api_key_id: int):
         record = ApiKey.get(self.db, api_key_id)
         if not record:
-            raise BizException("API Key 不存在")
+            raise BizException("API Key 不存在", error_code=ErrorCode.API_KEY_NOT_FOUND)
         if record.user_id != user_id:
-            raise BizException("无权限操作该 API Key")
+            raise BizException("无权限操作该 API Key", error_code=ErrorCode.API_KEY_FORBIDDEN)
         record.delete(self.db)

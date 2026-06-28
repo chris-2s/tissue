@@ -9,6 +9,7 @@ import type {SiteItem} from "../../../apis/site.ts";
 import {useRequest} from "ahooks";
 import {KeyOutlined, LoadingOutlined, OrderedListOutlined, RedoOutlined} from "@ant-design/icons";
 import React, {useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import PageFloatButtons from "../../../components/PageFloatButtons";
@@ -31,6 +32,7 @@ function sitesQueryOptions() {
 
 function Site() {
 
+    const {t} = useTranslation(['site'])
     const {token} = theme.useToken()
     const queryClient = useQueryClient()
     const navigate = useNavigate()
@@ -50,7 +52,7 @@ function Site() {
     const {run: onTesting, loading: testing} = useRequest(api.testingSits, {
         manual: true,
         onSuccess: () => {
-            message.success("站点刷新提交成功")
+            message.success(t('site:refreshSubmitted'))
             queryClient.invalidateQueries({queryKey: ['sites']})
         }
     })
@@ -58,16 +60,16 @@ function Site() {
         <>
             <FloatButton
                 icon={<OrderedListOutlined/>}
-                tooltip={'刮削优先级'}
+                tooltip={t('site:actions.priority')}
                 onClick={() => navigate({to: '/site/priority'})}
             />
             <FloatButton
                 icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
-                tooltip={'刷新站点'}
+                tooltip={t('site:actions.refresh')}
                 onClick={() => onTesting()}
             />
         </>
-    ), [navigate, onTesting, testing])
+    ), [navigate, onTesting, t, testing])
 
     const handleRefreshCookie = (item: SiteItem) => {
         setLoginSite({ id: item.id, name: item.name })
@@ -76,7 +78,7 @@ function Site() {
     function renderItem(item: SiteItem) {
         return (
             <List.Item>
-                <Badge.Ribbon text={item.status ? '启用' : '停用'}
+                <Badge.Ribbon text={item.status ? t('site:status.enabled') : t('site:status.disabled')}
                               color={item.status ? token.colorPrimary : token.colorTextDisabled}>
                     <Card size={'default'}
                           title={(
@@ -90,14 +92,14 @@ function Site() {
                     >
                         <Space orientation={"vertical"} size={'large'}>
                             <div style={{color: token.colorTextSecondary}}>
-                                <span>{item.alternate_host || '未设置替代域名'}</span>
+                                <span>{item.alternate_host || t('site:fallback.alternateHost')}</span>
                             </div>
                             <div>
-                                <Tag color={'blue'} variant={'filled'}>元数据</Tag>
-                                {item.capabilities?.supports_downloads && <Tag color={'green'} variant={'filled'}>下载</Tag>}
-                                {item.capabilities?.supports_ranking && <Tag color={'gold'} variant={'filled'}>榜单</Tag>}
-                                {item.capabilities?.supports_actor && <Tag color={'purple'} variant={'filled'}>演员页</Tag>}
-                                {item.capabilities?.supports_login && <Tag color={'cyan'} variant={'filled'}>登录</Tag>}
+                                <Tag color={'blue'} variant={'filled'}>{t('site:capabilities.metadata')}</Tag>
+                                {item.capabilities?.supports_downloads && <Tag color={'green'} variant={'filled'}>{t('site:capabilities.download')}</Tag>}
+                                {item.capabilities?.supports_ranking && <Tag color={'gold'} variant={'filled'}>{t('site:capabilities.ranking')}</Tag>}
+                                {item.capabilities?.supports_actor && <Tag color={'purple'} variant={'filled'}>{t('site:capabilities.actor')}</Tag>}
+                                {item.capabilities?.supports_login && <Tag color={'cyan'} variant={'filled'}>{t('site:capabilities.login')}</Tag>}
                             </div>
                             <div>
                                 {item.capabilities?.supports_login ? (
@@ -109,11 +111,11 @@ function Site() {
                                             handleRefreshCookie(item)
                                         }}
                                     >
-                                        刷新Cookie
+                                        {t('site:actions.refreshCookie')}
                                     </Button>
                                 ) : (
                                     <Button icon={<KeyOutlined />} size={'small'} style={{visibility: 'hidden'}}>
-                                        刷新Cookie
+                                        {t('site:actions.refreshCookie')}
                                     </Button>
                                 )}
                             </div>
@@ -131,8 +133,8 @@ function Site() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'站点列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('site:errors.loadTitle')}
+                description={t('site:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -146,11 +148,11 @@ function Site() {
         );
     } else {
         content = (
-            <Card title={'站点'}>
+            <Card title={t('site:pageTitle')}>
                 <Empty description={(
                     <div>
-                        <div>无可用站点</div>
-                        <div>请检查网络连接后 <a onClick={() => onTesting()}>刷新站点</a></div>
+                        <div>{t('site:empty.title')}</div>
+                        <div>{t('site:empty.hintPrefix')}<a onClick={() => onTesting()}>{t('site:empty.refreshLink')}</a></div>
                     </div>
                 )}/>
             </Card>

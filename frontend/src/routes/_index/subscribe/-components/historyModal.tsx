@@ -4,6 +4,7 @@ import {Button, Dropdown, Empty, Grid, List, message, Modal, ModalProps, Paginat
 import dayjs from "dayjs";
 import React, {useEffect, useMemo, useState} from "react";
 import {useRouter} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 
 import * as api from "../../../../apis/subscribe";
 import RemoteImage from "../../../../components/RemoteImage";
@@ -18,6 +19,7 @@ interface Props extends ModalProps {
 }
 
 function HistoryModal(props: Props) {
+    const {t} = useTranslation(['subscribe', 'common']);
     const {onResubscribe, open, ...otherProps} = props;
     const router = useRouter();
     const screens = Grid.useBreakpoint();
@@ -41,7 +43,7 @@ function HistoryModal(props: Props) {
     const {loading: loadingResubscribe, run: runResubscribe} = useRequest(api.resubscribe, {
         manual: true,
         onSuccess: () => {
-            message.success("重新订阅成功");
+            message.success(t('subscribe:history.resubscribeSuccess'));
             onResubscribe();
             refresh();
         }
@@ -50,7 +52,7 @@ function HistoryModal(props: Props) {
     const {loading: loadingDelete, run: runDelete} = useRequest(api.deleteSubscribe, {
         manual: true,
         onSuccess: () => {
-            message.success("订阅历史删除成功");
+            message.success(t('subscribe:history.deleteSuccess'));
             const nextTotal = Math.max(0, (pagination.total || 0) - 1);
             const maxPage = Math.max(1, Math.ceil(nextTotal / pageSize));
             const nextPage = Math.min(page, maxPage);
@@ -84,7 +86,7 @@ function HistoryModal(props: Props) {
                             });
                         }}
                     >
-                        搜索
+                        {t('subscribe:history.actions.search')}
                     </Button>
                     <Dropdown
                         trigger={['click']}
@@ -93,27 +95,27 @@ function HistoryModal(props: Props) {
                                 {
                                     key: 'resubscribe',
                                     icon: <RollbackOutlined/>,
-                                    label: '重新订阅'
+                                    label: t('subscribe:history.actions.resubscribe')
                                 },
                                 {
                                     key: 'delete',
                                     icon: <DeleteOutlined/>,
                                     danger: true,
-                                    label: '删除'
+                                    label: t('subscribe:history.actions.delete')
                                 }
                             ],
                             onClick: ({key}) => {
                                 if (key === 'resubscribe') {
                                     Modal.confirm({
-                                        title: '确认重新订阅这条记录？',
+                                        title: t('subscribe:history.confirm.resubscribe'),
                                         onOk: () => runResubscribe(item.id),
                                     });
                                 }
                                 if (key === 'delete') {
                                     Modal.confirm({
-                                        title: '确认删除这条订阅历史？',
-                                        okText: '删除',
-                                        cancelText: '取消',
+                                        title: t('subscribe:history.confirm.delete'),
+                                        okText: t('common:actions.delete'),
+                                        cancelText: t('common:actions.cancel'),
                                         okButtonProps: {danger: true},
                                         onOk: () => runDelete(item.id),
                                     });
@@ -125,7 +127,7 @@ function HistoryModal(props: Props) {
                             size={'small'}
                             icon={<MoreOutlined/>}
                         >
-                            更多
+                            {t('subscribe:history.actions.more')}
                         </Button>
                     </Dropdown>
                 </div>
@@ -144,12 +146,12 @@ function HistoryModal(props: Props) {
                         });
                     }}
                 >
-                    搜索
+                    {t('subscribe:history.actions.search')}
                 </Button>
                 <Popconfirm
-                    title={'确认重新订阅这条记录？'}
-                    okText={'确认'}
-                    cancelText={'取消'}
+                    title={t('subscribe:history.confirm.resubscribe')}
+                    okText={t('common:actions.confirm')}
+                    cancelText={t('common:actions.cancel')}
                     onConfirm={() => runResubscribe(item.id)}
                 >
                     <Button
@@ -158,13 +160,13 @@ function HistoryModal(props: Props) {
                         icon={<RollbackOutlined/>}
                         loading={loadingResubscribe}
                     >
-                        重新订阅
+                        {t('subscribe:history.actions.resubscribe')}
                     </Button>
                 </Popconfirm>
                 <Popconfirm
-                    title={'确认删除这条订阅历史？'}
-                    okText={'删除'}
-                    cancelText={'取消'}
+                    title={t('subscribe:history.confirm.delete')}
+                    okText={t('common:actions.delete')}
+                    cancelText={t('common:actions.cancel')}
                     onConfirm={() => runDelete(item.id)}
                 >
                     <Button
@@ -173,7 +175,7 @@ function HistoryModal(props: Props) {
                         icon={<DeleteOutlined/>}
                         loading={loadingDelete}
                     >
-                        删除
+                        {t('subscribe:history.actions.delete')}
                     </Button>
                 </Popconfirm>
             </Space>
@@ -181,12 +183,12 @@ function HistoryModal(props: Props) {
     };
 
     return (
-        <Modal
+            <Modal
             title={(
                 <div className={'flex items-center justify-between pr-8'}>
-                    <span>订阅历史</span>
+                    <span>{t('subscribe:history.title')}</span>
                     <Tag bordered={false} color={'default'}>
-                        共 {pagination.total} 条
+                        {t('subscribe:history.total', {count: pagination.total})}
                     </Tag>
                 </div>
             )}
@@ -228,13 +230,13 @@ function HistoryModal(props: Props) {
                                                     className={'block max-w-[420px] text-xs'}
                                                     ellipsis={{tooltip: item.actors}}
                                                 >
-                                                    {item.actors || '暂无演员信息'}
+                                                    {item.actors || t('subscribe:history.noActors')}
                                                 </Typography.Text>
                                                 <Space size={[4, 4]} wrap>
                                                     {item.premiered && <Tag bordered={false} className={'text-xs'}>{String(item.premiered)}</Tag>}
-                                                    {item.is_hd && <Tag color={'red'} bordered={false} className={'text-xs'}>高清</Tag>}
-                                                    {item.is_zh && <Tag color={'blue'} bordered={false} className={'text-xs'}>中文</Tag>}
-                                                    {item.is_uncensored && <Tag color={'green'} bordered={false} className={'text-xs'}>无码</Tag>}
+                                                    {item.is_hd && <Tag color={'red'} bordered={false} className={'text-xs'}>{t('subscribe:flags.hd')}</Tag>}
+                                                    {item.is_zh && <Tag color={'blue'} bordered={false} className={'text-xs'}>{t('subscribe:flags.zh')}</Tag>}
+                                                    {item.is_uncensored && <Tag color={'green'} bordered={false} className={'text-xs'}>{t('subscribe:flags.uncensored')}</Tag>}
                                                 </Space>
                                                 <Typography.Text type={'secondary'} className={'text-xs'}>
                                                     {dayjs(item.update_time).format('YYYY-MM-DD HH:mm')}
@@ -266,7 +268,7 @@ function HistoryModal(props: Props) {
                         </div>
                     </>
                 ) : (
-                    <Empty className={'py-8'} description={'暂无订阅历史'}/>
+                    <Empty className={'py-8'} description={t('subscribe:history.empty')}/>
                 )}
             </Spin>
         </Modal>

@@ -1,0 +1,31 @@
+export default {
+    detail: {
+        loadErrorTitle: '俳優作品の読込失敗',
+        loadErrorDescription: '通信またはサイト状態を確認して再試行してください',
+        favoriteCreated: '俳優收藏成功',
+        favoriteRemoved: '收藏を解除しました',
+        favoriteMissing: '対応する收藏記録がありません',
+        unknownActor: '不明な俳優',
+        aliasPrefix: '別名：',
+        aliasEmpty: '別名情報なし',
+        addFavorite: '收藏追加',
+        removeFavorite: '收藏解除',
+        emptyWorks: '作品なし',
+    },
+    favorite: {
+        pageTitle: '俳優收藏',
+        loadErrorTitle: '俳優收藏の読込失敗',
+        loadErrorDescription: '通信を確認して再試行してください',
+        deleteSuccess: '削除成功',
+        empty: '俳優收藏なし',
+        emptyFiltered: '一致する俳優收藏なし',
+        openWorks: '作品を見る',
+        currentFilters: '現在条件',
+        clearFilters: '条件クリア',
+        searchPlaceholder: '俳優名や別名を検索、または入力後 Enter',
+        token: {
+            actor: '俳優',
+            alias: '別名',
+        },
+    },
+} as const;

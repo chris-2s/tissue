@@ -3,6 +3,7 @@ import RemoteImage from "./index";
 import React, {useEffect, useState} from "react";
 import {EditOutlined} from "@ant-design/icons";
 import {Input, Modal, theme} from "antd";
+import {useTranslation} from "react-i18next";
 
 interface Props {
     value?: string
@@ -14,6 +15,7 @@ const {useToken} = theme
 
 function RemoteImageEditor(props: Props) {
 
+    const {t} = useTranslation(['video'])
     const {token} = useToken()
     const {value, disabled = false, onChange} = props
     const [modalVisible, setModalVisible] = useState(false)
@@ -31,7 +33,7 @@ function RemoteImageEditor(props: Props) {
                     <EditOutlined style={{fontSize: token.sizeMD, color: token.colorWhite}}/>
                 </div>
             )}
-            <Modal title={'图片地址'}
+            <Modal title={t('video:detail.image.modalTitle')}
                    open={modalVisible}
                    onOk={() => {
                        onChange?.(url)
@@ -39,7 +41,7 @@ function RemoteImageEditor(props: Props) {
                    }}
                    onCancel={() => setModalVisible(false)}
             >
-                <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder={'请输入海报地址'}/>
+                <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder={t('video:detail.image.placeholder')}/>
             </Modal>
         </div>
     )

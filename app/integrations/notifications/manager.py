@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.integrations.notifications.base import NotificationEvent, NotificationProvider
 from app.integrations.notifications.registry import notification_registry
 from app.schema.notification import CookieInvalidPayload, SubscribeStartedPayload, VideoFailedPayload, VideoSavedPayload
@@ -24,7 +26,11 @@ class NotificationManager:
         provider_key = setting.provider
         provider_cls = notification_registry.get(provider_key)
         if provider_cls is None:
-            raise BizException(f'不支持的通知渠道: {provider_key}')
+            raise BizException(
+                '不支持的通知渠道',
+                error_code=ErrorCode.PROVIDER_UNSUPPORTED,
+                error_params={'provider': provider_key},
+            )
 
         provider_config = setting.get_provider_payload(provider_key)
         signature = tuple(sorted(provider_config.items()))
@@ -38,7 +44,7 @@ class NotificationManager:
         try:
             self.get_active().send(event)
         except Exception as exc:
-            logger.warning(f"发送通知失败: {exc}")
+            logger.warning(translate('log.notify.send_failed', {'error': str(exc)}))
 
     def emit_event(self, event_name: str, payload: BaseModel) -> None:
         self.emit(NotificationEvent(

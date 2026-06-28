@@ -3,6 +3,7 @@ import React, {useEffect, useRef, useState} from "react";
 import Hls from "hls.js";
 import * as api from "../../../../apis/video.ts";
 import type {VideoPreviewItem} from "../../../../types/video";
+import {useTranslation} from "react-i18next";
 
 interface Props {
     open: boolean;
@@ -19,6 +20,7 @@ function canUseNativeHls(video: HTMLVideoElement) {
 }
 
 function TrailerPlayerModal(props: Props) {
+    const {t} = useTranslation(['home']);
     const {open, item, onClose} = props;
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const hlsRef = useRef<Hls | null>(null);
@@ -53,7 +55,7 @@ function TrailerPlayerModal(props: Props) {
 
         function handleError() {
             setLoading(false);
-            setError("预告片加载失败，请稍后重试");
+            setError(t('home:trailer.loadFailed'));
         }
 
         cleanupPlayer();
@@ -79,14 +81,14 @@ function TrailerPlayerModal(props: Props) {
                     return;
                 }
                 setLoading(false);
-                setError("当前浏览器无法播放该 HLS 预告片");
+                setError(t('home:trailer.hlsUnsupported'));
             });
         } else if (canUseNativeHls(currentVideo)) {
             currentVideo.src = trailerUrl;
             void currentVideo.play().catch(() => undefined);
         } else {
             setLoading(false);
-            setError("当前浏览器不支持该视频格式");
+            setError(t('home:trailer.formatUnsupported'));
         }
 
         return () => {
@@ -94,14 +96,14 @@ function TrailerPlayerModal(props: Props) {
             currentVideo.removeEventListener("error", handleError);
             cleanupPlayer();
         };
-    }, [item?.url, modalReady, open]);
+    }, [item?.url, modalReady, open, t]);
 
     return (
         <Modal
             open={open}
             onCancel={onClose}
             afterOpenChange={setModalReady}
-            title={"预告片"}
+            title={t('home:trailer.title')}
             footer={null}
             centered
             destroyOnClose

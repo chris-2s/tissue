@@ -1,6 +1,7 @@
 import {Modal, ModalProps, Tag} from "antd";
 import React, {useEffect, useState} from "react";
 import type {VideoDownload} from "../../../../types/video";
+import {useTranslation} from "react-i18next";
 
 interface Props extends ModalProps {
     download?: VideoDownload
@@ -8,6 +9,7 @@ interface Props extends ModalProps {
 }
 
 function DownloadModal(props: Props) {
+    const {t} = useTranslation(['home']);
     const {download, onDownload, ...otherProps} = props;
     const [item, setItem] = useState<VideoDownload>();
 
@@ -32,15 +34,15 @@ function DownloadModal(props: Props) {
     }
 
     return (
-        <Modal title={'是否确认下载：' + item?.name} {...otherProps} onOk={() => item && onDownload(item)}>
+        <Modal title={t('home:downloadModal.title', {name: item?.name || ''})} {...otherProps} onOk={() => item && onDownload(item)}>
             <div className={'mt-4'}>
                 <Tag>{item?.size}</Tag>
                 <Tag>{item?.publish_date}</Tag>
             </div>
             <div className={'mt-4'}>
-                {renderDownloadTag('高清', 'is_hd', 'red')}
-                {renderDownloadTag('中文', 'is_zh', 'blue')}
-                {renderDownloadTag('无码', 'is_uncensored', 'green')}
+                {renderDownloadTag(t('home:detail.flags.hd'), 'is_hd', 'red')}
+                {renderDownloadTag(t('home:detail.flags.zh'), 'is_zh', 'blue')}
+                {renderDownloadTag(t('home:detail.flags.uncensored'), 'is_uncensored', 'green')}
             </div>
         </Modal>
     );

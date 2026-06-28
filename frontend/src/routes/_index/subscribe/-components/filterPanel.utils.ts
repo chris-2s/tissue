@@ -13,6 +13,12 @@ export interface SubscribeFilterValue {
     tokens: SubscribeSearchToken[];
 }
 
+export interface SubscribeFilterTexts {
+    numLabel: string;
+    actorLabel: string;
+    titleLabel: string;
+}
+
 function normalizeText(value: string) {
     return value.trim().toUpperCase();
 }
@@ -36,18 +42,18 @@ export function decodeToken(value: string): SubscribeSearchToken {
     return {kind: "title", value: value.trim()};
 }
 
-export function getTokenLabel(token: SubscribeSearchToken) {
+export function getTokenLabel(token: SubscribeSearchToken, texts: SubscribeFilterTexts) {
     switch (token.kind) {
         case "num":
-            return `番号: ${token.value}`;
+            return `${texts.numLabel}: ${token.value}`;
         case "actor":
-            return `演员: ${token.value}`;
+            return `${texts.actorLabel}: ${token.value}`;
         default:
-            return `标题: ${token.value}`;
+            return `${texts.titleLabel}: ${token.value}`;
     }
 }
 
-export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string) {
+export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string, texts: SubscribeFilterTexts) {
     const normalizedKeyword = normalizeText(keyword);
 
     if (!normalizedKeyword) {
@@ -69,7 +75,7 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
         ) {
             numSeen.add(num.toUpperCase());
             numOptions.push({
-                label: `番号 · ${num}`,
+                label: `${texts.numLabel} · ${num}`,
                 value: encodeToken({kind: "num", value: num}),
             });
         }
@@ -87,7 +93,7 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
             if (includesNormalized(actor, normalizedKeyword) && !actorSeen.has(actor.toUpperCase())) {
                 actorSeen.add(actor.toUpperCase());
                 actorOptions.push({
-                    label: `演员 · ${actor}`,
+                    label: `${texts.actorLabel} · ${actor}`,
                     value: encodeToken({kind: "actor", value: actor}),
                 });
             }
@@ -103,10 +109,10 @@ export function buildAutocompleteGroups(subscribes: Subscribe[], keyword: string
 
     const groups = [];
     if (numOptions.length > 0) {
-        groups.push({label: "番号", options: numOptions});
+        groups.push({label: texts.numLabel, options: numOptions});
     }
     if (actorOptions.length > 0) {
-        groups.push({label: "演员", options: actorOptions});
+        groups.push({label: texts.actorLabel, options: actorOptions});
     }
     return groups;
 }

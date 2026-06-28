@@ -3,17 +3,19 @@ import {useNavigate} from "@tanstack/react-router";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
 import type {VideoSiteActor} from "../../../../types/video";
+import {useTranslation} from "react-i18next";
 
 interface Props extends ModalProps {
     actors: VideoSiteActor[]
 }
 
 function ActorsModal(props: Props) {
+    const {t} = useTranslation(['home']);
     const {actors, ...otherProps} = props;
     const navigate = useNavigate();
 
     return (
-        <Modal {...otherProps} title={'演员'} footer={null} centered width={920}>
+        <Modal {...otherProps} title={t('home:actorsModal.title')} footer={null} centered width={920}>
             <div className={'max-h-[70vh] overflow-y-auto pr-1'}>
                 {actors?.length ? (
                     <div className={'space-y-4'}>
@@ -44,7 +46,7 @@ function ActorsModal(props: Props) {
                                                     />
                                                 </div>
                                                 <div className={'flex items-center justify-center text-xs font-medium leading-4'}>
-                                                    <span className={'line-clamp-2'}>{actor.name || '未知演员'}</span>
+                                                    <span className={'line-clamp-2'}>{actor.name || t('home:actorsModal.unknownActor')}</span>
                                                 </div>
                                             </div>
                                         </button>
@@ -54,7 +56,7 @@ function ActorsModal(props: Props) {
                         ))}
                     </div>
                 ) : (
-                    <Empty description={'暂无演员信息'}/>
+                    <Empty description={t('home:actorsModal.empty')}/>
                 )}
             </div>
         </Modal>

@@ -6,6 +6,8 @@ import qbittorrentapi
 import requests
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.integrations.downloaders.base import AddTorrentResult, DownloaderProvider
 from app.schema.setting import DownloaderQbittorrentConfig
 from app.utils.logger import logger
@@ -23,7 +25,7 @@ class QBittorrentDownloader(DownloaderProvider):
     def _ensure_client(self) -> qbittorrentapi.Client:
         if self.client is None:
             if not self.settings.host:
-                raise BizException('下载器地址未配置')
+                raise BizException('下载器地址未配置', error_code=ErrorCode.DOWNLOADER_NOT_CONFIGURED)
             self.client = qbittorrentapi.Client(
                 host=self.settings.host,
                 username=self.settings.username,
@@ -34,16 +36,20 @@ class QBittorrentDownloader(DownloaderProvider):
     def test_connection(self) -> None:
         try:
             self._ensure_client().auth_log_in()
-        except Exception as exc:
-            logger.error("下载器连接失败")
-            raise BizException(f'下载器连接失败: {exc}')
+        except Exception:
+            logger.error(translate('log.downloader.connection_failed'))
+            raise BizException(
+                '下载器连接失败',
+                error_code=ErrorCode.DOWNLOADER_CONNECTION_FAILED,
+                error_params={'downloader': self.label},
+            )
 
     def _call_with_login(self, callback):
         try:
             self.test_connection()
             return callback(self._ensure_client())
         except Exception:
-            logger.warning("登录信息失效，将尝试重新登录")
+            logger.warning(translate('log.downloader.relogin_retry'))
             self.client = None
             self.test_connection()
             return callback(self._ensure_client())
@@ -109,4 +115,3 @@ class QBittorrentDownloader(DownloaderProvider):
         if torrent_hash:
             self.remove_tags(torrent_hash, [nonce])
         return AddTorrentResult(success=True, torrent_hash=torrent_hash or None)
-

@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from app.db.models import Base, User
+from app.i18n import translate
 from app.middleware.requestvars import g
 from app.utils.logger import logger
 from app.utils.security import get_password_hash
@@ -42,8 +43,8 @@ def init() -> None:
             user = User()
             user.username = 'admin'
             user.password = get_password_hash(initial_password)
-            user.name = "管理员"
+            user.name = "Admin"
             user.is_admin = True
             db.add(user)
             db.commit()
-            logger.warning("检测到系统首次初始化，已创建管理员账号 admin，初始密码为【%s】。请登录后立即修改密码。", initial_password)
+            logger.warning(translate('log.db.initial_admin_created', {'initial_password': initial_password}))

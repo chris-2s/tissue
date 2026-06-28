@@ -20,6 +20,8 @@ from app.service.base import BaseService
 from app.service.metadata_priority import MetadataPriorityService
 from app.utils.logger import logger
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 
 
 def get_spider_service(db: Session = Depends(get_db)):
@@ -67,7 +69,7 @@ class SpiderService(BaseService):
     def _merge_video_info(self, metas: list[VideoDetail]) -> VideoDetail:
         meta = metas[0].model_copy(deep=True)
         if len(metas) >= 2:
-            logger.debug("合并多个刮削信息")
+            logger.debug(translate('log.spider.merge_started'))
             field_orders = MetadataPriorityService(self.db).get_effective_field_orders()
             for field_name in ('cover', 'rating', 'actors'):
                 setattr(meta, field_name, self._pick_prioritized_field(metas, field_name, field_orders[field_name]))
@@ -91,7 +93,7 @@ class SpiderService(BaseService):
             meta.site_actors = [m.site_actors[0] for m in metas if m.site_actors]
             if meta.downloads:
                 meta.downloads.sort(key=lambda i: i.publish_date or datetime.now().date(), reverse=True)
-            logger.debug("信息合并成功")
+            logger.debug(translate('log.spider.merge_succeeded'))
         return meta
 
     @staticmethod
@@ -137,24 +139,24 @@ class SpiderService(BaseService):
             try:
                 spider.close()
             except Exception:
-                logger.debug(f"{spider.name} 会话关闭失败")
+                logger.debug(translate('log.spider.session_close_failed', {'site_name': spider.name}))
 
     async def _get_video_by_spiders(self, number: str, include_downloads: bool, include_previews: bool,
                                     include_comments: bool):
         def __get_video_by_spider(spider: Spider):
             try:
-                logger.debug(f"{spider.name} 开始刮削")
+                logger.debug(translate('log.spider.scrape_started', {'site_name': spider.name}))
                 videos = spider.get_info(number, include_downloads=include_downloads,
                                          include_previews=include_previews,
                                          include_comments=include_comments)
-                logger.debug(f"{spider.name} 刮削成功")
+                logger.debug(translate('log.spider.scrape_succeeded', {'site_name': spider.name}))
                 if include_downloads:
-                    logger.debug(f"{spider.name} 获取到{len(videos.downloads)}部影片")
+                    logger.debug(translate('log.spider.download_count', {'site_name': spider.name, 'count': len(videos.downloads)}))
                 return videos
             except SpiderException as e:
                 logger.warning(f"{spider.name} {e.message}")
             except Exception:
-                logger.error(f'{spider.name} 未知错误，请检查网站连通性')
+                logger.error(translate('log.spider.unknown_connectivity_error', {'site_name': spider.name}))
                 traceback.print_exc()
                 return None
 
@@ -168,7 +170,7 @@ class SpiderService(BaseService):
     async def _search_actor_by_spiders(self, name: str):
         def __search_actor_by_spider(spider: Spider):
             try:
-                logger.debug(f"{spider.name} 开始刮削演员")
+                logger.debug(translate('log.spider.actor_scrape_started', {'site_name': spider.name}))
                 actors = spider.search_actor(name)
                 for actor in actors or []:
                     if not actor.thumb:
@@ -176,12 +178,12 @@ class SpiderService(BaseService):
                     thumb_info = spider.probe_image_info(actor.thumb)
                     if thumb_info:
                         actor.thumb_info = ImageInfo(**thumb_info)
-                logger.debug(f"{spider.name} 演员刮削成功")
+                logger.debug(translate('log.spider.actor_scrape_succeeded', {'site_name': spider.name}))
                 return actors
             except SpiderException as e:
                 logger.warning(f"{spider.name} {e.message}")
             except Exception:
-                logger.error(f'{spider.name} 演员刮削未知错误，请检查网站连通性')
+                logger.error(translate('log.spider.actor_unknown_connectivity_error', {'site_name': spider.name}))
                 traceback.print_exc()
                 return None
 
@@ -202,14 +204,14 @@ class SpiderService(BaseService):
     async def _search_video_by_spiders(self, num: str):
         def __search_video_by_spider(spider: Spider):
             try:
-                logger.debug(f"{spider.name} 开始搜索影片")
+                logger.debug(translate('log.spider.video_search_started', {'site_name': spider.name}))
                 videos = spider.search_video(num)
-                logger.debug(f"{spider.name} 影片搜索成功")
+                logger.debug(translate('log.spider.video_search_succeeded', {'site_name': spider.name}))
                 return videos
             except SpiderException as e:
                 logger.warning(f"{spider.name} {e.message}")
             except Exception:
-                logger.error(f'{spider.name} 影片搜索未知错误，请检查网站连通性')
+                logger.error(translate('log.spider.video_search_unknown_error', {'site_name': spider.name}))
                 traceback.print_exc()
                 return None
 
@@ -229,11 +231,14 @@ class SpiderService(BaseService):
 
     def get_video_info(self, number: str):
         meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
-        logger.info(f"番号《{number}》刮削完成，标题：{meta.title}，演员：{'、'.join([i.name for i in meta.actors])}")
+        logger.info(translate(
+            'log.spider.video_scrape_completed',
+            {'number': number, 'title': meta.title, 'actors': '、'.join([i.name for i in meta.actors])},
+        ))
         return meta
 
     def get_video(self, number: str, include_downloads=True, include_previews=True, include_comments=True):
-        logger.info(f"开始刮削番号《{number}》")
+        logger.info(translate('log.spider.video_scrape_begin', {'number': number}))
 
         metas = asyncio.run(
             self._get_video_by_spiders(number, include_downloads=include_downloads, include_previews=include_previews,
@@ -268,19 +273,19 @@ class SpiderService(BaseService):
     def get_actor_page(self, site_id: int, code: str, page: int) -> ActorPage:
         spider = self.build_spider_by_site_id(site_id)
         if not spider or not spider.supports_actor:
-            raise BizException("当前站点不支持演员页")
+            raise BizException("当前站点不支持演员页", error_code=ErrorCode.SITE_ACTOR_UNSUPPORTED)
         try:
             return spider.get_actor_page(code, page)
         finally:
             spider.close()
 
     def search_actor(self, name: str):
-        logger.info(f"开始刮削演员《{name}》")
+        logger.info(translate('log.spider.actor_scrape_begin', {'name': name}))
         return asyncio.run(self._search_actor_by_spiders(name))
 
     def get_actor(self, name: str):
         return self.search_actor(name)
 
     def search_video(self, num: str):
-        logger.info(f"开始搜索影片《{num}》")
+        logger.info(translate('log.spider.video_search_begin', {'num': num}))
         return asyncio.run(self._search_video_by_spiders(num))

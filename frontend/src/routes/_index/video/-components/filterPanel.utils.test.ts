@@ -11,6 +11,16 @@ import {
 } from "./filterPanel.utils.ts";
 
 describe("filter panel utils", () => {
+    const texts = {
+        numLabel: "番号",
+        actorLabel: "演员",
+        titleLabel: "标题",
+        zhLabel: "中文",
+        uncensoredLabel: "无码",
+        includePrefix: "仅",
+        excludePrefix: "非",
+    } as const;
+
     const videos = [
         {
             title: "教师特别课",
@@ -35,11 +45,11 @@ describe("filter panel utils", () => {
 
         expect(value).toBe("actor:三上悠亚");
         expect(decodeToken(value)).toEqual({kind: "actor", value: "三上悠亚"});
-        expect(getTokenLabel({kind: "num", value: "IPX-001"})).toBe("番号: IPX-001");
+        expect(getTokenLabel({kind: "num", value: "IPX-001"}, texts)).toBe("番号: IPX-001");
     });
 
     it("builds grouped autocomplete options", () => {
-        const groups = buildAutocompleteGroups(videos, "三");
+        const groups = buildAutocompleteGroups(videos, "三", texts);
 
         expect(groups).toHaveLength(1);
         expect(groups[0]).toMatchObject({
@@ -57,8 +67,8 @@ describe("filter panel utils", () => {
         expect(cycleFlagFilter(null)).toBe("include");
         expect(cycleFlagFilter("include")).toBe("exclude");
         expect(cycleFlagFilter("exclude")).toBe(null);
-        expect(getFlagFilterLabel("中文", null)).toBe("中文");
-        expect(getFlagFilterLabel("中文", "include")).toBe("仅中文");
-        expect(getFlagFilterLabel("中文", "exclude")).toBe("非中文");
+        expect(getFlagFilterLabel("中文", null, texts)).toBe("中文");
+        expect(getFlagFilterLabel("中文", "include", texts)).toBe("仅中文");
+        expect(getFlagFilterLabel("中文", "exclude", texts)).toBe("非中文");
     });
 });

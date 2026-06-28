@@ -7,6 +7,8 @@ from app import utils
 from app.db import get_db, SessionFactory
 from app.db.models import History, Torrent as DBTorrent
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.integrations.downloaders.manager import downloader_manager
 from app.integrations.notifications.manager import notification_manager
 from app.schema.download import Torrent, TorrentFile
@@ -74,7 +76,7 @@ class DownloadService(BaseService):
             download_service = DownloadService(db=db)
             video_service = VideoService(db=db)
             torrents = download_service.get_downloads(include_failed=False, include_success=False)
-            logger.info(f"获取到{len(torrents)}个已完成下载任务")
+            logger.info(translate('log.download.completed_tasks_found', {'count': len(torrents)}))
             for torrent in torrents:
                 download_service.scrape_download(video_service, torrent, setting.download.trans_mode)
             db.commit()
@@ -95,7 +97,7 @@ class DownloadService(BaseService):
 
                 num = match_num.num
                 if num is None:
-                    raise BizException(message='番号识别失败')
+                    raise BizException(message='番号识别失败', error_code=ErrorCode.DOWNLOAD_NUMBER_PARSE_FAILED)
                 video = video_service.scrape_video(num)
                 video.path = file.path
                 video.is_zh = match_num.is_zh
@@ -119,8 +121,8 @@ class DownloadService(BaseService):
                     video_notify.message = e.message
                 else:
                     video_notify.size = 'N/A'
-                    video_notify.message = '文件不存在'
-                logger.warning(f"影片整理失败：{video_notify.message}")
+                    video_notify.message = translate('message.file.not_found')
+                logger.warning(translate('log.download.video_process_failed', {'message': video_notify.message}))
                 notification_manager.emit_video_failed(video_notify)
 
         self.complete_download(torrent.hash, not has_error)

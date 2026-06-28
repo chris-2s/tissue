@@ -8,6 +8,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../models";
 import {LazyLoadImage} from "react-lazy-load-image-component";
 import {UnorderedListOutlined, UserOutlined} from "@ant-design/icons";
+import {useTranslation} from "react-i18next";
 
 interface Props extends HTMLProps<any> {
     num?: string
@@ -16,6 +17,7 @@ interface Props extends HTMLProps<any> {
 }
 
 function RemoteImage(props: Props) {
+    const {t} = useTranslation(['common', 'video'])
     const {src, num = undefined, avatar = false, className, imageType, ...otherProps} = props
     const {goodBoy} = useSelector((state: RootState) => state.app)
     const videos = useSelector((state: RootState) => state.auth?.videos)
@@ -43,7 +45,7 @@ function RemoteImage(props: Props) {
                 </div>
             ) : (
                 <div className={'flex justify-center items-center'}>
-                    <Empty description={'暂无图片'}/>
+                    <Empty description={t('common:state.noImage')}/>
                 </div>
             )}
             {libraryMatched && (
@@ -51,13 +53,13 @@ function RemoteImage(props: Props) {
                     <Tooltip title={(
                         <div>
                             {libraryMatched.is_zh && (
-                                <Tag color={'blue'} variant={'filled'}>中文</Tag>)}
+                                <Tag color={'blue'} variant={'filled'}>{t('video:library.zh')}</Tag>)}
                             {libraryMatched.is_uncensored && (
-                                <Tag color={'green'} variant={'filled'}>无码</Tag>)}
+                                <Tag color={'green'} variant={'filled'}>{t('video:library.uncensored')}</Tag>)}
                         </div>
                     )}>
                         <Tag icon={<UnorderedListOutlined/>} className={Styles.library}>
-                            已入库
+                            {t('video:library.inLibrary')}
                         </Tag>
                     </Tooltip>
                 </div>

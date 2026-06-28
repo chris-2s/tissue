@@ -4,6 +4,7 @@ import * as api from "../../../apis/download";
 import {useDebounce, useRequest} from "ahooks";
 import {FileDoneOutlined, FolderViewOutlined} from "@ant-design/icons";
 import React, {useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import IconButton from "../../../components/IconButton";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
@@ -28,6 +29,7 @@ function downloadsQueryOptions() {
 
 function Download() {
 
+    const {t} = useTranslation(['download'])
     const {token} = useToken()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(downloadsQueryOptions())
@@ -49,7 +51,7 @@ function Download() {
     const {run: onComplete} = useRequest(api.completeDownload, {
         manual: true,
         onSuccess: () => {
-            message.success("标记成功")
+            message.success(t('download:completeSuccess'))
             queryClient.invalidateQueries({queryKey: ['downloads']})
         }
     })
@@ -63,7 +65,7 @@ function Download() {
                       dataSource={torrent.files}
                       renderItem={(item: any) => (
                           <List.Item actions={[
-                              <Tooltip title={'整理'}>
+                              <Tooltip key={'organize'} title={t('download:actions.organize')}>
                                   <IconButton onClick={() => {
                                       setSelected(item.path)
                                   }}>
@@ -82,10 +84,10 @@ function Download() {
             ),
             extra: (
                 <Space>
-                    <Tooltip title={'标记为"整理成功"'}>
+                    <Tooltip title={t('download:actions.markCompleted')}>
                         <IconButton onClick={() => {
                             Modal.confirm({
-                                title: '是否确认标记为完成',
+                                title: t('download:actions.confirmCompleted'),
                                 onOk: () => onComplete(torrent.hash)
                             })
                         }}>
@@ -104,8 +106,8 @@ function Download() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'下载列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('download:errors.loadTitle')}
+                description={t('download:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -114,14 +116,14 @@ function Download() {
     } else if (realData.length > 0) {
         content = <Collapse items={items} ghost={true}/>;
     } else {
-        content = <Empty description={(<span>无完成下载，<Link to={'/setting/download'}>配置下载</Link></span>)}/>;
+        content = <Empty description={(<span>{t('download:empty.title')}<Link to={'/setting/download'}>{t('download:actions.configure')}</Link></span>)}/>;
     }
 
     return (
-        <Card title={'下载列表'}
-              extra={(<Input.Search value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={'搜索'}/>)}>
+        <Card title={t('download:pageTitle')}
+              extra={(<Input.Search value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={t('download:searchPlaceholder')}/>)}>
             {content}
-            <VideoDetail title={'下载整理'}
+            <VideoDetail title={t('download:detailTitle')}
                          mode={'download'}
                          width={1100}
                          path={selected}

@@ -8,6 +8,7 @@ import {
     LockOutlined,
     LogoutOutlined,
     MenuOutlined,
+    TranslationOutlined,
     UserOutlined
 } from "@ant-design/icons";
 import {useDispatch, useSelector} from "react-redux";
@@ -21,7 +22,9 @@ import {useResponsive} from "ahooks";
 import PinView from "../../../components/PinView";
 import {PinMode} from "../../../components/PinView/types.ts";
 import {Link, useRouter} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import Styles from "./header.module.css";
+import {normalizeLocale, type AppLocale} from "../../../i18n/locale";
 
 
 const {useToken} = theme
@@ -35,6 +38,7 @@ function Header(props: Props) {
 
     const responsive = useResponsive()
     const {history} = useRouter()
+    const {t, i18n} = useTranslation(['auth', 'log', 'common'])
 
     const {token} = useToken()
     const isGoodBoy = useSelector((state: RootState) => state.app.goodBoy)
@@ -52,6 +56,7 @@ function Header(props: Props) {
 
     const themeMode = useSelector((state: RootState) => state.app?.themeMode)
     const CurrentTheme = themes.find(i => i.name === themeMode) || themes[0]
+    const locale = normalizeLocale(i18n.resolvedLanguage)
 
     function renderThemeIcon(item: typeof CurrentTheme, size: number) {
         if (item.svg) {
@@ -76,7 +81,7 @@ function Header(props: Props) {
 
     const themeItems = themes.map(i => ({
         key: i.name,
-        label: i.title,
+        label: t(i.titleKey),
         icon: renderThemeIcon(i, 16)
     })) as any
 
@@ -92,17 +97,40 @@ function Header(props: Props) {
     const userItems = [
         ...[!responsive.lg && {
             key: 'pin',
-            label: '设置PIN',
+            label: t('auth:userMenu.setPin'),
             icon: <LockOutlined/>
         }],
         {
+            key: 'language',
+            label: t('auth:userMenu.language'),
+            icon: <TranslationOutlined/>,
+            children: [
+                {
+                    key: 'zh-CN',
+                    label: '中文',
+                },
+                {
+                    key: 'zh-TW',
+                    label: '繁體中文',
+                },
+                {
+                    key: 'en-US',
+                    label: 'English',
+                },
+                {
+                    key: 'ja-JP',
+                    label: '日本語',
+                }
+            ]
+        },
+        {
             key: 'log',
-            label: '日志',
+            label: t('auth:userMenu.log'),
             icon: <CodeOutlined/>
         },
         {
             key: 'logout',
-            label: '退出登录',
+            label: t('auth:userMenu.logout'),
             icon: <LogoutOutlined/>
         }
     ] as any
@@ -113,6 +141,12 @@ function Header(props: Props) {
         switch (event.key) {
             case 'pin':
                 setPinVisible(true)
+                break
+            case 'zh-CN':
+            case 'zh-TW':
+            case 'en-US':
+            case 'ja-JP':
+                void i18n.changeLanguage(event.key as AppLocale)
                 break
             case 'log':
                 setLogOpen(true)
@@ -212,7 +246,7 @@ function Header(props: Props) {
                         trigger={['click']}
                         open={userDropdownOpen}
                         onOpenChange={handleUserDropdownOpenChange}
-                        menu={{items: userItems, onClick: onUserClick}}
+                        menu={{items: userItems, onClick: onUserClick, selectedKeys: [locale]}}
                         popupRender={renderDropdown}
                     >
                         <IconButton size={responsive.md ? 'md' : 'lg'} selected={userDropdownOpen || !!pin} pressable={false}>
@@ -222,7 +256,7 @@ function Header(props: Props) {
                     </Dropdown>
                 </div>
             </div>
-            <Modal title={'日志'}
+            <Modal title={t('log:title')}
                    open={logOpen}
                    onCancel={() => setLogOpen(false)}
                    footer={null}

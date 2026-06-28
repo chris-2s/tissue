@@ -1,0 +1,31 @@
+export default {
+    detail: {
+        loadErrorTitle: '演員作品加載失敗',
+        loadErrorDescription: '請檢查網路或站點狀態後重試',
+        favoriteCreated: '演員收藏成功',
+        favoriteRemoved: '已取消收藏',
+        favoriteMissing: '未找到對應收藏記錄',
+        unknownActor: '未知演員',
+        aliasPrefix: '別名：',
+        aliasEmpty: '暫無別名資訊',
+        addFavorite: '加入收藏',
+        removeFavorite: '取消收藏',
+        emptyWorks: '暫無作品',
+    },
+    favorite: {
+        pageTitle: '演員收藏',
+        loadErrorTitle: '演員收藏加載失敗',
+        loadErrorDescription: '請檢查網路後重試',
+        deleteSuccess: '刪除成功',
+        empty: '無演員收藏',
+        emptyFiltered: '暫無匹配的演員收藏',
+        openWorks: '查看作品',
+        currentFilters: '目前條件',
+        clearFilters: '清空條件',
+        searchPlaceholder: '搜尋演員名稱、別名，或輸入名稱後按 Enter',
+        token: {
+            actor: '演員',
+            alias: '別名',
+        },
+    },
+} as const;

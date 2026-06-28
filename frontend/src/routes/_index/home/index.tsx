@@ -14,12 +14,13 @@ import {createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
 import Page from "../../../components/Page";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
+import {useTranslation} from "react-i18next";
 
 type HomeSearch = GetRankingsParams & { rank: number };
 type HomeQuerySearch = Omit<GetRankingsParams, 'site_id'> & { site_id?: number };
 type HomeLoaderData = { siteId: number; items: SiteVideo[] };
 
-function homeQueryOptions(search: HomeQuerySearch) {
+function homeQueryOptions(search: HomeQuerySearch, t: (key: string) => string) {
     return queryOptions({
         queryKey: ['homeRankings', search] as const,
         staleTime: 10 * 60 * 1000,
@@ -39,7 +40,7 @@ function homeQueryOptions(search: HomeQuerySearch) {
 
             const items = await api.getRankings({...search, site_id: siteId});
             if (items.length === 0) {
-                throw new Error('未获取到榜单数据，请检查站点 Cookie 或站点状态。');
+                throw new Error(t('home:ranking.noData'));
             }
 
             return {siteId, items};
@@ -57,6 +58,7 @@ export const Route = createFileRoute('/_index/home/')({
 })
 
 function JavDB() {
+    const {t} = useTranslation(['home'])
     const rawSearch = Route.useSearch() as Partial<HomeSearch>
     const filter: HomeSearch = {
         site_id: Number(rawSearch.site_id || 0),
@@ -64,44 +66,45 @@ function JavDB() {
         cycle: rawSearch.cycle || 'daily',
         rank: Number(rawSearch.rank || 0)
     }
-    const querySearch: HomeQuerySearch = {
+    const querySearch: HomeQuerySearch = React.useMemo(() => ({
         site_id: filter.site_id || undefined,
         video_type: filter.video_type,
         cycle: filter.cycle
-    }
+    }), [filter.cycle, filter.site_id, filter.video_type])
+    const queryOptions = React.useMemo(() => homeQueryOptions(querySearch, t), [querySearch, t])
     const navigate = useNavigate()
     const {
         data: payload,
         isPending,
         isError,
         refetch
-    } = useQuery(homeQueryOptions(querySearch));
+    } = useQuery(queryOptions);
 
     const videos = payload?.items.filter((item) => (item.rank || 0) >= filter.rank) || [];
 
     const filterFields: FilterField[] = [
         {
             dataIndex: 'video_type',
-            label: '类型',
+            label: t('home:ranking.filters.videoType'),
             component: (<Selector items={[
-                {name: '有码', value: 'censored'},
-                {name: '无码', value: 'uncensored'}]}
+                {name: t('home:ranking.options.censored'), value: 'censored'},
+                {name: t('home:ranking.options.uncensored'), value: 'uncensored'}]}
             />),
             span: {lg: 8, md: 12, xs: 24}
         },
         {
             dataIndex: 'cycle',
-            label: '周期',
+            label: t('home:ranking.filters.cycle'),
             component: (<Selector items={[
-                {name: '日榜', value: 'daily'},
-                {name: '周榜', value: 'weekly'},
-                {name: '月榜', value: 'monthly'}]}
+                {name: t('home:ranking.options.daily'), value: 'daily'},
+                {name: t('home:ranking.options.weekly'), value: 'weekly'},
+                {name: t('home:ranking.options.monthly'), value: 'monthly'}]}
             />),
             span: {lg: 8, md: 12, xs: 24}
         },
         {
             dataIndex: 'rank',
-            label: '评分',
+            label: t('home:ranking.filters.rating'),
             component: (<Slider step={0.1} min={0} max={5}/>),
             span: {lg: 8, md: 24, xs: 24}
         },
@@ -114,8 +117,8 @@ function JavDB() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'榜单加载失败'}
-                description={'请检查站点配置、Cookie 或网络状态后重试'}
+                title={t('home:ranking.loadTitle')}
+                description={t('home:ranking.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}

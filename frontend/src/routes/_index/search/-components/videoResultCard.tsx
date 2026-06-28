@@ -3,6 +3,7 @@ import React from "react";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
 import type {VideoCandidate} from "./types";
+import {useTranslation} from "react-i18next";
 
 interface VideoResultCardProps {
     item: VideoCandidate;
@@ -10,6 +11,7 @@ interface VideoResultCardProps {
 }
 
 function VideoResultCard(props: VideoResultCardProps) {
+    const {t} = useTranslation(['search']);
     const {item, onClick} = props;
     const {token} = theme.useToken();
 
@@ -32,8 +34,8 @@ function VideoResultCard(props: VideoResultCardProps) {
                 </div>
                 <div className={'flex items-center my-2'}>
                     <Rate disabled allowHalf value={item.rank}/>
-                    <div className={'mx-1'}>{item.rank}分</div>
-                    <div>由{item.rank_count}人评价</div>
+                    <div className={'mx-1'}>{item.rank}{t('search:card.scoreUnit')}</div>
+                    <div>{t('search:card.ratedBy', {count: item.rank_count})}</div>
                 </div>
                 <div className={'flex items-center'}>
                     <div className={'flex-1'}>{item.publish_date}</div>
@@ -47,7 +49,7 @@ function VideoResultCard(props: VideoResultCardProps) {
         </div>
     );
 
-    return item.isZh ? <Badge.Ribbon text={'中文'}>{content}</Badge.Ribbon> : content;
+    return item.isZh ? <Badge.Ribbon text={t('search:card.zhRibbon')}>{content}</Badge.Ribbon> : content;
 }
 
 export default VideoResultCard;

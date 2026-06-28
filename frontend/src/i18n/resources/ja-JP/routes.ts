@@ -1,0 +1,17 @@
+export default {
+    home: 'ホーム',
+    menu: 'メニュー',
+    organize: '整理',
+    video: '作品',
+    file: 'ファイル',
+    download: 'DL',
+    history: '履歴',
+    subscribe: '購読',
+    actorFavorite: '俳優',
+    search: '検索',
+    site: 'サイト',
+    setting: '設定',
+    user: 'ユーザー',
+    schedule: 'タスク',
+    about: '情報',
+} as const;

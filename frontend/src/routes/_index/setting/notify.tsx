@@ -4,6 +4,7 @@ import * as api from "../../../apis/setting.ts";
 import Telegram from "./-component/telegram.tsx";
 import Webhook from "./-component/webhook.tsx";
 import {createFileRoute} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 
 const notifications = [
     {name: 'Telegram', value: 'telegram', element: Telegram},
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/_index/setting/notify')({
 function SettingNotify() {
 
     const [form] = Form.useForm()
+    const {t} = useTranslation(['common', 'setting'])
 
     const provider = Form.useWatch('provider', form)
 
@@ -36,7 +38,7 @@ function SettingNotify() {
     const {run, loading: saving} = useRequest(api.saveSetting, {
         manual: true,
         onSuccess: () => {
-            message.success("设置成功")
+            message.success(t('common:feedback.settingsSaved'))
         }
     })
 
@@ -53,17 +55,17 @@ function SettingNotify() {
         ) : (
             <div className={'w-[600px] max-w-full my-0 mx-auto'}>
                 <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item name={'provider'} label={'类型'} initialValue={'telegram'}>
+                    <Form.Item name={'provider'} label={t('setting:notify.provider')} initialValue={'telegram'}>
                         <Select>
                             {notifications.map(item => (
-                                <Select.Option key={item.value} value={item.value}>{item.name}</Select.Option>
+                                <Select.Option key={item.value} value={item.value}>{t(`setting:notify.${item.value}`)}</Select.Option>
                             ))}
                         </Select>
                     </Form.Item>
                     {ItemElement && (<ItemElement/>)}
                     <div style={{textAlign: 'center'}}>
                         <Button type={'primary'} style={{width: 150}} loading={saving}
-                                htmlType={"submit"}>提交</Button>
+                                htmlType={"submit"}>{t('common:actions.submit')}</Button>
                     </div>
                 </Form>
             </div>

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Input, InputRef, Space, Tag, theme} from "antd";
 import {PlusOutlined} from "@ant-design/icons";
+import {useTranslation} from "react-i18next";
 
 interface Props {
     value?: string[],
@@ -10,6 +11,7 @@ interface Props {
 
 
 function Websites(props: Props) {
+    const {t} = useTranslation(['common']);
     const {token} = theme.useToken();
     const tagInputStyle: React.CSSProperties = {
         width: 64,
@@ -85,7 +87,7 @@ function Websites(props: Props) {
                 ) : (
                     !readonly && (
                         <Tag style={tagPlusStyle} icon={<PlusOutlined/>} onClick={() => setInputVisible(true)}>
-                            新增
+                            {t('common:actions.add')}
                         </Tag>
                     )
                 )}

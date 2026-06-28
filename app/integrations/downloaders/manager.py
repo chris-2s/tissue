@@ -1,4 +1,5 @@
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.integrations.downloaders.base import DownloaderProvider
 from app.integrations.downloaders.registry import downloader_registry
 from app.schema import Setting
@@ -20,7 +21,11 @@ class DownloaderManager:
         provider_key = setting.provider
         provider_cls = downloader_registry.get(provider_key)
         if provider_cls is None:
-            raise BizException(f'不支持的下载器: {provider_key}')
+            raise BizException(
+                '不支持的下载器',
+                error_code=ErrorCode.PROVIDER_UNSUPPORTED,
+                error_params={'provider': provider_key},
+            )
 
         provider_config = setting.get_provider_payload(provider_key)
         signature = tuple(sorted(provider_config.items()))
@@ -32,4 +37,3 @@ class DownloaderManager:
 
 
 downloader_manager = DownloaderManager()
-

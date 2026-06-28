@@ -1,6 +1,7 @@
 import {AutoComplete, Card, Input, Space, Tag, Typography} from "antd";
 import {useDeferredValue, useEffect, useMemo, useState} from "react";
 import type {ActorFavorite} from "../../../../types/actor.ts";
+import {useTranslation} from "react-i18next";
 import {
     buildAutocompleteGroups,
     decodeToken,
@@ -21,10 +22,15 @@ interface Props {
 }
 
 function FilterPanel(props: Props) {
+    const {t} = useTranslation(['actor']);
     const {favorites, total, filteredTotal, value, onChange} = props;
     const [searchText, setSearchText] = useState("");
     const [filterValue, setFilterValue] = useState<ActorFavoriteFilterValue>(value);
     const deferredSearchText = useDeferredValue(searchText);
+    const texts = useMemo(() => ({
+        actorLabel: t('actor:favorite.token.actor'),
+        aliasLabel: t('actor:favorite.token.alias'),
+    }), [t]);
 
     useEffect(() => {
         setFilterValue(value);
@@ -35,8 +41,8 @@ function FilterPanel(props: Props) {
     }, [filterValue, onChange]);
 
     const autocompleteOptions = useMemo(
-        () => buildAutocompleteGroups(favorites, deferredSearchText),
-        [deferredSearchText, favorites]
+        () => buildAutocompleteGroups(favorites, deferredSearchText, texts),
+        [deferredSearchText, favorites, texts]
     );
 
     function upsertToken(token: ActorFavoriteSearchToken) {
@@ -85,15 +91,15 @@ function FilterPanel(props: Props) {
     const activeFilterTags = useMemo(() => {
         return filterValue.tokens.map((token) => ({
             key: encodeToken(token),
-            label: getTokenLabel(token),
+            label: getTokenLabel(token, texts),
             onClose: () => removeToken(token),
         }));
-    }, [filterValue.tokens]);
+    }, [filterValue.tokens, texts]);
 
     return (
         <Card className={'mb-4'}>
             <div className={'flex flex-wrap items-center justify-between gap-3'}>
-                <div className={'text-lg font-medium'}>演员收藏</div>
+                <div className={'text-lg font-medium'}>{t('actor:favorite.pageTitle')}</div>
                 <Text type={'secondary'}>{filteredTotal} / {total}</Text>
             </div>
 
@@ -106,7 +112,7 @@ function FilterPanel(props: Props) {
                 >
                     <Input
                         allowClear
-                        placeholder={'搜索演员名称、别名，或输入名称后回车'}
+                        placeholder={t('actor:favorite.searchPlaceholder')}
                         value={searchText}
                         onChange={(event) => setSearchText(event.target.value)}
                         onPressEnter={handleSearchConfirm}
@@ -115,7 +121,7 @@ function FilterPanel(props: Props) {
 
                 {activeFilterTags.length > 0 && (
                     <div className={'flex flex-wrap items-center gap-2'}>
-                        <Text type={'secondary'}>当前条件</Text>
+                        <Text type={'secondary'}>{t('actor:favorite.currentFilters')}</Text>
                         <Space size={[8, 8]} wrap>
                             {activeFilterTags.map((item) => (
                                 <Tag key={item.key} closable onClose={item.onClose}>
@@ -123,7 +129,7 @@ function FilterPanel(props: Props) {
                                 </Tag>
                             ))}
                         </Space>
-                        <a onClick={clearFilters}>清空条件</a>
+                        <a onClick={clearFilters}>{t('actor:favorite.clearFilters')}</a>
                     </div>
                 )}
             </div>

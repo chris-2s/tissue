@@ -14,6 +14,7 @@ import {
 import * as api from "../../apis/video.ts";
 import React, {useEffect} from "react";
 import {useRequest} from "ahooks";
+import {useTranslation} from "react-i18next";
 import Styles from "./index.module.css";
 import Websites from "../Websites";
 import VideoActors from "../VideoActors";
@@ -31,6 +32,7 @@ function VideoDetail(props: Props) {
 
     const {path, mode, transMode, onOk, ...otherProps} = props
     const [form] = Form.useForm()
+    const {t} = useTranslation(['video'])
     const allowManualTransMode = mode === 'file' || mode === 'download'
 
     const {run: onLoad, loading} = useRequest(loadVideoDetail, {
@@ -46,14 +48,14 @@ function VideoDetail(props: Props) {
             delete response.data.data.is_zh
             delete response.data.data.is_uncensored
             form.setFieldsValue(response.data.data)
-            message.success("刮削成功")
+            message.success(t('video:detail.messages.scraped'))
         }
     })
 
     const {run: onSave, loading: onSaving} = useRequest(api.saveVideo, {
         manual: true,
         onSuccess: (response) => {
-            message.success('保存成功')
+            message.success(t('video:detail.messages.saved'))
             onOk?.(response.request.data)
         }
     })
@@ -61,7 +63,7 @@ function VideoDetail(props: Props) {
     const {run: onDelete, loading: onDeleting} = useRequest(api.deleteVideo, {
         manual: true,
         onSuccess: (response) => {
-            message.success('删除成功')
+            message.success(t('video:detail.messages.deleted'))
             onOk?.(response.request.data)
         }
     })
@@ -77,7 +79,7 @@ function VideoDetail(props: Props) {
     function handleScrape() {
         const num = form.getFieldValue('num')
         if (!num) {
-            return message.error("请输入番号")
+            return message.error(t('video:detail.messages.numRequired'))
         } else {
             return onScrape(num)
         }
@@ -96,7 +98,7 @@ function VideoDetail(props: Props) {
 
     function handleDelete() {
         Modal.confirm({
-            title: '是否确认删除',
+            title: t('video:detail.confirm.delete'),
             onOk: () => {
                 onDelete(path)
             }
@@ -114,11 +116,11 @@ function VideoDetail(props: Props) {
     return (
         <Modal {...otherProps} footer={[
             mode === 'video' && (<>
-                <Button onClick={handleDelete} danger loading={onDeleting}>删除</Button>
+                <Button onClick={handleDelete} danger loading={onDeleting}>{t('video:detail.actions.delete')}</Button>
                 <Divider orientation={'vertical'}/>
             </>),
-            <Button key={'scrape'} onClick={handleScrape} loading={onScraping}>刮削</Button>,
-            <Button key={'save'} type={"primary"} loading={onSaving} onClick={() => form.submit()}>确定</Button>,
+            <Button key={'scrape'} onClick={handleScrape} loading={onScraping}>{t('video:detail.actions.scrape')}</Button>,
+            <Button key={'save'} type={"primary"} loading={onSaving} onClick={() => form.submit()}>{t('video:detail.actions.confirm')}</Button>,
         ]}>
             {loading ? (
                 <div className={'text-center'}><Spin spinning/></div>
@@ -130,11 +132,11 @@ function VideoDetail(props: Props) {
                                 <RemoteImageEditor/>
                             </Form.Item>
                             <br/>
-                            <Form.Item label={'演员'} name={'actors'}>
+                            <Form.Item label={t('video:detail.fields.actors')} name={'actors'}>
                                 <VideoActors/>
                             </Form.Item>
                             <br/>
-                            <Form.Item label={'网站'} name={'website'}>
+                            <Form.Item label={t('video:detail.fields.website')} name={'website'}>
                                 <Websites/>
                             </Form.Item>
                         </Col>
@@ -142,80 +144,80 @@ function VideoDetail(props: Props) {
                             <Row gutter={[15, 15]}>
                                 {allowManualTransMode && (
                                     <Col span={24}>
-                                        <Form.Item name={'trans_mode_override'} label={'转移模式'} initialValue={'system'}
-                                                   tooltip={'默认按系统设置处理，也可仅本次手动指定'}>
+                                        <Form.Item name={'trans_mode_override'} label={t('video:detail.fields.transMode')} initialValue={'system'}
+                                                   tooltip={t('video:detail.fields.transModeTooltip')}>
                                             <Select>
                                                 {ManualTransModeOptions.map(i => (
-                                                    <Select.Option key={i.value} value={i.value}>{i.name}</Select.Option>
+                                                    <Select.Option key={i.value} value={i.value}>{t(`video:detail.transMode.${i.value}`)}</Select.Option>
                                                 ))}
                                             </Select>
                                         </Form.Item>
                                     </Col>
                                 )}
                                 <Col span={8}>
-                                    <Form.Item name={'num'} label={'番号'}
-                                               rules={[{required: true, message: '请输入番号'}]}>
+                                    <Form.Item name={'num'} label={t('video:detail.fields.num')}
+                                               rules={[{required: true, message: t('video:detail.messages.numRequired')}]}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'premiered'} label={'发行时间'}>
+                                    <Form.Item name={'premiered'} label={t('video:detail.fields.premiered')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'rating'} label={'评分'}>
+                                    <Form.Item name={'rating'} label={t('video:detail.fields.rating')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={24}>
-                                    <Form.Item name={'title'} label={'标题'}>
+                                    <Form.Item name={'title'} label={t('video:detail.fields.title')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={24}>
-                                    <Form.Item name={'outline-solid'} label={'大纲'}>
+                                    <Form.Item name={'outline-solid'} label={t('video:detail.fields.outline')}>
                                         <Input.TextArea/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'studio'} label={'制造商'}>
+                                    <Form.Item name={'studio'} label={t('video:detail.fields.studio')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'publisher'} label={'发行商'}>
+                                    <Form.Item name={'publisher'} label={t('video:detail.fields.publisher')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'director'} label={'导演'}>
+                                    <Form.Item name={'director'} label={t('video:detail.fields.director')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={24}>
-                                    <Form.Item name={'tags'} label={'类别'}>
+                                    <Form.Item name={'tags'} label={t('video:detail.fields.tags')}>
                                         <Select mode={"tags"}/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={12}>
-                                    <Form.Item name={'series'} label={'系列'}>
+                                    <Form.Item name={'series'} label={t('video:detail.fields.series')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={12}>
-                                    <Form.Item name={'runtime'} label={'时长(分钟)'}>
+                                    <Form.Item name={'runtime'} label={t('video:detail.fields.runtime')}>
                                         <Input/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'is_zh'} label={'是否中文'} valuePropName={'checked'}
+                                    <Form.Item name={'is_zh'} label={t('video:detail.fields.isZh')} valuePropName={'checked'}
                                                initialValue={false}>
                                         <Checkbox/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
-                                    <Form.Item name={'is_uncensored'} label={'是否无码'} valuePropName={'checked'}
+                                    <Form.Item name={'is_uncensored'} label={t('video:detail.fields.isUncensored')} valuePropName={'checked'}
                                                initialValue={false}>
                                         <Checkbox/>
                                     </Form.Item>

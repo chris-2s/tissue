@@ -11,6 +11,8 @@ from app.db import get_db, SessionFactory
 from app.db.models import ActorFavorite as ActorFavoriteModel, Site
 from app.db.transaction import transaction
 from app.exception import BizException
+from app.exception.codes import ErrorCode
+from app.i18n import translate
 from app.service.base import BaseService
 from app.service.spider import SpiderService
 from app.utils.logger import logger
@@ -41,7 +43,7 @@ class ActorFavoriteService(BaseService):
             ActorFavoriteModel.actor_code == param.actor_code,
         ).first()
         if exist:
-            raise BizException('已收藏该演员')
+            raise BizException('演员已收藏', error_code=ErrorCode.ACTOR_ALREADY_FAVORITED)
 
         favorite = ActorFavoriteModel(
             site_id=param.site_id,
@@ -58,7 +60,7 @@ class ActorFavoriteService(BaseService):
     def delete_favorite(self, favorite_id: int):
         exist = ActorFavoriteModel.get(self.db, favorite_id)
         if not exist:
-            raise BizException('该收藏不存在')
+            raise BizException('演员收藏不存在', error_code=ErrorCode.ACTOR_FAVORITE_NOT_FOUND)
         exist.delete(self.db)
 
     def _to_schema(self, model: ActorFavoriteModel) -> schema.ActorFavorite:
@@ -66,7 +68,7 @@ class ActorFavoriteService(BaseService):
         if not spider:
             site = Site.get(self.db, model.site_id)
             if not site:
-                raise BizException('收藏对应站点不存在')
+                raise BizException('收藏对应站点不存在', error_code=ErrorCode.ACTOR_FAVORITE_SITE_NOT_FOUND)
             source = schema.SourceRef(site_id=model.site_id, spider_key=site.spider_key, site_name=site.spider_key)
         else:
             try:
@@ -113,14 +115,14 @@ class ActorFavoriteService(BaseService):
                 (ActorFavoriteModel.actor_thumb.is_(None)) | (ActorFavoriteModel.actor_thumb == '')
             ).order_by(ActorFavoriteModel.id.desc()).all()
 
-        logger.info(f"获取到{len(favorite_rows)}个缺失头像的演员收藏")
+        logger.info(translate('log.actor_favorite.missing_thumb_count', {'count': len(favorite_rows)}))
         for favorite_id, site_id, actor_code in favorite_rows:
             actor_label = actor_code
             try:
                 with SessionFactory() as db:
                     favorite = ActorFavoriteModel.get(db, favorite_id)
                     if not favorite:
-                        logger.warning(f"演员收藏《{actor_code}》不存在，跳过头像刷新")
+                        logger.warning(translate('log.actor_favorite.not_found_skip_refresh', {'actor_code': actor_code}))
                         continue
 
                     actor_label = favorite.actor_name or favorite.actor_code
@@ -143,11 +145,11 @@ class ActorFavoriteService(BaseService):
                     if updated:
                         db.add(favorite)
                         db.commit()
-                        logger.info(f"已刷新演员收藏《{actor_label}》头像信息")
+                        logger.info(translate('log.actor_favorite.thumb_refreshed', {'actor_label': actor_label}))
                     else:
-                        logger.info(f"演员收藏《{actor_label}》暂无可更新头像信息")
+                        logger.info(translate('log.actor_favorite.no_update_available', {'actor_label': actor_label}))
             except Exception:
-                logger.error(f"刷新演员收藏《{actor_label}》头像失败")
+                logger.error(translate('log.actor_favorite.refresh_failed', {'actor_label': actor_label}))
                 traceback.print_exc()
 
             time.sleep(randint(30, 60))

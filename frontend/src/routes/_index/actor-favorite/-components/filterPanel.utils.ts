@@ -13,6 +13,11 @@ export interface ActorFavoriteFilterValue {
     tokens: ActorFavoriteSearchToken[];
 }
 
+export interface ActorFavoriteFilterTexts {
+    actorLabel: string;
+    aliasLabel: string;
+}
+
 function normalizeText(value: string) {
     return value.trim().toUpperCase();
 }
@@ -36,16 +41,20 @@ export function decodeToken(value: string): ActorFavoriteSearchToken {
     return {kind: "name", value: value.trim()};
 }
 
-export function getTokenLabel(token: ActorFavoriteSearchToken) {
+export function getTokenLabel(token: ActorFavoriteSearchToken, texts: ActorFavoriteFilterTexts) {
     switch (token.kind) {
         case "alias":
-            return `别名: ${token.value}`;
+            return `${texts.aliasLabel}: ${token.value}`;
         default:
-            return `演员: ${token.value}`;
+            return `${texts.actorLabel}: ${token.value}`;
     }
 }
 
-export function buildAutocompleteGroups(favorites: ActorFavorite[], keyword: string) {
+export function buildAutocompleteGroups(
+    favorites: ActorFavorite[],
+    keyword: string,
+    texts: ActorFavoriteFilterTexts
+) {
     const normalizedKeyword = normalizeText(keyword);
 
     if (!normalizedKeyword) {
@@ -67,7 +76,7 @@ export function buildAutocompleteGroups(favorites: ActorFavorite[], keyword: str
         ) {
             nameSeen.add(name.toUpperCase());
             nameOptions.push({
-                label: `演员 · ${name}`,
+                label: `${texts.actorLabel} · ${name}`,
                 value: encodeToken({kind: "name", value: name}),
             });
         }
@@ -80,7 +89,7 @@ export function buildAutocompleteGroups(favorites: ActorFavorite[], keyword: str
             if (includesNormalized(alias, normalizedKeyword) && !aliasSeen.has(alias.toUpperCase())) {
                 aliasSeen.add(alias.toUpperCase());
                 aliasOptions.push({
-                    label: `别名 · ${alias}`,
+                    label: `${texts.aliasLabel} · ${alias}`,
                     value: encodeToken({kind: "alias", value: alias}),
                 });
             }
@@ -96,10 +105,10 @@ export function buildAutocompleteGroups(favorites: ActorFavorite[], keyword: str
 
     const groups = [];
     if (nameOptions.length > 0) {
-        groups.push({label: "演员", options: nameOptions});
+        groups.push({label: texts.actorLabel, options: nameOptions});
     }
     if (aliasOptions.length > 0) {
-        groups.push({label: "别名", options: aliasOptions});
+        groups.push({label: texts.aliasLabel, options: aliasOptions});
     }
     return groups;
 }

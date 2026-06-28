@@ -24,6 +24,7 @@ import {
 } from "./-components/types.ts";
 import VideoResultCard from "./-components/videoResultCard.tsx";
 import {aggregateVideos, groupActors, normalizeSearch} from "./-search.utils.ts";
+import {useTranslation} from "react-i18next";
 
 const {Text} = Typography;
 const {useToken} = theme;
@@ -74,6 +75,7 @@ export const Route = createFileRoute('/_index/search/')({
 });
 
 function Search() {
+    const {t} = useTranslation(['search']);
     const router = useRouter();
     const {token} = useToken();
     const search = Route.useSearch() as SearchRouteSearch;
@@ -113,8 +115,8 @@ function Search() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'搜索失败'}
-                description={'请检查网络或关键词后重试。'}
+                title={t('search:errors.loadTitle')}
+                description={t('search:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
@@ -125,7 +127,7 @@ function Search() {
             <Card>
                 <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={'输入关键词后可选择搜索影片或演员'}
+                    description={t('search:empty.idle')}
                 />
             </Card>
         );
@@ -146,7 +148,7 @@ function Search() {
             </Row>
         ) : (
             <Card>
-                <Empty description={'暂无搜索结果'}/>
+                <Empty description={t('search:empty.results')}/>
             </Card>
         );
     } else {
@@ -159,7 +161,7 @@ function Search() {
                         <div className={'mb-4 flex items-center justify-between'}>
                             <Text strong>{group.siteName}</Text>
                             <Text type={'secondary'}>
-                                {group.actorItems.length} 条结果
+                                {t('search:actorResults.count', {count: group.actorItems.length})}
                             </Text>
                         </div>
                         <List
@@ -180,7 +182,7 @@ function Search() {
             </Space>
         ) : (
             <Card>
-                <Empty description={'暂无搜索结果'}/>
+                <Empty description={t('search:empty.results')}/>
             </Card>
         );
     }

@@ -7,6 +7,7 @@ import React, {useState} from "react";
 import {createFileRoute} from "@tanstack/react-router";
 import RoutePendingState from "../../../components/RoutePendingState";
 import RouteErrorState from "../../../components/RouteErrorState";
+import {useTranslation} from "react-i18next";
 
 export const Route = createFileRoute('/_index/schedule/')({
     component: Schedule,
@@ -23,6 +24,7 @@ function schedulesQueryOptions() {
 }
 
 function Schedule() {
+    const {t} = useTranslation(['schedule'])
     const queryClient = useQueryClient()
     const [firingKey, setFiringKey] = useState<string>()
 
@@ -30,7 +32,7 @@ function Schedule() {
     const {run: onFire, loading: onFiring} = useRequest(api.fireSchedule, {
         manual: true,
         onSuccess: () => {
-            message.success('手动执行成功')
+            message.success(t('schedule:fireSuccess'))
             queryClient.invalidateQueries({queryKey: ['schedules']})
             setFiringKey(undefined)
         },
@@ -46,15 +48,15 @@ function Schedule() {
     } else if (isError) {
         content = (
             <RouteErrorState
-                title={'任务列表加载失败'}
-                description={'请检查网络后重试'}
+                title={t('schedule:errors.loadTitle')}
+                description={t('schedule:errors.loadDescription')}
                 onRetry={async () => {
                     await refetch();
                 }}
             />
         );
     } else if (data.length === 0) {
-        content = <Empty description={'暂无任务'}/>;
+        content = <Empty description={t('schedule:empty.title')}/>;
     } else {
         content = (
             <List
@@ -74,11 +76,11 @@ function Schedule() {
                                     </Typography.Title>
                                 </div>
                                 <div className={'flex items-center justify-between gap-3'}>
-                                    <span>状态</span>
-                                    {item.status ? <Tag color={'success'}>运行中</Tag> : <Tag color={'warning'}>等待</Tag>}
+                                    <span>{t('schedule:fields.status')}</span>
+                                    {item.status ? <Tag color={'success'}>{t('schedule:status.running')}</Tag> : <Tag color={'warning'}>{t('schedule:status.waiting')}</Tag>}
                                 </div>
                                 <div className={'flex items-center justify-between gap-3'}>
-                                    <span>下次执行</span>
+                                    <span>{t('schedule:fields.nextRunTime')}</span>
                                     <span>{dayjs(item.next_run_time).format('lll')}</span>
                                 </div>
                                 <Button
@@ -90,7 +92,7 @@ function Schedule() {
                                     }}
                                     loading={onFiring && firingKey === item.key}
                                 >
-                                    手动执行
+                                    {t('schedule:actions.fire')}
                                 </Button>
                             </Space>
                         </Card>
@@ -101,7 +103,7 @@ function Schedule() {
     }
 
     return (
-        <Card title={'任务列表'}>
+        <Card title={t('schedule:pageTitle')}>
             {content}
         </Card>
     )
