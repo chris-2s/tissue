@@ -24,7 +24,7 @@
 }
 
 .itemActive {
-    background: color-mix(in srgb, var(--ant-color-primary-bg) 64%, transparent);
+    background: color-mix(in srgb, var(--ant-color-primary-bg) 46%, transparent);
 }
 
 .item:active {

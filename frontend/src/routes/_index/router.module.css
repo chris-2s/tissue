@@ -7,8 +7,9 @@
     right: 0;
     z-index: 20;
     backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--shell-bar-bg, rgba(255, 255, 255, 0.6));
     border-block-end: 1px solid;
+    box-shadow: var(--shell-bar-shadow, none);
 }
 
 .footer {
@@ -18,8 +19,9 @@
     bottom: 0;
     z-index: 20;
     backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--shell-bar-bg, rgba(255, 255, 255, 0.6));
     border-block-start: 1px solid;
+    box-shadow: var(--shell-bar-shadow, none);
 }
 
 .side {

@@ -59,6 +59,8 @@ function RouteLayout() {
             ['--page-padding-y' as string]: responsive.md ? '16px' : '12px',
             ['--page-section-gap' as string]: responsive.md ? '16px' : '14px',
             ['--page-bottom-extra' as string]: !responsive.md ? '4px' : '0px',
+            ['--shell-bar-bg' as string]: `color-mix(in srgb, ${token.colorBgContainer} 72%, transparent)`,
+            ['--shell-bar-shadow' as string]: `0 8px 24px color-mix(in srgb, ${token.colorBgMask} 12%, transparent)`,
         }}>
             <ConfigProvider theme={{
                 components: {
