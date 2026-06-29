@@ -47,7 +47,7 @@ docker run \
 | PGID | 运行程序的用户组ID | 否 | 0 |
 | UMASK | 掩码权限 | 否 | 000 |
 | JWT_SECRET | 随机字符串，不提供将随机生成 | 否 | 无 |
-| DEFAULT_LOCALE | 后端通知和用户可见日志的默认语言，可选 `zh-CN` / `en-US` | 否 | `zh-CN` |
+| DEFAULT_LOCALE | 后端通知和用户可见日志的默认语言，可选 `zh-CN` / `zh-TW` / `en-US` / `ja-JP` | 否 | `zh-CN` |
 
 ### 端口映射
 

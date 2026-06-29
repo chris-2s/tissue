@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.middleware.requestvars import g
 from app.schema.site import SiteUpdate
 from app.service.cookiecloud import CookieCloudService
@@ -44,8 +45,11 @@ def test_get_site_raises_for_invalid_spider_key():
         cookies=None,
     )
 
-    with pytest.raises(BizException, match="spider_key 无效"):
+    with pytest.raises(BizException) as exc_info:
         service.get_site(db_site)
+
+    assert exc_info.value.error_code == ErrorCode.SITE_TYPE_NOT_FOUND
+    assert exc_info.value.error_params == {"spider_key": "invalid"}
 
 
 def test_modify_site_normalizes_cookie_header(monkeypatch):

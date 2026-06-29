@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.exception import BizException
+from app.exception.codes import ErrorCode
 from app.integrations.downloaders.base import AddTorrentResult
 from app.middleware.requestvars import g
 from app.schema.notification import SubscribeStartedPayload
@@ -53,8 +54,10 @@ def test_add_subscribe_rejects_duplicate_subscription(monkeypatch):
         lambda: [SimpleNamespace(num="MIDV-639", is_hd=True, is_zh=False, is_uncensored=False)],
     )
 
-    with pytest.raises(BizException, match="存在相同订阅"):
+    with pytest.raises(BizException) as exc_info:
         service.add_subscribe(param)
+
+    assert exc_info.value.error_code == ErrorCode.SUBSCRIBE_ALREADY_EXISTS
 
 
 def test_download_video_raises_when_qbittorrent_fails(monkeypatch):
