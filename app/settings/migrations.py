@@ -33,6 +33,9 @@ NAMESPACE_ORDER = (
     'download',
     'crawler',
     'notify',
+    'translate',
+    'llm',
+    'text_processing',
     'cookiecloud',
 )
 

@@ -9,8 +9,17 @@ class SettingService:
     def save_section(section: str, payload: dict) -> None:
         Setting.write_section(section, payload)
         latest_setting = Setting()
+        SettingService.apply_side_effects({section}, latest_setting)
 
-        if section == 'download':
+    @staticmethod
+    def save_sections(payloads: dict[str, dict]) -> None:
+        Setting.write_sections(payloads)
+        latest_setting = Setting()
+        SettingService.apply_side_effects(set(payloads.keys()), latest_setting)
+
+    @staticmethod
+    def apply_side_effects(updated_sections: set[str], latest_setting: Setting) -> None:
+        if 'download' in updated_sections:
             if latest_setting.download.trans_auto:
                 scheduler.add('scrape_download')
             else:
@@ -23,13 +32,14 @@ class SettingService:
 
             downloader_manager.refresh()
 
-        if section == 'notify':
+        if 'notify' in updated_sections:
             notification_manager.refresh()
 
-        if section == 'crawler':
+
+        if 'crawler' in updated_sections:
             scheduler.add('subscribe')
 
-        if section == 'cookiecloud':
+        if 'cookiecloud' in updated_sections:
             if latest_setting.cookiecloud.enabled:
                 scheduler.add('cookiecloud_sync')
             else:

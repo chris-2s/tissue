@@ -12,9 +12,12 @@ from app.schema.setting import (
     SettingDownload,
     SettingDownloadV1,
     SettingFile,
+    SettingLlm,
     SettingLibrary,
     SettingNotify,
     SettingNotifyV1,
+    SettingTextProcessing,
+    SettingTranslate,
     config_path,
 )
 from app.settings.migrations import NAMESPACE_ORDER, get_upgrade, latest_version
@@ -28,6 +31,9 @@ class SettingsManager:
         'download': SettingDownload,
         'crawler': SettingCrawler,
         'notify': SettingNotify,
+        'translate': SettingTranslate,
+        'llm': SettingLlm,
+        'text_processing': SettingTextProcessing,
         'cookiecloud': SettingCookieCloud,
     }
 
@@ -78,6 +84,24 @@ class SettingsManager:
                 payloads[entry.namespace] = self._normalize_namespace_payload(entry.namespace, self._decode_payload(entry.payload))
         return payloads
 
+    def load_sections(self, sections: list[str]) -> dict[str, Any]:
+        if not sections:
+            return self.load()
+
+        normalized_sections = self._normalize_section_names(sections)
+        payloads = {namespace: self._default_payload(namespace) for namespace in normalized_sections}
+        with SessionFactory() as db:
+            try:
+                entries = db.query(SettingEntry).filter(SettingEntry.namespace.in_(normalized_sections)).all()
+            except OperationalError:
+                return payloads
+
+            for entry in entries:
+                if entry.namespace not in self.namespace_models:
+                    continue
+                payloads[entry.namespace] = self._normalize_namespace_payload(entry.namespace, self._decode_payload(entry.payload))
+        return payloads
+
     def save_section(self, section: str, payload: dict[str, Any]):
         with SessionFactory() as db:
             namespace = section
@@ -85,6 +109,14 @@ class SettingsManager:
                 raise ValueError(f'不支持的配置分组: {section}')
             normalized = self._normalize_namespace_payload(namespace, payload)
             self._upsert_namespace(db, namespace, normalized, latest_version(namespace))
+            db.commit()
+
+    def save_sections(self, payloads: dict[str, dict[str, Any]]):
+        namespaces = self._normalize_section_names(list(payloads.keys()))
+        with SessionFactory() as db:
+            for namespace in namespaces:
+                normalized = self._normalize_namespace_payload(namespace, payloads[namespace])
+                self._upsert_namespace(db, namespace, normalized, latest_version(namespace))
             db.commit()
 
     def _seed_settings(self, db) -> bool:
@@ -152,6 +184,17 @@ class SettingsManager:
     def _default_payload(self, namespace: str) -> dict[str, Any]:
         model = self.namespace_models[namespace]
         return model().model_dump()
+
+    def _normalize_section_names(self, sections: list[str]) -> list[str]:
+        normalized_sections: list[str] = []
+        for section in sections:
+            if section == '*':
+                return list(NAMESPACE_ORDER)
+            if section not in self.namespace_models:
+                raise ValueError(f'不支持的配置分组: {section}')
+            if section not in normalized_sections:
+                normalized_sections.append(section)
+        return normalized_sections
 
     @staticmethod
     def _initial_payload(namespace: str) -> dict[str, Any]:

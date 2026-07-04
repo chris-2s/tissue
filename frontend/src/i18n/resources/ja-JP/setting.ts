@@ -5,6 +5,7 @@ export default {
         file: 'ファイル',
         download: 'DL',
         notify: '通知',
+        textProcessing: 'テキスト処理',
         cookiecloud: 'CookieCloud',
     },
     library: {
@@ -53,6 +54,30 @@ export default {
         telegramToken: 'Token',
         telegramChatId: 'Chat ID',
         webhookUrl: 'URL',
+    },
+    textProcessing: {
+        translateTitle: '翻訳器',
+        translateType: '翻訳器タイプ',
+        translateBaseUrl: 'Base URL',
+        translateApiKey: 'API Key',
+        llmTitle: 'AIモデル',
+        llmType: 'AIモデルタイプ',
+        llmBaseUrl: 'Base URL',
+        llmApiKey: 'API Key',
+        llmModel: 'モデル',
+        translationStrategyTitle: '翻訳方針',
+        metadataTranslator: 'メタデータ翻訳',
+        actorTranslator: '俳優翻訳',
+        actorTranslationMode: '俳優名の翻訳方式',
+        handler: {
+            off: '無効',
+            translate: '翻訳器',
+            llm: 'AIモデル',
+        },
+        actorTranslationModeOptions: {
+            translated: '訳名のみ',
+            translatedWithOriginal: '訳名(原名)',
+        },
     },
     cookiecloud: {
         enabled: '有効',

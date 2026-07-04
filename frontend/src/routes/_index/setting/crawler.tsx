@@ -1,8 +1,11 @@
-import {Button, Form, InputNumber, message, Skeleton} from "antd";
+import {Form, InputNumber, message} from "antd";
 import * as api from "../../../apis/setting.ts";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
 import {useTranslation} from "react-i18next";
+
+import SettingPage from "./-components/page.tsx";
+import SettingSection from "./-components/section.tsx";
 
 
 export const Route = createFileRoute('/_index/setting/crawler')({
@@ -14,13 +17,13 @@ function SettingCrawler() {
     const [form] = Form.useForm()
     const {t} = useTranslation(['common', 'setting'])
 
-    const {loading} = useRequest(api.getSettings, {
+    const {loading} = useRequest(() => api.readSettingSection('crawler'), {
         onSuccess: (res) => {
-            form.setFieldsValue(res.crawler)
+            form.setFieldsValue(res)
         }
     })
 
-    const {run, loading: saving} = useRequest(api.saveSetting, {
+    const {run, loading: saving} = useRequest((data) => api.saveSettingSection('crawler', data), {
         manual: true,
         onSuccess: () => {
             message.success(t('common:feedback.settingsSaved'))
@@ -28,15 +31,20 @@ function SettingCrawler() {
     })
 
     function onFinish(data: any) {
-        run('crawler', data)
+        run(data)
     }
 
     return (
-        loading ? (
-            <Skeleton active />
-        ) : (
-            <div className={'w-[600px] max-w-full my-0 mx-auto'}>
-                <Form layout={'vertical'} form={form} onFinish={onFinish}>
+        <SettingPage
+            form={form}
+            loading={loading}
+            onFinish={onFinish}
+            saving={saving}
+            submitLabel={t('common:actions.submit')}
+            title={t('setting:tabs.crawler')}
+        >
+            <SettingSection divider={false}>
+                <div className={'grid gap-4 lg:grid-cols-2'}>
                     <Form.Item label={t('setting:crawler.timeout')} name={'timeout'}>
                         <InputNumber style={{width: '100%'}}/>
                     </Form.Item>
@@ -48,17 +56,15 @@ function SettingCrawler() {
                         <InputNumber style={{width: '100%'}} min={15}/>
                     </Form.Item>
                     <Form.Item
+                        className={'lg:col-span-2'}
                         label={t('setting:crawler.subscribePauseSeconds')}
                         name={'subscribe_pause_seconds'}
                         tooltip={t('setting:crawler.subscribePauseSecondsTooltip')}
                     >
                         <InputNumber style={{width: '100%'}} min={1}/>
                     </Form.Item>
-                    <div style={{textAlign: 'center'}}>
-                        <Button type={'primary'} style={{width: 150}} loading={saving} htmlType={"submit"}>{t('common:actions.submit')}</Button>
-                    </div>
-                </Form>
-            </div>
-        )
+                </div>
+            </SettingSection>
+        </SettingPage>
     )
 }

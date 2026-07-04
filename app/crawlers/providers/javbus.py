@@ -252,13 +252,12 @@ class JavBusSpider(Spider):
             avatar_element = actor_element.xpath('./div/img')[0]
             actor_name = avatar_element.get('title')
             actor_src = avatar_element.get('src')
-            actor_avatar = urljoin(self.host, actor_src)
             actor_code = actor_element.get('href').split('/')[-1]
             actor = Actor(source=self.source_ref())
             actor.code = actor_code
             actor.name = actor_name
-            if self._validate_actor_avatar(actor_avatar):
-                actor.thumb = actor_avatar
+            if self._validate_actor_avatar(actor_src):
+                actor.thumb = urljoin(self.host, actor_src)
             actors.append(actor)
         return actors
 

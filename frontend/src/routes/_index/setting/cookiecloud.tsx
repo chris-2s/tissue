@@ -1,8 +1,11 @@
-import {Button, Form, Input, message, Skeleton, Switch} from "antd";
+import {Form, Input, message, Switch} from "antd";
 import * as api from "../../../apis/setting";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
 import {useTranslation} from "react-i18next";
+
+import SettingPage from "./-components/page.tsx";
+import SettingSection from "./-components/section.tsx";
 
 
 export const Route = createFileRoute('/_index/setting/cookiecloud')({
@@ -14,13 +17,13 @@ function SettingCookieCloud() {
     const [form] = Form.useForm()
     const {t} = useTranslation(['common', 'setting'])
 
-    const {loading} = useRequest(api.getSettings, {
+    const {loading} = useRequest(() => api.readSettingSection('cookiecloud'), {
         onSuccess: (res) => {
-            form.setFieldsValue(res.cookiecloud)
+            form.setFieldsValue(res)
         }
     })
 
-    const {run, loading: saving} = useRequest(api.saveSetting, {
+    const {run, loading: saving} = useRequest((data) => api.saveSettingSection('cookiecloud', data), {
         manual: true,
         onSuccess: () => {
             message.success(t('common:feedback.settingsSaved'))
@@ -28,16 +31,21 @@ function SettingCookieCloud() {
     })
 
     function onFinish(data: any) {
-        run('cookiecloud', data)
+        run(data)
     }
 
     return (
-        loading ? (
-            <Skeleton active />
-        ) : (
-            <div className={'w-[600px] max-w-full my-0 mx-auto'}>
-                <Form layout={'vertical'} form={form} onFinish={onFinish}>
-                    <Form.Item label={t('setting:cookiecloud.enabled')} name={'enabled'} valuePropName={'checked'}>
+        <SettingPage
+            form={form}
+            loading={loading}
+            onFinish={onFinish}
+            saving={saving}
+            submitLabel={t('common:actions.submit')}
+            title={t('setting:tabs.cookiecloud')}
+        >
+            <SettingSection divider={false}>
+                <div className={'grid gap-4 lg:grid-cols-2'}>
+                    <Form.Item className={'lg:col-span-2'} label={t('setting:cookiecloud.enabled')} name={'enabled'} valuePropName={'checked'}>
                         <Switch/>
                     </Form.Item>
                     <Form.Item label={t('setting:cookiecloud.host')} name={'host'}>
@@ -46,14 +54,11 @@ function SettingCookieCloud() {
                     <Form.Item label={t('setting:cookiecloud.uuid')} name={'uuid'}>
                         <Input placeholder={t('setting:cookiecloud.uuidPlaceholder')}/>
                     </Form.Item>
-                    <Form.Item label={t('setting:cookiecloud.password')} name={'password'}>
+                    <Form.Item className={'lg:col-span-2'} label={t('setting:cookiecloud.password')} name={'password'}>
                         <Input.Password placeholder={t('setting:cookiecloud.passwordPlaceholder')}/>
                     </Form.Item>
-                    <div style={{textAlign: 'center'}}>
-                        <Button type={'primary'} style={{width: 150}} loading={saving} htmlType={"submit"}>{t('common:actions.submit')}</Button>
-                    </div>
-                </Form>
-            </div>
-        )
+                </div>
+            </SettingSection>
+        </SettingPage>
     )
 }

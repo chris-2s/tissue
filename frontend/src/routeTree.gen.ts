@@ -29,6 +29,7 @@ import { Route as IndexActorIndexRouteImport } from './routes/_index/actor/index
 import { Route as IndexActorFavoriteIndexRouteImport } from './routes/_index/actor-favorite/index'
 import { Route as IndexAboutIndexRouteImport } from './routes/_index/about/index'
 import { Route as IndexSitePriorityRouteImport } from './routes/_index/site/priority'
+import { Route as IndexSettingTextProcessingRouteImport } from './routes/_index/setting/text-processing'
 import { Route as IndexSettingNotifyRouteImport } from './routes/_index/setting/notify'
 import { Route as IndexSettingLibraryRouteImport } from './routes/_index/setting/library'
 import { Route as IndexSettingFileRouteImport } from './routes/_index/setting/file'
@@ -136,6 +137,12 @@ const IndexSitePriorityRoute = IndexSitePriorityRouteImport.update({
   path: '/site/priority',
   getParentRoute: () => IndexRouteRoute,
 } as any)
+const IndexSettingTextProcessingRoute =
+  IndexSettingTextProcessingRouteImport.update({
+    id: '/text-processing',
+    path: '/text-processing',
+    getParentRoute: () => IndexSettingRouteRoute,
+  } as any)
 const IndexSettingNotifyRoute = IndexSettingNotifyRouteImport.update({
   id: '/notify',
   path: '/notify',
@@ -183,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/library': typeof IndexSettingLibraryRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
+  '/setting/text-processing': typeof IndexSettingTextProcessingRoute
   '/site/priority': typeof IndexSitePriorityRoute
   '/about/': typeof IndexAboutIndexRoute
   '/actor-favorite/': typeof IndexActorFavoriteIndexRoute
@@ -210,6 +218,7 @@ export interface FileRoutesByTo {
   '/setting/file': typeof IndexSettingFileRoute
   '/setting/library': typeof IndexSettingLibraryRoute
   '/setting/notify': typeof IndexSettingNotifyRoute
+  '/setting/text-processing': typeof IndexSettingTextProcessingRoute
   '/site/priority': typeof IndexSitePriorityRoute
   '/about': typeof IndexAboutIndexRoute
   '/actor-favorite': typeof IndexActorFavoriteIndexRoute
@@ -240,6 +249,7 @@ export interface FileRoutesById {
   '/_index/setting/file': typeof IndexSettingFileRoute
   '/_index/setting/library': typeof IndexSettingLibraryRoute
   '/_index/setting/notify': typeof IndexSettingNotifyRoute
+  '/_index/setting/text-processing': typeof IndexSettingTextProcessingRoute
   '/_index/site/priority': typeof IndexSitePriorityRoute
   '/_index/about/': typeof IndexAboutIndexRoute
   '/_index/actor-favorite/': typeof IndexActorFavoriteIndexRoute
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/setting/file'
     | '/setting/library'
     | '/setting/notify'
+    | '/setting/text-processing'
     | '/site/priority'
     | '/about/'
     | '/actor-favorite/'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/setting/file'
     | '/setting/library'
     | '/setting/notify'
+    | '/setting/text-processing'
     | '/site/priority'
     | '/about'
     | '/actor-favorite'
@@ -326,6 +338,7 @@ export interface FileRouteTypes {
     | '/_index/setting/file'
     | '/_index/setting/library'
     | '/_index/setting/notify'
+    | '/_index/setting/text-processing'
     | '/_index/site/priority'
     | '/_index/about/'
     | '/_index/actor-favorite/'
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexSitePriorityRouteImport
       parentRoute: typeof IndexRouteRoute
     }
+    '/_index/setting/text-processing': {
+      id: '/_index/setting/text-processing'
+      path: '/text-processing'
+      fullPath: '/setting/text-processing'
+      preLoaderRoute: typeof IndexSettingTextProcessingRouteImport
+      parentRoute: typeof IndexSettingRouteRoute
+    }
     '/_index/setting/notify': {
       id: '/_index/setting/notify'
       path: '/notify'
@@ -550,6 +570,7 @@ interface IndexSettingRouteRouteChildren {
   IndexSettingFileRoute: typeof IndexSettingFileRoute
   IndexSettingLibraryRoute: typeof IndexSettingLibraryRoute
   IndexSettingNotifyRoute: typeof IndexSettingNotifyRoute
+  IndexSettingTextProcessingRoute: typeof IndexSettingTextProcessingRoute
   IndexSettingIndexRoute: typeof IndexSettingIndexRoute
 }
 
@@ -560,6 +581,7 @@ const IndexSettingRouteRouteChildren: IndexSettingRouteRouteChildren = {
   IndexSettingFileRoute: IndexSettingFileRoute,
   IndexSettingLibraryRoute: IndexSettingLibraryRoute,
   IndexSettingNotifyRoute: IndexSettingNotifyRoute,
+  IndexSettingTextProcessingRoute: IndexSettingTextProcessingRoute,
   IndexSettingIndexRoute: IndexSettingIndexRoute,
 }
 

@@ -5,6 +5,7 @@ export default {
         file: '檔案',
         download: '下載',
         notify: '通知',
+        textProcessing: '文字處理',
         cookiecloud: 'CookieCloud',
     },
     library: {
@@ -53,6 +54,30 @@ export default {
         telegramToken: 'Token',
         telegramChatId: 'Chat ID',
         webhookUrl: 'URL',
+    },
+    textProcessing: {
+        translateTitle: '翻譯器',
+        translateType: '翻譯器類型',
+        translateBaseUrl: '基礎位址',
+        translateApiKey: 'API Key',
+        llmTitle: '大模型',
+        llmType: '大模型類型',
+        llmBaseUrl: '基礎位址',
+        llmApiKey: 'API Key',
+        llmModel: '模型',
+        translationStrategyTitle: '翻譯策略',
+        metadataTranslator: '元資料翻譯',
+        actorTranslator: '演員翻譯',
+        actorTranslationMode: '演員名稱翻譯策略',
+        handler: {
+            off: '關閉',
+            translate: '翻譯器',
+            llm: '大模型',
+        },
+        actorTranslationModeOptions: {
+            translated: '僅譯名',
+            translatedWithOriginal: '譯名(原名)',
+        },
     },
     cookiecloud: {
         enabled: '啟用',

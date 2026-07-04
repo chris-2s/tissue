@@ -5,6 +5,7 @@ export default {
         file: '文件',
         download: '下载',
         notify: '通知',
+        textProcessing: '文本处理',
         cookiecloud: 'CookieCloud',
     },
     library: {
@@ -53,6 +54,30 @@ export default {
         telegramToken: 'Token',
         telegramChatId: 'Chat ID',
         webhookUrl: 'URL',
+    },
+    textProcessing: {
+        translateTitle: '翻译器',
+        translateType: '翻译器类型',
+        translateBaseUrl: '基础地址',
+        translateApiKey: 'API Key',
+        llmTitle: '大模型',
+        llmType: '大模型类型',
+        llmBaseUrl: '基础地址',
+        llmApiKey: 'API Key',
+        llmModel: '模型',
+        translationStrategyTitle: '翻译策略',
+        metadataTranslator: '元数据翻译',
+        actorTranslator: '演员翻译',
+        actorTranslationMode: '演员名翻译策略',
+        handler: {
+            off: '关闭',
+            translate: '翻译器',
+            llm: '大模型',
+        },
+        actorTranslationModeOptions: {
+            translated: '仅译名',
+            translatedWithOriginal: '译名(原名)',
+        },
     },
     cookiecloud: {
         enabled: '启用',

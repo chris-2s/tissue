@@ -5,6 +5,7 @@ export default {
         file: 'Files',
         download: 'Downloads',
         notify: 'Notifications',
+        textProcessing: 'Text Processing',
         cookiecloud: 'CookieCloud',
     },
     library: {
@@ -53,6 +54,30 @@ export default {
         telegramToken: 'Token',
         telegramChatId: 'Chat ID',
         webhookUrl: 'URL',
+    },
+    textProcessing: {
+        translateTitle: 'Translator',
+        translateType: 'Translator type',
+        translateBaseUrl: 'Base URL',
+        translateApiKey: 'API key',
+        llmTitle: 'AI model',
+        llmType: 'AI model type',
+        llmBaseUrl: 'Base URL',
+        llmApiKey: 'API key',
+        llmModel: 'Model',
+        translationStrategyTitle: 'Translation strategy',
+        metadataTranslator: 'Metadata translation',
+        actorTranslator: 'Actor translation',
+        actorTranslationMode: 'Actor name translation style',
+        handler: {
+            off: 'Off',
+            translate: 'Translator',
+            llm: 'AI model',
+        },
+        actorTranslationModeOptions: {
+            translated: 'Translated only',
+            translatedWithOriginal: 'Translated (Original)',
+        },
     },
     cookiecloud: {
         enabled: 'Enabled',
