@@ -201,12 +201,8 @@ def save(path: str, detail: VideoDetail):
 
     if detail.series:
         tag_element = ET.Element('tag')
-        tag_element.text = detail.series
+        tag_element.text = '系列:' + detail.series
         root.append(tag_element)
-
-        genre_element = ET.Element('genre')
-        genre_element.text = detail.series
-        root.append(genre_element)
 
     if detail.cover:
         cover = ET.Element('cover')

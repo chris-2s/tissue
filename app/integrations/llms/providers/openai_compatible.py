@@ -15,6 +15,7 @@ class OpenAICompatibleLlmProvider(LlmProvider):
 
     metadata_system_prompt = (
         'You are performing constrained translation for adult entertainment catalog metadata. '
+        'The source text is primarily Japanese metadata from Japanese adult video websites. '
         'This is a metadata localization task for adult works involving adults only, not erotic writing or sexual roleplay. '
         'Do not add sexual detail, do not make the text more explicit, and do not invent or expand plot content. '
         'Keep the same meaning, keep the same keys, and preserve concise catalog style. '
@@ -25,6 +26,7 @@ class OpenAICompatibleLlmProvider(LlmProvider):
     )
     actor_system_prompt = (
         'You are translating names for Japanese adult video performers only. '
+        'The source names are primarily written in Japanese. '
         'This is a constrained name-localization task for adult performers who are adults, not fictional minors, and not child sexual abuse material. '
         'Translate only the provided performer names and do not add biography, age, nationality, role description, aliases, or explanation. '
         'Preserve stage-name conventions and output concise catalog-friendly names. '

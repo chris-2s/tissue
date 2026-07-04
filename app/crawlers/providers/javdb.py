@@ -168,7 +168,7 @@ class JavDBSpider(Spider):
             series = series_element[0].text
             meta.series = series
 
-        tag_elements = html.xpath("//a[contains(@href,'/tags?')]")
+        tag_elements = html.xpath("//div[@class='panel-block']//a[contains(@href,'/tags?')]")
         if tag_elements:
             tags = [tag.text for tag in tag_elements]
             meta.tags = tags

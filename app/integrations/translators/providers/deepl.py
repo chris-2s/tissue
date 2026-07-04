@@ -54,6 +54,7 @@ class DeeplTranslatorProvider(TranslatorProvider):
         api_key = self.config.get('api_key')
 
         data = {
+            'source_lang': 'JA',
             'target_lang': self._normalize_deepl_language(target_language),
             'text': texts,
         }
