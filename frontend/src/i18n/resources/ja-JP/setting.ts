@@ -62,7 +62,7 @@ export default {
         translateApiKey: 'API Key',
         llmTitle: 'AIモデル',
         llmType: 'AIモデルタイプ',
-        llmBaseUrl: 'Base URL',
+        llmBaseUrl: 'APIベースURL',
         llmApiKey: 'API Key',
         llmModel: 'モデル',
         translationStrategyTitle: '翻訳方針',

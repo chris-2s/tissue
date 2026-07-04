@@ -62,7 +62,7 @@ export default {
         translateApiKey: 'API Key',
         llmTitle: '大模型',
         llmType: '大模型类型',
-        llmBaseUrl: '基础地址',
+        llmBaseUrl: '接口基础地址',
         llmApiKey: 'API Key',
         llmModel: '模型',
         translationStrategyTitle: '翻译策略',

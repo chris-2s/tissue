@@ -231,9 +231,11 @@ class SpiderService(BaseService):
 
     def get_video_info(self, number: str):
         meta = self.get_video(number, include_downloads=False, include_previews=False, include_comments=False)
+        if not meta:
+            return None
         logger.info(translate(
             'log.spider.video_scrape_completed',
-            {'number': number, 'title': meta.title, 'actors': '、'.join([i.name for i in meta.actors])},
+            {'number': number, 'title': meta.title, 'actors': '、'.join([i.name for i in meta.actors if i.name])},
         ))
         return meta
 

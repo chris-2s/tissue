@@ -18,6 +18,7 @@ from app.schema.notification import VideoSavedPayload
 from app.schema.setting import Setting
 from app.schema.video import VideoDetail, VideoList
 from app.service.base import BaseService
+from app.service.text_processing import text_processing_service
 from app.service.resource import ResourceService
 from app.service.spider import SpiderService
 from app.utils import cache, nfo, num_parser
@@ -84,7 +85,7 @@ class VideoService(BaseService):
         video = SpiderService(self.db).get_video_info(num)
         if not video:
             raise BizException("未找到该番号", error_code=ErrorCode.VIDEO_NUMBER_NOT_FOUND)
-        return video
+        return text_processing_service.process_scraped_video(video)
 
     def save_video(self, video: VideoDetail,
                    mode: Optional[str] = None,

@@ -1,5 +1,7 @@
 from app.integrations.downloaders.manager import downloader_manager
+from app.integrations.llms import llm_manager
 from app.integrations.notifications.manager import notification_manager
+from app.integrations.translators import translator_manager
 from app.scheduler import scheduler
 from app.schema import Setting
 
@@ -35,6 +37,11 @@ class SettingService:
         if 'notify' in updated_sections:
             notification_manager.refresh()
 
+        if 'translate' in updated_sections:
+            translator_manager.refresh()
+
+        if 'llm' in updated_sections:
+            llm_manager.refresh()
 
         if 'crawler' in updated_sections:
             scheduler.add('subscribe')
