@@ -107,7 +107,7 @@ function Header(props: Props) {
             children: [
                 {
                     key: 'zh-CN',
-                    label: '中文',
+                    label: '简体中文',
                 },
                 {
                     key: 'zh-TW',

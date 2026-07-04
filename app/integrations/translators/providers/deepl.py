@@ -2,11 +2,13 @@ from urllib.parse import urljoin
 
 import requests
 
+from app.i18n import translate
 from app.exception import BizException
 from app.exception.codes import ErrorCode
 from app.integrations.translators.base import TranslatorProvider
 from app.integrations.translators.registry import translator_registry
 from app.schema.setting import Setting
+from app.utils.logger import logger
 
 
 class DeeplTranslatorProvider(TranslatorProvider):
@@ -22,6 +24,22 @@ class DeeplTranslatorProvider(TranslatorProvider):
 
         if not translated_texts:
             raise BizException('DeepL 返回结果数量不匹配', error_code=ErrorCode.REQUEST_FAILED)
+
+        # Some DeepLX-compatible services only return the first item for a batch request.
+        # Only this prefix case is safe to recover from without risking misaligned write-back.
+        if len(translated_texts) != 1:
+            raise BizException('DeepL 返回结果数量不匹配', error_code=ErrorCode.REQUEST_FAILED)
+
+        logger.warning(
+            translate(
+                'log.translate.deepl_batch_partial_fallback',
+                {
+                    'requested_count': len(texts),
+                    'returned_count': len(translated_texts),
+                    'language': target_language,
+                },
+            )
+        )
 
         results = list(translated_texts)
         for text in texts[len(results):]:

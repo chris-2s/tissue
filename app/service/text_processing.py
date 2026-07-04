@@ -21,7 +21,6 @@ class TextProcessingService:
                 translate(
                     'log.text_processing.metadata_failed',
                     {'error': str(exc)},
-                    default='Text processing metadata failed: {error}',
                 )
             )
 
@@ -32,7 +31,6 @@ class TextProcessingService:
                 translate(
                     'log.text_processing.actors_failed',
                     {'error': str(exc)},
-                    default='Text processing actors failed: {error}',
                 )
             )
 
@@ -51,12 +49,36 @@ class TextProcessingService:
         if not payload:
             return video
 
+        logger.debug(
+            translate(
+                'log.text_processing.metadata_started',
+                {
+                    'handler': handler.value,
+                    'language': target_language,
+                    'field_count': len(payload),
+                    'tag_count': len(payload.get('tags') or []) if isinstance(payload.get('tags'), list) else 0,
+                },
+            )
+        )
+
         if handler == TextProcessingHandler.TRANSLATE:
             translated_payload = self._translate_metadata_payload(payload, target_language)
         else:
             translated_payload = llm_manager.get_active().translate_metadata_fields(payload, target_language)
 
-        return self._apply_metadata_payload(video, translated_payload)
+        translated_video = self._apply_metadata_payload(video, translated_payload)
+        logger.debug(
+            translate(
+                'log.text_processing.metadata_succeeded',
+                {
+                    'handler': handler.value,
+                    'language': target_language,
+                    'fields': ','.join(sorted(translated_payload.keys())),
+                    'tag_count': len(translated_payload.get('tags') or []) if isinstance(translated_payload.get('tags'), list) else 0,
+                },
+            )
+        )
+        return translated_video
 
     def process_actors(
         self,
@@ -71,6 +93,18 @@ class TextProcessingService:
         original_names = [actor.name.strip() for actor in video.actors if actor.name and actor.name.strip()]
         if not original_names:
             return video
+
+        logger.debug(
+            translate(
+                'log.text_processing.actors_started',
+                {
+                    'handler': handler.value,
+                    'language': target_language,
+                    'mode': mode.value,
+                    'count': len(original_names),
+                },
+            )
+        )
 
         if handler == TextProcessingHandler.TRANSLATE:
             translated_names = translator_manager.get_active().translate_texts(original_names, target_language)
@@ -93,6 +127,17 @@ class TextProcessingService:
 
         translated_video = video.model_copy(deep=True)
         translated_video.actors = actors
+        logger.debug(
+            translate(
+                'log.text_processing.actors_succeeded',
+                {
+                    'handler': handler.value,
+                    'language': target_language,
+                    'mode': mode.value,
+                    'count': len(translated_names),
+                },
+            )
+        )
         return translated_video
 
     def _extract_metadata_payload(self, video: VideoDetail) -> dict[str, object]:
@@ -157,7 +202,9 @@ class TextProcessingService:
 
         tags = payload.get('tags')
         if isinstance(tags, list):
-            translated_video.tags = [item for item in tags if isinstance(item, str) and item.strip()]
+            normalized_tags = [item for item in tags if isinstance(item, str) and item.strip()]
+            if normalized_tags:
+                translated_video.tags = normalized_tags
 
         return translated_video
 
