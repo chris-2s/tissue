@@ -1,13 +1,19 @@
 from app.i18n import get_default_locale, normalize_locale, translate
 from app.integrations.llms import llm_manager
 from app.integrations.translators import translator_manager
-from app.schema.setting import ActorTranslationMode, Setting, TextProcessingHandler
+from app.schema.setting import (
+    ActorTranslationMode,
+    CustomTranslationRule,
+    Setting,
+    SettingTextProcessing,
+    TextProcessingHandler,
+)
 from app.schema.video import VideoActor, VideoDetail
 from app.utils.logger import logger
 
 
 class TextProcessingService:
-    metadata_fields = ('title', 'outline', 'tags')
+    metadata_fields = ('title', 'outline', 'tags', 'series')
 
     def process_scraped_video(self, video: VideoDetail, target_language: str | None = None) -> VideoDetail:
         locale = normalize_locale(target_language or get_default_locale())
@@ -15,7 +21,7 @@ class TextProcessingService:
 
         processed = video
         try:
-            processed = self.process_metadata(processed, setting.metadata_translator, locale)
+            processed = self.process_metadata(processed, setting, setting.metadata_translator, locale)
         except Exception as exc:
             logger.warning(
                 translate(
@@ -25,7 +31,7 @@ class TextProcessingService:
             )
 
         try:
-            processed = self.process_actors(processed, setting.actor_translator, setting.actor_translation_mode, locale)
+            processed = self.process_actors(processed, setting, setting.actor_translator, setting.actor_translation_mode, locale)
         except Exception as exc:
             logger.warning(
                 translate(
@@ -39,13 +45,14 @@ class TextProcessingService:
     def process_metadata(
         self,
         video: VideoDetail,
+        setting: SettingTextProcessing,
         handler: TextProcessingHandler,
         target_language: str,
     ) -> VideoDetail:
         if handler == TextProcessingHandler.OFF:
             return video
 
-        payload = self._extract_metadata_payload(video)
+        payload = self._extract_metadata_payload(video, setting)
         if not payload:
             return video
 
@@ -61,10 +68,15 @@ class TextProcessingService:
             )
         )
 
+        translated_source_payload = self._apply_custom_translations_to_metadata_payload(
+            payload,
+            setting.custom_translations,
+        )
+
         if handler == TextProcessingHandler.TRANSLATE:
-            translated_payload = self._translate_metadata_payload(payload, target_language)
+            translated_payload = self._translate_metadata_payload(translated_source_payload, target_language)
         else:
-            translated_payload = llm_manager.get_active().translate_metadata_fields(payload, target_language)
+            translated_payload = llm_manager.get_active().translate_metadata_fields(translated_source_payload, target_language)
 
         translated_video = self._apply_metadata_payload(video, translated_payload)
         logger.debug(
@@ -83,6 +95,7 @@ class TextProcessingService:
     def process_actors(
         self,
         video: VideoDetail,
+        setting: SettingTextProcessing,
         handler: TextProcessingHandler,
         mode: ActorTranslationMode,
         target_language: str,
@@ -106,10 +119,12 @@ class TextProcessingService:
             )
         )
 
+        translated_source_names = self._apply_custom_translations_to_items(original_names, setting.custom_translations)
+
         if handler == TextProcessingHandler.TRANSLATE:
-            translated_names = translator_manager.get_active().translate_texts(original_names, target_language)
+            translated_names = translator_manager.get_active().translate_texts(translated_source_names, target_language)
         else:
-            translated_names = llm_manager.get_active().translate_actor_names(original_names, target_language)
+            translated_names = llm_manager.get_active().translate_actor_names(translated_source_names, target_language)
 
         if len(translated_names) != len(original_names):
             raise ValueError('translated actor count mismatch')
@@ -140,9 +155,9 @@ class TextProcessingService:
         )
         return translated_video
 
-    def _extract_metadata_payload(self, video: VideoDetail) -> dict[str, object]:
+    def _extract_metadata_payload(self, video: VideoDetail, setting: SettingTextProcessing) -> dict[str, object]:
         payload: dict[str, object] = {}
-        for field in self.metadata_fields:
+        for field in self._get_enabled_metadata_fields(setting):
             value = getattr(video, field)
             if isinstance(value, str) and value.strip():
                 payload[field] = value
@@ -206,7 +221,58 @@ class TextProcessingService:
             if normalized_tags:
                 translated_video.tags = normalized_tags
 
+        series = payload.get('series')
+        if isinstance(series, str) and series.strip():
+            translated_video.series = series
+
         return translated_video
+
+    @staticmethod
+    def _get_enabled_metadata_fields(setting: SettingTextProcessing) -> tuple[str, ...]:
+        enabled_fields: list[str] = []
+        if setting.metadata_title_enabled:
+            enabled_fields.append('title')
+        if setting.metadata_outline_enabled:
+            enabled_fields.append('outline')
+        if setting.metadata_tags_enabled:
+            enabled_fields.append('tags')
+        if setting.metadata_series_enabled:
+            enabled_fields.append('series')
+        return tuple(enabled_fields)
+
+    def _apply_custom_translations_to_metadata_payload(
+        self,
+        payload: dict[str, object],
+        rules: list[CustomTranslationRule],
+    ) -> dict[str, object]:
+        translated_payload: dict[str, object] = {}
+        for key, value in payload.items():
+            if isinstance(value, str):
+                translated_payload[key] = self._apply_custom_translations(value, rules)
+                continue
+            if isinstance(value, list):
+                translated_payload[key] = self._apply_custom_translations_to_items(value, rules)
+                continue
+            translated_payload[key] = value
+        return translated_payload
+
+    def _apply_custom_translations_to_items(
+        self,
+        items: list[str],
+        rules: list[CustomTranslationRule],
+    ) -> list[str]:
+        return [self._apply_custom_translations(item, rules) for item in items]
+
+    @staticmethod
+    def _apply_custom_translations(text: str, rules: list[CustomTranslationRule]) -> str:
+        result = text
+        for rule in rules:
+            source = rule.source.strip()
+            target = rule.target
+            if not source:
+                continue
+            result = result.replace(source, target)
+        return result
 
     @staticmethod
     def _format_actor_name(

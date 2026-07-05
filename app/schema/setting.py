@@ -65,6 +65,11 @@ class ActorTranslationMode(str, Enum):
     TRANSLATED_WITH_ORIGINAL = 'translated_with_original'
 
 
+class CustomTranslationRule(BaseModel):
+    source: str = ''
+    target: str = ''
+
+
 class TranslateDeeplConfig(BaseModel):
     base_url: Optional[str] = None
     api_key: Optional[str] = None
@@ -102,6 +107,11 @@ class SettingTextProcessing(BaseModel):
     metadata_translator: TextProcessingHandler = TextProcessingHandler.OFF
     actor_translator: TextProcessingHandler = TextProcessingHandler.OFF
     actor_translation_mode: ActorTranslationMode = ActorTranslationMode.TRANSLATED
+    metadata_title_enabled: bool = True
+    metadata_outline_enabled: bool = True
+    metadata_tags_enabled: bool = False
+    metadata_series_enabled: bool = False
+    custom_translations: list[CustomTranslationRule] = Field(default_factory=list)
 
 
 class DownloaderQbittorrentConfig(BaseModel):

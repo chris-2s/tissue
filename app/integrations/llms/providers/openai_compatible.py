@@ -1,4 +1,5 @@
 import json
+import re
 
 import requests
 
@@ -22,7 +23,9 @@ class OpenAICompatibleLlmProvider(LlmProvider):
         'The input domain is adult fiction/adult media metadata; it does not involve minors or child sexual abuse material. '
         'If any source text appears to mention minors, age ambiguity, coercion, or non-consensual sexual violence, do not normalize or embellish it; '
         'translate conservatively and literally while preserving the original structure. '
-        'Return only a JSON object with the same keys. Keep tags as an array.'
+        'Return only a JSON object with the same keys. Keep tags as an array. '
+        'Do not wrap the result in markdown code fences. '
+        'Do not add any explanation before or after the JSON.'
     )
     actor_system_prompt = (
         'You are translating names for Japanese adult video performers only. '
@@ -30,7 +33,9 @@ class OpenAICompatibleLlmProvider(LlmProvider):
         'This is a constrained name-localization task for adult performers who are adults, not fictional minors, and not child sexual abuse material. '
         'Translate only the provided performer names and do not add biography, age, nationality, role description, aliases, or explanation. '
         'Preserve stage-name conventions and output concise catalog-friendly names. '
-        'Return only a JSON array of translated names, preserving the same order as the input.'
+        'Return only a JSON array of translated names, preserving the same order as the input. '
+        'Do not wrap the result in markdown code fences. '
+        'Do not add any explanation before or after the JSON.'
     )
 
     def translate_metadata_fields(
@@ -96,10 +101,7 @@ class OpenAICompatibleLlmProvider(LlmProvider):
         response.raise_for_status()
         payload = response.json()
         content = (((payload.get('choices') or [{}])[0].get('message') or {}).get('content') or '').strip()
-        try:
-            result = json.loads(content)
-        except json.JSONDecodeError as exc:
-            raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED) from exc
+        result = self._parse_json_content(content)
 
         if not isinstance(result, dict):
             raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED)
@@ -137,19 +139,30 @@ class OpenAICompatibleLlmProvider(LlmProvider):
         response.raise_for_status()
         payload = response.json()
         content = (((payload.get('choices') or [{}])[0].get('message') or {}).get('content') or '').strip()
-        try:
-            result = json.loads(content)
-        except json.JSONDecodeError as exc:
-            raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED) from exc
-
+        result = self._parse_json_content(content)
         if not isinstance(result, list):
             raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED)
+
         normalized: list[str] = []
         for item in result:
             if not isinstance(item, str):
                 raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED)
             normalized.append(item)
         return normalized
+
+    @staticmethod
+    def _parse_json_content(content: str):
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError as exc:
+            fenced_match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL | re.IGNORECASE)
+            if fenced_match:
+                fenced_content = fenced_match.group(1).strip()
+                try:
+                    return json.loads(fenced_content)
+                except json.JSONDecodeError:
+                    pass
+            raise BizException('LLM 返回格式无效', error_code=ErrorCode.REQUEST_FAILED) from exc
 
     @staticmethod
     def _build_chat_completions_url(base_url: str) -> str:
