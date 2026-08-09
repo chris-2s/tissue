@@ -6,33 +6,20 @@ import urllib3.util
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 from PIL import Image, ImageFile
 
+from app.crawlers.session import DEFAULT_IMPERSONATE, DEFAULT_USER_AGENT, Session
+from app.db.models import Site
 from app.schema.setting import Setting
 from app.schema.home import SiteVideo
 from app.schema.actor import ActorPage
 from app.schema.video import SourceRef
-from app.utils.cookies import apply_cookie_header_to_jar
-
-
-DEFAULT_IMPERSONATE = 'chrome124'
-IMAGE_PROBE_RANGE_BYTES = 64 * 1024
-IMAGE_PROBE_MAX_BYTES = 256 * 1024
-DEFAULT_USER_AGENT = (
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-    'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/124.0.0.0 Safari/537.36'
+from app.utils.cookies import (
+    cookies_to_cookiecloud_items,
+    parse_cookie_header,
 )
 
 
-class Session(curl_requests.Session):
-
-    def __init__(self, timeout: Any = 10):
-        super().__init__()
-        self.timeout = timeout
-
-    def request(self, *args, **kwargs):
-        kwargs.setdefault('timeout', self.timeout)
-        kwargs.setdefault('impersonate', DEFAULT_IMPERSONATE)
-        return super(Session, self).request(*args, **kwargs)
+IMAGE_PROBE_RANGE_BYTES = 64 * 1024
+IMAGE_PROBE_MAX_BYTES = 256 * 1024
 
 
 class Spider:
@@ -55,17 +42,16 @@ class Spider:
         except Exception:
             return 10
 
-    def __init__(self, alternate_host: str | None = None, cookies: str | None = None, site_id: int | None = None):
-        self.host = alternate_host or self.origin_host
-        self.site_id = site_id
+    def __init__(self, site: Site | None = None, load_cookies: bool = True):
+        self.host = site.alternate_host if site and site.alternate_host else self.origin_host
+        self.site_id = site.id if site else None
         timeout_seconds = self._get_timeout_seconds()
 
-        self.session = Session()
-        self.session.headers = {'User-Agent': DEFAULT_USER_AGENT, 'Referer': self.host}
+        self.session = Session(site=site, load_cookies=load_cookies)
+        self.session.headers['Referer'] = self.host
         self.session.timeout = (10, timeout_seconds)
 
-        if cookies:
-            self._load_cookies(cookies)
+        if self.session.cookies:
             self._ensure_valid_cookies()
 
     def close(self):
@@ -93,14 +79,9 @@ class Spider:
         except Exception:
             pass
 
-    def _load_cookies(self, cookies_str: str):
-        """从浏览器复制的 cookie 字符串加载
-        格式: key1=value1; key2=value2
-        """
-        apply_cookie_header_to_jar(cookies_str, self.session.cookies)
-
-    def check_cookie_validity(self, cookie_header: str | None) -> bool:
-        return True
+    def check_cookie_validity(self, cookie_header: str | None) -> tuple[list[dict], str] | None:
+        cookies = cookies_to_cookiecloud_items(parse_cookie_header(cookie_header))
+        return cookies, str(self.session.headers.get('User-Agent') or DEFAULT_USER_AGENT)
 
     def probe_image_info(self, url: str) -> dict[str, Any] | None:
         if not url:
@@ -108,9 +89,19 @@ class Spider:
 
         response = None
         try:
-            headers = dict(self.session.headers)
-            headers['Range'] = f'bytes=0-{IMAGE_PROBE_RANGE_BYTES - 1}'
-            response = self.session.get(url, headers=headers, stream=True, allow_redirects=True)
+            headers = {
+                'Range': f'bytes=0-{IMAGE_PROBE_RANGE_BYTES - 1}',
+            }
+            if self.host:
+                headers['Referer'] = self.host
+            response = curl_requests.get(
+                url,
+                headers=headers,
+                timeout=self.session.timeout,
+                stream=True,
+                allow_redirects=True,
+                impersonate=DEFAULT_IMPERSONATE,
+            )
             if not response.ok:
                 return None
 
@@ -204,7 +195,7 @@ class Spider:
 
     def testing(self) -> bool:
         try:
-            response = self.session.get(self.origin_host)
+            response = self.session.get(self.host)
             return response.ok
-        except Exception as e:
+        except Exception:
             return False

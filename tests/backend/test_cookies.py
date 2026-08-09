@@ -4,6 +4,7 @@ from app.utils.cookies import (
     BrowserCookie,
     apply_cookie_header_to_jar,
     cookiecloud_items_to_cookies,
+    cookiejar_to_cookies,
     cookies_to_cookiecloud_items,
     is_same_domain_or_subdomain,
     normalize_host,
@@ -25,6 +26,18 @@ class FakeCookieJar:
                 "domain": domain,
             }
         )
+
+
+class FakeStringCookieJar:
+    def __init__(self, names, values):
+        self.names = names
+        self.values = values
+
+    def __iter__(self):
+        return iter(self.names)
+
+    def get(self, name):
+        return self.values.get(name)
 
 
 def test_parse_cookie_header_ignores_invalid_chunks():
@@ -55,6 +68,18 @@ def test_apply_cookie_header_to_jar_sets_each_cookie():
     assert jar.items == [
         {"name": "foo", "value": "bar", "path": "/", "domain": ""},
         {"name": "token", "value": "a/b", "path": "/", "domain": ""},
+    ]
+
+
+def test_cookiejar_to_cookies_deduplicates_flat_cookie_names():
+    jar = FakeStringCookieJar(
+        names=["session", "theme", "session"],
+        values={"session": "abc", "theme": "auto"},
+    )
+
+    assert cookiejar_to_cookies(jar) == [
+        BrowserCookie(name="session", value="abc"),
+        BrowserCookie(name="theme", value="auto"),
     ]
 
 

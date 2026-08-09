@@ -44,13 +44,13 @@ def proxy_image(url: str, request: Request, image_type: ImageCacheType = 'cover'
 
 
 @router.get("/trailer")
-async def proxy_video_trailer(
+def proxy_video_trailer(
     url: str,
     request: Request,
     base_url: str | None = None,
     resource_service=Depends(get_resource_service),
 ):
-    return await resource_service.proxy_trailer(url, request, base_url=base_url)
+    return resource_service.proxy_video(url, request, base_url=base_url)
 
 
 @router.get("/version")

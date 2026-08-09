@@ -1,4 +1,4 @@
-import {Form, InputNumber, message} from "antd";
+import {Form, Input, InputNumber, message} from "antd";
 import * as api from "../../../apis/setting.ts";
 import {useRequest} from "ahooks";
 import {createFileRoute} from "@tanstack/react-router";
@@ -62,6 +62,25 @@ function SettingCrawler() {
                         tooltip={t('setting:crawler.subscribePauseSecondsTooltip')}
                     >
                         <InputNumber style={{width: '100%'}} min={1}/>
+                    </Form.Item>
+                    <Form.Item
+                        className={'lg:col-span-2'}
+                        label={t('setting:crawler.flaresolverrUrl')}
+                        name={'flaresolverr_url'}
+                        tooltip={(
+                            <span>
+                                {t('setting:crawler.flaresolverrUrlTooltip')}{' '}
+                                <a
+                                    href={'https://github.com/FlareSolverr/FlareSolverr'}
+                                    rel={'noreferrer'}
+                                    target={'_blank'}
+                                >
+                                    GitHub
+                                </a>
+                            </span>
+                        )}
+                    >
+                        <Input placeholder={t('setting:crawler.flaresolverrUrlPlaceholder')}/>
                     </Form.Item>
                 </div>
             </SettingSection>

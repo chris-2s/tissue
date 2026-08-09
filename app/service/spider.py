@@ -54,11 +54,7 @@ class SpiderService(BaseService):
         spider_class = cls.get_spider_class(site.spider_key)
         if not spider_class:
             return None
-        return spider_class(
-            alternate_host=site.alternate_host,
-            cookies=site.cookies if include_cookies else None,
-            site_id=site.id,
-        )
+        return spider_class(site=site, load_cookies=include_cookies)
 
     def build_spider_by_site_id(self, site_id: int, include_cookies: bool = True) -> Spider | None:
         site = Site.get(self.db, site_id)

@@ -54,9 +54,19 @@ class CookieCloudService:
 
                     matched_cookies = self._merge_cookie_entries(matched_entries)
                     cookie_str = to_cookie_header(cookiecloud_items_to_cookies(matched_cookies))
-                    if spider.check_cookie_validity(cookie_str):
-                        site.cookies = cookie_str
+                    if cookie_str == site.cookies:
+                        matched_count += 1
+                        continue
+
+                    validation = spider.check_cookie_validity(cookie_str)
+                    if validation is not None:
+                        validated_cookies, user_agent = validation
+                        validated_cookie_str = to_cookie_header(cookiecloud_items_to_cookies(validated_cookies))
+                        site.cookies = validated_cookie_str
+                        site.user_agent = user_agent or None
                         db.commit()
+                        if validated_cookie_str != cookie_str:
+                            self.push_cookie(validated_cookies, normalize_host(origin_host))
                         matched_count += 1
                         logger.info(translate('log.cookiecloud.site_sync_success', {'site_key': site.spider_key}))
                         continue

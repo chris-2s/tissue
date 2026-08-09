@@ -19,6 +19,9 @@ export default {
         subscribeIntervalMinutesTooltip: '定時執行訂閱下載任務的間隔時間。保存後會立即刷新定時任務，並按該值額外延後最多 10% 的隨機時間',
         subscribePauseSeconds: '訂閱項間隔(秒)',
         subscribePauseSecondsTooltip: '同一次訂閱任務中，處理完一個訂閱後暫停多久再處理下一個，用於避免連續訪問站點。每次暫停都會額外延後最多 10% 的隨機時間',
+        flaresolverrUrl: 'FlareSolverr 位址',
+        flaresolverrUrlTooltip: '用於在爬蟲遇到 Cloudflare 挑戰時自動取得可用的 Cookie 和 User-Agent。',
+        flaresolverrUrlPlaceholder: '留空則不使用，例如 http://flaresolverr:8191',
     },
     file: {
         path: '檔案路徑',

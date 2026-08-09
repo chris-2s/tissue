@@ -77,6 +77,7 @@ def apply_cookies_to_jar(cookies: Iterable[BrowserCookie], cookie_jar: Any) -> N
 
 def cookiejar_to_cookies(cookie_jar: Any) -> list[BrowserCookie]:
     cookies: list[BrowserCookie] = []
+    seen_flat_cookies: set[tuple[str, str]] = set()
     for cookie in cookie_jar:
         if isinstance(cookie, str):
             if not cookie:
@@ -84,7 +85,12 @@ def cookiejar_to_cookies(cookie_jar: Any) -> list[BrowserCookie]:
             value = cookie_jar.get(cookie) if hasattr(cookie_jar, 'get') else None
             if value is None:
                 continue
-            cookies.append(BrowserCookie(name=cookie, value=normalize_cookie_value(str(value))))
+            normalized_value = normalize_cookie_value(str(value))
+            key = cookie, normalized_value
+            if key in seen_flat_cookies:
+                continue
+            seen_flat_cookies.add(key)
+            cookies.append(BrowserCookie(name=cookie, value=normalized_value))
             continue
 
         if not hasattr(cookie, 'name') or not hasattr(cookie, 'value'):

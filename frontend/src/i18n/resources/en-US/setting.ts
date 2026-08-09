@@ -19,6 +19,9 @@ export default {
         subscribeIntervalMinutesTooltip: 'Interval for scheduled subscription download jobs. Saving refreshes the scheduler immediately and adds up to 10% random delay.',
         subscribePauseSeconds: 'Subscription item pause (seconds)',
         subscribePauseSecondsTooltip: 'Pause between subscription items within one job to avoid hitting a site continuously. Each pause adds up to 10% random delay.',
+        flaresolverrUrl: 'FlareSolverr URL',
+        flaresolverrUrlTooltip: 'Automatically obtains usable cookies and a User-Agent when the crawler encounters a Cloudflare challenge.',
+        flaresolverrUrlPlaceholder: 'Leave blank to disable, e.g. http://flaresolverr:8191',
     },
     file: {
         path: 'File path',

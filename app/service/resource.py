@@ -6,13 +6,12 @@ from dataclasses import dataclass
 from typing import Literal, Optional
 from urllib.parse import urlparse
 
-from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 from fastapi import Depends, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from starlette.concurrency import run_in_threadpool
 
-from app.crawlers import DEFAULT_IMPERSONATE, JavDBSpider, Spider
+from app.crawlers import JavDBSpider, Spider
+from app.crawlers.session import DEFAULT_USER_AGENT, Session as CrawlerSession
 from app.db import get_db
 from app.db.models import Site
 from app.i18n import translate
@@ -169,16 +168,15 @@ class ResourceService(BaseService):
             return None
 
     @staticmethod
-    def _build_proxy_headers(request: Request, url: str) -> dict[str, str]:
+    def _build_video_headers(request: Request, url: str, site: Site | None) -> dict[str, str]:
         headers: dict[str, str] = {}
         range_header = request.headers.get("Range")
-        user_agent = request.headers.get("User-Agent")
+        user_agent = getattr(site, 'user_agent', None) or request.headers.get("User-Agent") or DEFAULT_USER_AGENT
         referer = request.headers.get("Referer")
 
         if range_header:
             headers["Range"] = range_header
-        if user_agent:
-            headers["User-Agent"] = user_agent
+        headers["User-Agent"] = user_agent
         if referer:
             headers["Referer"] = referer
         else:
@@ -188,52 +186,60 @@ class ResourceService(BaseService):
         return headers
 
     @staticmethod
-    def _fetch_m3u8_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None) -> tuple[str, dict[str, str]]:
+    def _fetch_hls_playlist(
+            url: str,
+            headers: dict[str, str],
+            site: Site | None,
+    ) -> tuple[str, dict[str, str]]:
         request_headers = {k: v for k, v in headers.items() if k.lower() != "range"}
-        if cookie_str:
-            request_headers["Cookie"] = cookie_str
-
-        response = curl_requests.get(
-            url,
-            headers=request_headers,
-            timeout=30,
-            allow_redirects=True,
-            impersonate=DEFAULT_IMPERSONATE,
-        )
-        response.raise_for_status()
-        return response.text, dict(response.headers)
+        session = CrawlerSession(timeout=(5, 60), site=site)
+        response = None
+        try:
+            response = session.get(url, headers=request_headers, timeout=30, allow_redirects=True)
+            response.raise_for_status()
+            return response.text, dict(response.headers)
+        finally:
+            if response is not None:
+                response.close()
+            session.close()
 
     @staticmethod
-    def _stream_binary_via_cffi(url: str, headers: dict[str, str], cookie_str: str | None):
-        request_headers = dict(headers)
-        if cookie_str:
-            request_headers["Cookie"] = cookie_str
-
-        response = curl_requests.get(
-            url,
-            headers=request_headers,
-            timeout=(5, 60),
-            allow_redirects=True,
-            stream=True,
-            impersonate=DEFAULT_IMPERSONATE,
-        )
-
-        if response.status_code == 416 and request_headers.get("Range"):
-            logger.warning(translate('log.resource.upstream_416_retry', {'url': url}))
-            response.close()
-            retry_headers = {k: v for k, v in request_headers.items() if k.lower() != "range"}
-            response = curl_requests.get(
+    def _open_video_stream(
+            url: str,
+            headers: dict[str, str],
+            site: Site | None,
+    ):
+        session = CrawlerSession(timeout=(5, 60), site=site)
+        response = None
+        try:
+            response = session.get(
                 url,
-                headers=retry_headers,
+                headers=headers,
                 timeout=(5, 60),
                 allow_redirects=True,
                 stream=True,
-                impersonate=DEFAULT_IMPERSONATE,
             )
 
-        response.raise_for_status()
-        status_code = response.status_code
-        response_headers = dict(response.headers)
+            if response.status_code == 416 and headers.get("Range"):
+                logger.warning(translate('log.resource.upstream_416_retry', {'url': url}))
+                response.close()
+                retry_headers = {k: v for k, v in headers.items() if k.lower() != "range"}
+                response = session.get(
+                    url,
+                    headers=retry_headers,
+                    timeout=(5, 60),
+                    allow_redirects=True,
+                    stream=True,
+                )
+
+            response.raise_for_status()
+            status_code = response.status_code
+            response_headers = dict(response.headers)
+        except Exception:
+            if response is not None:
+                response.close()
+            session.close()
+            raise
 
         def body_generator():
             try:
@@ -242,10 +248,11 @@ class ResourceService(BaseService):
                         yield chunk
             finally:
                 response.close()
+                session.close()
 
         return status_code, response_headers, body_generator()
 
-    def _get_cookies_by_url(self, url: str) -> str | None:
+    def _get_site_by_url(self, url: str) -> Site | None:
         host = normalize_host(url)
         if not host:
             return None
@@ -258,39 +265,38 @@ class ResourceService(BaseService):
 
             site_host = normalize_host(site.alternate_host or spider_class.origin_host)
             if is_same_domain_or_subdomain(host, site_host):
-                return site.cookies
+                return site
 
         return None
 
-    async def _proxy_hls_trailer(
+    def proxy_video(
             self,
             url: str,
-            headers: dict[str, str],
-            cookie_str: str | None,
             request: Request,
-            base_url: str | None,
-    ) -> Response:
-        try:
-            m3u8_text, upstream_headers = await run_in_threadpool(self._fetch_m3u8_via_cffi, url, headers, cookie_str)
-        except Exception as exc:
-            status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
-            logger.warning(translate('log.resource.proxy_m3u8_failed', {'status_code': status_code, 'url': url}))
-            return Response(status_code=status_code)
-
-        effective_base_url = base_url or str(request.base_url).rstrip("/")
-        m3u8_content = fix_m3u8_paths(m3u8_text, url, effective_base_url)
-        media_type = upstream_headers.get("content-type", "application/vnd.apple.mpegurl")
-        return Response(content=m3u8_content.encode('utf-8'), media_type=media_type)
-
-    async def _proxy_binary_trailer(
-            self,
-            url: str,
-            headers: dict[str, str],
-            cookie_str: str | None,
+            base_url: Optional[str] = None,
     ) -> Response | StreamingResponse:
+        blocked_status = self.get_remote_url_block_status(url)
+        if blocked_status is not None:
+            return Response(status_code=blocked_status)
+
+        site = self._get_site_by_url(url)
+        headers = self._build_video_headers(request, url, site)
+
+        if is_m3u8(url):
+            try:
+                playlist, response_headers = self._fetch_hls_playlist(url, headers, site)
+            except Exception as exc:
+                status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
+                logger.warning(translate('log.resource.proxy_m3u8_failed', {'status_code': status_code, 'url': url}))
+                return Response(status_code=status_code)
+
+            effective_base_url = base_url or str(request.base_url).rstrip("/")
+            content = fix_m3u8_paths(playlist, url, effective_base_url)
+            media_type = response_headers.get("content-type", "application/vnd.apple.mpegurl")
+            return Response(content=content.encode('utf-8'), media_type=media_type)
+
         try:
-            status_code, response_headers, body = await run_in_threadpool(self._stream_binary_via_cffi, url, headers,
-                                                                          cookie_str)
+            status_code, response_headers, body = self._open_video_stream(url, headers, site)
         except Exception as exc:
             status_code = getattr(getattr(exc, 'response', None), 'status_code', 502)
             logger.warning(translate('log.resource.proxy_video_failed', {'status_code': status_code, 'url': url}))
@@ -307,27 +313,9 @@ class ResourceService(BaseService):
             "upgrade",
         }
         response_headers = {
-            k: v for k, v in response_headers.items() if k.lower() not in excluded_headers
+            key: value for key, value in response_headers.items() if key.lower() not in excluded_headers
         }
-
-        return StreamingResponse(
-            body,
-            status_code=status_code,
-            headers=response_headers
-        )
-
-    async def proxy_trailer(self, url: str, request: Request, base_url: Optional[str] = None) -> Response | StreamingResponse:
-        blocked_status = self.get_remote_url_block_status(url)
-        if blocked_status is not None:
-            return Response(status_code=blocked_status)
-
-        headers = self._build_proxy_headers(request, url)
-        cookie_str = self._get_cookies_by_url(url)
-
-        if is_m3u8(url):
-            return await self._proxy_hls_trailer(url, headers, cookie_str, request, base_url)
-
-        return await self._proxy_binary_trailer(url, headers, cookie_str)
+        return StreamingResponse(body, status_code=status_code, headers=response_headers)
 
     @classmethod
     def job_clean_cache(cls):

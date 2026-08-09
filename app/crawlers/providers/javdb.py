@@ -40,18 +40,27 @@ class JavDBSpider(Spider):
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
     cookie_check_path = '/rankings/movies?p=daily&t=uncensored'
 
-    def check_cookie_validity(self, cookie_header: str | None) -> bool:
+    def check_cookie_validity(self, cookie_header: str | None) -> tuple[list[dict], str] | None:
         if not cookie_header:
-            return True
+            return [], str(self.session.headers.get('User-Agent') or '')
 
         response = None
         try:
             self.session.cookies.clear()
             apply_cookie_header_to_jar(cookie_header, self.session.cookies)
-            response = self.session.get(urljoin(self.host, self.cookie_check_path), allow_redirects=True)
-            return '/login' not in str(response.url)
+            response = self.session.get(
+                urljoin(self.host, self.cookie_check_path),
+                allow_redirects=True,
+                _persist_cloudflare_solution=False,
+            )
+            if not response.ok or '/login' in str(response.url):
+                return None
+            return (
+                cookies_to_cookiecloud_items(cookiejar_to_cookies(self.session.cookies)),
+                str(self.session.headers.get('User-Agent') or ''),
+            )
         except Exception:
-            return True
+            return None
         finally:
             if response is not None:
                 response.close()

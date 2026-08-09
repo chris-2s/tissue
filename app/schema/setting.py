@@ -18,6 +18,7 @@ class SettingCrawler(BaseModel):
     timeout: int = 60
     subscribe_interval_minutes: int = Field(default=400, ge=15)
     subscribe_pause_seconds: int = Field(default=45, ge=1)
+    flaresolverr_url: Optional[str] = None
 
 
 class SettingFile(BaseModel):

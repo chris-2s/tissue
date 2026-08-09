@@ -94,23 +94,27 @@ class SiteService(BaseService):
                 continue
             try:
                 stale_cookie_header = site.cookies
-                if not spider_instance.check_cookie_validity(stale_cookie_header):
-                    current_site = self.db.query(Site).get(site.id)
-                    if not current_site or current_site.cookies != stale_cookie_header:
-                        logger.info(translate('log.site.cookie_updated_skip_cleanup', {'site_name': spider_instance.name}))
-                        continue
+                validation = spider_instance.check_cookie_validity(stale_cookie_header)
+                if validation is not None:
+                    continue
 
-                    domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
-                    cookie_notify = CookieInvalidPayload(
-                        site_name=spider_instance.name,
-                        domain=domain,
-                        message=translate('message.cookie.invalid.reason'),
-                    )
-                    notification_manager.emit_cookie_invalid(cookie_notify)
+                current_site = self.db.query(Site).get(site.id)
+                if not current_site or current_site.cookies != stale_cookie_header:
+                    logger.info(translate('log.site.cookie_updated_skip_cleanup', {'site_name': spider_instance.name}))
+                    continue
 
-                    current_site.cookies = None
-                    self.db.commit()
-                    logger.warning(translate('log.site.cookie_invalid_cleared', {'site_name': spider_instance.name}))
+                domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
+                cookie_notify = CookieInvalidPayload(
+                    site_name=spider_instance.name,
+                    domain=domain,
+                    message=translate('message.cookie.invalid.reason'),
+                )
+                notification_manager.emit_cookie_invalid(cookie_notify)
+
+                current_site.cookies = None
+                current_site.user_agent = None
+                self.db.commit()
+                logger.warning(translate('log.site.cookie_invalid_cleared', {'site_name': spider_instance.name}))
             finally:
                 spider_instance.close()
 

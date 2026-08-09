@@ -12,3 +12,4 @@ class Site(Base):
     alternate_host = Column(String, nullable=True)
     status = Column(Boolean, nullable=True)
     cookies = Column(Text, nullable=True)
+    user_agent = Column(Text, nullable=True)

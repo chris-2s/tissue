@@ -1,4 +1,5 @@
-from app.crawlers.base import DEFAULT_IMPERSONATE, Session, Spider
+from app.crawlers.base import Spider
+from app.crawlers.session import DEFAULT_IMPERSONATE, DEFAULT_USER_AGENT, Session
 from app.crawlers.capabilities import CrawlerCapabilities
 from app.crawlers.exceptions import SpiderException
 from app.crawlers.providers.dmm import DmmSpider

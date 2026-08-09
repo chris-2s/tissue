@@ -19,6 +19,9 @@ export default {
         subscribeIntervalMinutesTooltip: '購読DLタスクの実行間隔です。保存後すぐにタスクを更新し、この値に対して最大 10% の乱数遅延を追加します',
         subscribePauseSeconds: '購読間隔(秒)',
         subscribePauseSecondsTooltip: '同一購読タスク内で1件処理後に次へ進むまでの待機時間です。連続アクセスを避け、毎回さらに最大 10% の乱数遅延を追加します',
+        flaresolverrUrl: 'FlareSolverr URL',
+        flaresolverrUrlTooltip: 'クローラーが Cloudflare チャレンジに遭遇した際に、使用可能な Cookie と User-Agent を自動取得します。',
+        flaresolverrUrlPlaceholder: '空欄で無効、例: http://flaresolverr:8191',
     },
     file: {
         path: 'ファイルパス',
