@@ -191,5 +191,7 @@ def test_session_solves_cloudflare_once_and_retries_get(monkeypatch):
     assert session.headers['User-Agent'] == 'Solved UA'
     assert session.cookies.get('cf_clearance') == 'solved'
     assert persisted[0][1:] == ('Solved UA', 'https://example.com/protected')
-    assert len(logged) == 1
+    assert len(logged) == 2
     assert 'https://example.com/protected' in logged[0]
+    assert 'Solved UA' in logged[1]
+    assert 'chrome (chrome146)' in logged[1]

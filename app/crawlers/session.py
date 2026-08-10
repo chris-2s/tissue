@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
+from curl_cffi.requests.impersonate import normalize_browser_type  # type: ignore[import-not-found]
 
 from app.i18n import translate
 from app.schema.setting import Setting
@@ -19,11 +20,11 @@ if TYPE_CHECKING:
     from app.db.models import Site
 
 
-DEFAULT_IMPERSONATE = 'chrome124'
+DEFAULT_IMPERSONATE = 'chrome'
 DEFAULT_USER_AGENT = (
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
     'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/124.0.0.0 Safari/537.36'
+    'Chrome/146.0.0.0 Safari/537.36'
 )
 
 
@@ -69,6 +70,13 @@ class Session(curl_requests.Session):
             str(url),
             cookies_to_cookiecloud_items(cookiejar_to_cookies(self.cookies)),
         )
+
+        logger.info(translate('log.cloudflare.challenge_solved', {
+            'site_key': self.site.spider_key,
+            'user_agent': user_agent,
+            'impersonate': DEFAULT_IMPERSONATE,
+            'resolved_impersonate': normalize_browser_type(DEFAULT_IMPERSONATE),
+        }))
 
         self.cookies.clear()
         apply_cookies_to_jar(cookiecloud_items_to_cookies(solved_cookies), self.cookies)
