@@ -15,6 +15,8 @@ algorithm = "HS256"
 jwt_secret_path = Path(f'{Path(__file__).cwd()}/config/jwt_secret')
 default_access_token_expire_hours = int(os.getenv('ACCESS_TOKEN_EXPIRE_HOURS', '12'))
 default_remember_token_expire_days = int(os.getenv('REMEMBER_TOKEN_EXPIRE_DAYS', '365'))
+log_stream_token_expire_minutes = int(os.getenv('LOG_STREAM_TOKEN_EXPIRE_MINUTES', '15'))
+log_stream_cookie_name = 'tissue_log_stream'
 
 
 def _write_secret_file(secret: str):
@@ -61,3 +63,22 @@ def create_access_token(subject: str | Any, remember: bool = False) -> str:
     payload = {"exp": expire, "iat": now, "sub": str(subject)}
     encoded_jwt = jwt.encode(payload, secret_key, algorithm=algorithm)
     return encoded_jwt
+
+
+def create_log_stream_token(subject: str | Any) -> str:
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=log_stream_token_expire_minutes)
+    payload = {
+        "exp": expire,
+        "iat": now,
+        "sub": str(subject),
+        "purpose": "log_stream",
+    }
+    return jwt.encode(payload, secret_key, algorithm=algorithm)
+
+
+def decode_log_stream_token(token: str) -> int:
+    payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+    if payload.get('purpose') != 'log_stream':
+        raise jwt.InvalidTokenError('invalid token purpose')
+    return int(payload['sub'])

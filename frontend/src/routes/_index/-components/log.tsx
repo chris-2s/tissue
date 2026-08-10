@@ -1,13 +1,11 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../models";
 import configs from "../../../configs";
-import {fetchEventSource} from "@microsoft/fetch-event-source";
-import {Badge, Button, Empty, Input, Segmented, Space, Switch, Tag, theme} from "antd";
+import * as authApi from "../../../apis/auth";
+import {Badge, Button, Empty, Input, Segmented, Space, Tag, theme} from "antd";
 import {
     ClearOutlined,
-    DisconnectOutlined,
-    LoadingOutlined,
     SearchOutlined,
 } from "@ant-design/icons";
 import {useResponsive} from "ahooks";
@@ -48,78 +46,130 @@ function Log() {
     const [messages, setMessages] = useState<Message[]>([])
     const [keyword, setKeyword] = useState('')
     const [levelFilter, setLevelFilter] = useState<LevelFilter>('ALL')
-    const [autoScroll, setAutoScroll] = useState(true)
     const [status, setStatus] = useState<ConnectionStatus>('connecting')
-    const container = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const ctrl = new AbortController();
         let active = true
+        let eventSource: EventSource | null = null
+        let backgroundCloseTimer: number | undefined
+        let reconnectTimer: number | undefined
+        let connectionGeneration = 0
+        let messageSequence = 0
 
         setMessages([])
-        setStatus('connecting')
 
-        fetchEventSource(`${configs.BASE_API}/home/log`, {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${userToken}`
-            },
-            signal: ctrl.signal,
-            openWhenHidden: true,
-            async onopen(response) {
-                if (response.ok) {
-                    setStatus('connected')
+        function closeConnection(nextStatus: ConnectionStatus = 'closed') {
+            connectionGeneration += 1
+            window.clearTimeout(reconnectTimer)
+            eventSource?.close()
+            eventSource = null
+            if (active) {
+                setStatus(nextStatus)
+            }
+        }
+
+        function handleMessage(event: MessageEvent<string>) {
+            if (!active || !event.data) {
+                return
+            }
+
+            try {
+                const payload = JSON.parse(event.data) as {
+                    level?: string
+                    time?: string
+                    module?: string
+                    content?: string
+                    raw?: string
+                }
+                setMessages(data => [{
+                    index: `${Date.now()}-${messageSequence++}`,
+                    level: payload.level || 'INFO',
+                    time: payload.time?.split(" ")[1] || payload.time || '',
+                    module: payload.module || '',
+                    content: payload.content || payload.raw || '',
+                }, ...data].slice(0, 500))
+            } catch {
+                setMessages(data => [{
+                    index: `${Date.now()}-${messageSequence++}`,
+                    level: 'INFO',
+                    time: '',
+                    module: '',
+                    content: event.data,
+                }, ...data].slice(0, 500))
+            }
+        }
+
+        async function connect() {
+            if (!active || document.hidden || eventSource) {
+                return
+            }
+
+            const generation = ++connectionGeneration
+            setStatus('connecting')
+
+            try {
+                const streamToken = await authApi.getLogStreamToken()
+                if (!active || document.hidden || generation !== connectionGeneration) {
                     return
                 }
-                setStatus('error')
-                throw new Error(t('log:errors.connectFailed', {status: response.status}))
-            },
-            onmessage(msg) {
-                if (!active || !msg.data) {
-                    return
+
+                const streamUrl = new URL(`${configs.BASE_API}/home/log`, window.location.origin)
+                if (streamUrl.origin !== window.location.origin) {
+                    streamUrl.searchParams.set('sse_token', streamToken)
                 }
 
-                try {
-                    const payload = JSON.parse(msg.data) as {
-                        level?: string
-                        time?: string
-                        module?: string
-                        content?: string
-                        raw?: string
+                const source = new EventSource(streamUrl.toString(), {
+                    withCredentials: streamUrl.origin === window.location.origin,
+                })
+                eventSource = source
+                source.onopen = () => {
+                    if (active && source === eventSource) {
+                        setStatus('connected')
                     }
-                    setMessages(data => [{
-                        index: `${Date.now()}-${data.length}`,
-                        level: payload.level || 'INFO',
-                        time: payload.time?.split(" ")[1] || payload.time || '',
-                        module: payload.module || '',
-                        content: payload.content || payload.raw || '',
-                    }, ...data].slice(0, 500))
-                } catch {
-                    setMessages(data => [{
-                        index: `${Date.now()}-${data.length}`,
-                        level: 'INFO',
-                        time: '',
-                        module: '',
-                        content: msg.data,
-                    }, ...data].slice(0, 500))
                 }
-            },
-            onclose() {
-                if (active) {
-                    setStatus('closed')
+                source.onmessage = handleMessage
+                source.onerror = () => {
+                    if (active && source === eventSource) {
+                        setStatus('error')
+                        source.close()
+                        eventSource = null
+                        window.clearTimeout(reconnectTimer)
+                        reconnectTimer = window.setTimeout(() => void connect(), 3000)
+                    }
                 }
-            },
-            onerror() {
-                if (active) {
+            } catch {
+                if (active && generation === connectionGeneration) {
                     setStatus('error')
                 }
-            },
-        });
+            }
+        }
+
+        function handleVisibilityChange() {
+            if (document.hidden) {
+                window.clearTimeout(backgroundCloseTimer)
+                backgroundCloseTimer = window.setTimeout(() => {
+                    if (document.hidden) {
+                        closeConnection()
+                    }
+                }, 5000)
+                return
+            }
+
+            window.clearTimeout(backgroundCloseTimer)
+            void connect()
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        void connect()
+
         return () => {
             active = false
-            ctrl.abort()
+            window.clearTimeout(backgroundCloseTimer)
+            window.clearTimeout(reconnectTimer)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            closeConnection()
         }
-    }, [t, userToken])
+    }, [userToken])
 
     const filteredMessages = useMemo(() => {
         const normalizedKeyword = keyword.trim().toLowerCase()
@@ -142,16 +192,6 @@ function Log() {
         })
     }, [keyword, levelFilter, messages])
 
-    useEffect(() => {
-        if (!autoScroll) {
-            return
-        }
-        container.current?.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        })
-    }, [autoScroll, filteredMessages]);
-
     function renderStatus() {
         if (status === 'connected') {
             return <Badge status="success" text={t('log:status.connected')}/>
@@ -166,35 +206,33 @@ function Log() {
     }
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0}}>
             <div style={{
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                padding: responsive.lg ? 12 : 10,
-                borderRadius: 8,
-                background: token.colorBgLayout,
-                border: `1px solid ${token.colorBorderSecondary}`,
+                padding: responsive.lg ? '2px 4px 0' : '0 2px',
+                background: token.colorBgElevated,
             }}>
                 <div style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 10,
+                    gap: 8,
                 }}>
                     <div style={{
                         display: 'flex',
-                        flexWrap: 'wrap',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: 8,
                     }}>
                         <Segmented
-                            block={!responsive.md}
+                            size={'small'}
                             value={levelFilter}
                             options={levelFilterOptions.map((item) => ({label: t(item.key), value: item.value}))}
                             onChange={(value) => setLevelFilter(value as LevelFilter)}
+                            style={{minWidth: 0}}
                         />
-                        <Space size={12} wrap>
+                        <Space size={8} style={{whiteSpace: 'nowrap'}}>
                             {renderStatus()}
                             <span style={{color: token.colorTextSecondary, fontSize: 12}}>
                                 {filteredMessages.length}/{messages.length}
@@ -203,7 +241,6 @@ function Log() {
                     </div>
                     <div style={{
                         display: 'flex',
-                        flexDirection: responsive.md ? 'row' : 'column',
                         gap: 8,
                     }}>
                         <Input
@@ -213,41 +250,25 @@ function Log() {
                             prefix={<SearchOutlined/>}
                             placeholder={t('log:controls.searchPlaceholder')}
                         />
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 12,
-                            minWidth: responsive.md ? 260 : undefined,
-                        }}>
-                            <Space size={8}>
-                                <Switch checked={autoScroll} onChange={setAutoScroll}/>
-                                <span style={{color: token.colorTextSecondary, fontSize: 12}}>{t('log:controls.autoScroll')}</span>
-                            </Space>
-                            <Button
-                                type={'text'}
-                                size={'small'}
-                                icon={<ClearOutlined/>}
-                                onClick={() => setMessages([])}
-                                style={{
-                                    color: token.colorTextSecondary,
-                                }}
-                            >
-                                {t('log:controls.clear')}
-                            </Button>
-                        </div>
+                        <Button
+                            type={'text'}
+                            icon={<ClearOutlined/>}
+                            aria-label={t('log:controls.clear')}
+                            title={t('log:controls.clear')}
+                            onClick={() => setMessages([])}
+                            style={{color: token.colorTextSecondary, flex: '0 0 auto'}}
+                        />
                     </div>
                 </div>
             </div>
 
             <div
-                ref={container}
                 style={{
                     flex: 1,
                     minHeight: 0,
                     overflowY: 'auto',
-                    background: token.colorBgContainer,
-                    padding: 0,
+                    background: 'transparent',
+                    padding: responsive.lg ? '0 4px 8px' : '0 2px 8px',
                 }}
             >
                 {filteredMessages.length === 0 ? (
@@ -263,22 +284,28 @@ function Log() {
                         />
                     </div>
                 ) : (
-                    <div style={{display: 'flex', flexDirection: 'column'}}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        borderRadius: 10,
+                        background: token.colorBgContainer,
+                        boxShadow: `inset 0 0 0 1px ${token.colorBorderSecondary}`,
+                    }}>
                         {filteredMessages.map(item => (
                             <div
                                 key={item.index}
                                 style={{
-                                    padding: responsive.lg ? '12px 4px' : '12px 2px',
+                                    padding: responsive.lg ? '12px 14px' : '12px 10px',
                                     borderBottom: `1px solid ${token.colorBorderSecondary}`,
                                 }}
                             >
                                 <div style={{
                                     display: 'flex',
-                                    flexDirection: responsive.md ? 'row' : 'column',
-                                    alignItems: responsive.md ? 'center' : 'flex-start',
+                                    alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    gap: 8,
-                                    marginBottom: 8,
+                                    gap: 6,
+                                    marginBottom: 6,
                                 }}>
                                     <Space size={[8, 8]} wrap>
                                         <Tag color={tagColorMap[item.level]} variant={'filled'}>{item.level}</Tag>
@@ -297,11 +324,6 @@ function Log() {
                                             </span>
                                         )}
                                     </Space>
-                                    {item.level === 'ERROR' || item.level === 'CRITICAL' ? (
-                                        <DisconnectOutlined style={{color: token.colorError}}/>
-                                    ) : item.level === 'DEBUG' ? (
-                                        <LoadingOutlined style={{color: token.colorInfo}}/>
-                                    ) : null}
                                 </div>
                                 <div style={{
                                     whiteSpace: 'pre-wrap',
@@ -310,7 +332,6 @@ function Log() {
                                     lineHeight: 1.6,
                                     fontSize: responsive.md ? 13 : 14,
                                     fontFamily: 'ui-monospace, SFMono-Regular, SFMono-Regular, Consolas, monospace',
-                                    paddingLeft: responsive.md ? 4 : 0,
                                 }}>
                                     {item.content || item.module || '-'}
                                 </div>

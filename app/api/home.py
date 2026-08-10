@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from app import schema
+from app.dependencies.security import verify_auth, verify_log_stream_auth
 from app.schema.home import SiteVideo
 from app.schema.r import R
 from app.service.spider import get_spider_service
@@ -14,21 +15,21 @@ from app.utils.log_stream import build_log_event, format_sse, read_last_lines
 router = APIRouter()
 
 
-@router.get('/ranking')
+@router.get('/ranking', dependencies=[Depends(verify_auth)])
 def get_rankings(site_id: int, video_type: str, cycle: str, service=Depends(get_spider_service)):
     return service.get_ranking(site_id, video_type, cycle)
 
 
-@router.get('/detail')
+@router.get('/detail', dependencies=[Depends(verify_auth)])
 def get_detail(site_id: int, num: str, url: str, service=Depends(get_spider_service)):
     return service.get_detail(site_id, num, url)
 
 
-@router.get('/search', response_model=R[list[SiteVideo]])
+@router.get('/search', response_model=R[list[SiteVideo]], dependencies=[Depends(verify_auth)])
 def search_video(num: str, service=Depends(get_spider_service)):
     return R.list(service.search_video(num))
 
-@router.get('/log')
+@router.get('/log', dependencies=[Depends(verify_log_stream_auth)])
 async def get_logs(request: Request):
     log_path = Path(f'{Path(__file__).cwd()}/config/app.log')
 

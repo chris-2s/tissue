@@ -15,7 +15,7 @@ api_router.include_router(file.router, prefix='/file', dependencies=[Depends(ver
 api_router.include_router(download.router, prefix='/download', dependencies=[Depends(verify_auth)])
 api_router.include_router(history.router, prefix='/history', dependencies=[Depends(verify_auth)])
 api_router.include_router(schedule.router, prefix='/schedule', dependencies=[Depends(verify_auth)])
-api_router.include_router(home.router, prefix='/home', dependencies=[Depends(verify_auth)])
+api_router.include_router(home.router, prefix='/home')
 api_router.include_router(subscribe.router, prefix='/subscribe', dependencies=[Depends(verify_auth)])
 api_router.include_router(site.router, prefix='/site', dependencies=[Depends(verify_auth)])
 api_router.include_router(actor.router, prefix='/actor', dependencies=[Depends(verify_auth)])

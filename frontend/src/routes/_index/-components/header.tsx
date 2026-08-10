@@ -261,19 +261,26 @@ function Header(props: Props) {
                    onCancel={() => setLogOpen(false)}
                    footer={null}
                    destroyOnHidden
-                   width={responsive.lg ? 1000 : 'calc(100vw - 16px)'}
+                   width={responsive.lg ? 1000 : 'calc(100vw - 8px)'}
                    style={responsive.lg ? undefined : {
-                       top: 'max(12px, env(safe-area-inset-top))',
+                       top: 'max(4px, env(safe-area-inset-top))',
                    }}
                    styles={{
+                       container: responsive.lg ? undefined : {
+                           padding: 12,
+                           borderRadius: 14,
+                       },
+                       header: responsive.lg ? undefined : {
+                           marginBottom: 10,
+                       },
                        body: {
                            display: 'flex',
                            flexDirection: 'column',
-                           padding: responsive.lg ? 24 : 12,
+                           padding: responsive.lg ? 24 : 0,
                            height: responsive.lg
                                ? '80vh'
-                               : 'calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)) - 72px)',
-                           paddingBottom: responsive.lg ? 24 : 'max(12px, env(safe-area-inset-bottom))',
+                               : 'calc(100dvh - max(4px, env(safe-area-inset-top)) - max(4px, env(safe-area-inset-bottom)) - 76px)',
+                           paddingBottom: responsive.lg ? 24 : 'max(4px, env(safe-area-inset-bottom))',
                            overflow: 'hidden',
                        }
                    }}

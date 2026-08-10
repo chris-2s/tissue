@@ -28,3 +28,11 @@ export function getVersions() {
         method: 'get'
     })
 }
+
+export async function getLogStreamToken(): Promise<string> {
+    const response = await request.request({
+        url: '/auth/log-token',
+        method: 'post',
+    })
+    return response.data.data
+}

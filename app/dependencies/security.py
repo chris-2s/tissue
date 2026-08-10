@@ -1,5 +1,5 @@
 import jwt
-from fastapi import Depends, Header
+from fastapi import Cookie, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -8,7 +8,13 @@ from app.db.models.user import User
 from app.exception import AuthenticationException, AuthorizationException
 from app.middleware.requestvars import g
 from app.utils.logger import logger
-from app.utils.security import oauth2_optional_scheme, secret_key, algorithm
+from app.utils.security import (
+    algorithm,
+    decode_log_stream_token,
+    log_stream_cookie_name,
+    oauth2_optional_scheme,
+    secret_key,
+)
 
 
 def _mask_api_key(api_key: str) -> str:
@@ -49,6 +55,25 @@ def verify_auth(
     if x_api_key and _verify_api_key(db, x_api_key):
         return
     raise AuthenticationException()
+
+
+def verify_log_stream_auth(
+    db: Session = Depends(get_db),
+    cookie_token: str | None = Cookie(default=None, alias=log_stream_cookie_name),
+    query_token: str | None = Query(default=None, alias='sse_token'),
+):
+    token = cookie_token or query_token
+    if not token:
+        raise AuthenticationException()
+
+    try:
+        user_id = decode_log_stream_token(token)
+    except (jwt.InvalidTokenError, ValueError, TypeError, KeyError):
+        raise AuthenticationException() from None
+
+    if not User.get(db, user_id):
+        raise AuthenticationException()
+    g().current_user_id = user_id
 
 
 def get_current_user_id():
