@@ -62,6 +62,7 @@ export default {
         translateTitle: 'Translator',
         translateType: 'Translator type',
         translateBaseUrl: 'Base URL',
+        translateEndpointUrl: 'Full endpoint URL',
         translateApiKey: 'API key',
         llmTitle: 'AI model',
         llmType: 'AI model type',

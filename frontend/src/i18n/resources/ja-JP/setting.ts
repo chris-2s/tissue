@@ -62,6 +62,7 @@ export default {
         translateTitle: '翻訳器',
         translateType: '翻訳器タイプ',
         translateBaseUrl: 'Base URL',
+        translateEndpointUrl: '完全なエンドポイントURL',
         translateApiKey: 'API Key',
         llmTitle: 'AIモデル',
         llmType: 'AIモデルタイプ',

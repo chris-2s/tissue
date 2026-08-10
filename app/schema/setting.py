@@ -76,10 +76,15 @@ class TranslateDeeplConfig(BaseModel):
     api_key: Optional[str] = None
 
 
+class TranslateDeepLXConfig(BaseModel):
+    url: Optional[str] = None
+
+
 class SettingTranslate(BaseModel):
     type: str = 'deepl'
     providers: dict[str, dict[str, Any]] = Field(default_factory=lambda: {
-        'deepl': TranslateDeeplConfig().model_dump()
+        'deepl': TranslateDeeplConfig().model_dump(),
+        'deeplx': TranslateDeepLXConfig().model_dump(),
     })
 
     def get_provider_payload(self, provider: str | None = None) -> dict[str, Any]:

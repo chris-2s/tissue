@@ -15,6 +15,7 @@ export const Route = createFileRoute('/_index/setting/text-processing')({
 function SettingTextProcessing() {
     const [form] = Form.useForm()
     const {t} = useTranslation(['common', 'setting'])
+    const translatorType = Form.useWatch(['translate', 'type'], form)
     const actorTranslator = Form.useWatch(['text_processing', 'actor_translator'], form)
     const metadataTranslator = Form.useWatch(['text_processing', 'metadata_translator'], form)
 
@@ -29,6 +30,9 @@ function SettingTextProcessing() {
                             deepl: {
                                 base_url: '',
                                 api_key: '',
+                            },
+                            deeplx: {
+                                url: '',
                             },
                         },
                     },
@@ -87,14 +91,23 @@ function SettingTextProcessing() {
                     <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateType')} name={['translate', 'type']}>
                         <Select>
                             <Select.Option value={'deepl'}>DeepL</Select.Option>
+                            <Select.Option value={'deeplx'}>DeepLX</Select.Option>
                         </Select>
                     </Form.Item>
-                    <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateBaseUrl')} name={['translate', 'providers', 'deepl', 'base_url']}>
-                        <Input placeholder={'https://api-free.deepl.com'}/>
-                    </Form.Item>
-                    <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateApiKey')} name={['translate', 'providers', 'deepl', 'api_key']}>
-                        <Input.Password autoComplete={'new-password'}/>
-                    </Form.Item>
+                    {translatorType === 'deeplx' ? (
+                        <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateEndpointUrl')} name={['translate', 'providers', 'deeplx', 'url']}>
+                            <Input placeholder={'https://example.com/translate'}/>
+                        </Form.Item>
+                    ) : (
+                        <>
+                            <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateBaseUrl')} name={['translate', 'providers', 'deepl', 'base_url']}>
+                                <Input placeholder={'https://api-free.deepl.com'}/>
+                            </Form.Item>
+                            <Form.Item className={'lg:col-span-2'} label={t('setting:textProcessing.translateApiKey')} name={['translate', 'providers', 'deepl', 'api_key']}>
+                                <Input.Password autoComplete={'new-password'}/>
+                            </Form.Item>
+                        </>
+                    )}
                 </div>
             </SettingSection>
 

@@ -62,6 +62,7 @@ export default {
         translateTitle: '翻译器',
         translateType: '翻译器类型',
         translateBaseUrl: '基础地址',
+        translateEndpointUrl: '完整接口地址',
         translateApiKey: 'API Key',
         llmTitle: '大模型',
         llmType: '大模型类型',
