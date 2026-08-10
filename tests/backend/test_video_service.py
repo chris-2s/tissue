@@ -1,9 +1,34 @@
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
 import app.service.video as video_module
 from app.schema import VideoActor, VideoDetail
 from app.service.video import VideoService
+
+
+def test_get_videos_orders_by_video_mtime_descending(tmp_path: Path, monkeypatch):
+    older_video = tmp_path / "older.mp4"
+    newer_video = tmp_path / "newer.mp4"
+    older_video.write_text("older video")
+    newer_video.write_text("newer video")
+    os.utime(older_video, (1000, 1000))
+    os.utime(newer_video, (2000, 2000))
+
+    monkeypatch.setattr(video_module, "Setting", lambda: SimpleNamespace(
+        library=SimpleNamespace(
+            video_path=str(tmp_path),
+            video_format=".mp4",
+            video_size_minimum=0,
+        )
+    ))
+    monkeypatch.setattr(video_module.nfo, "get_basic", lambda *_args, **_kwargs: None)
+
+    service = VideoService(db=SimpleNamespace())
+
+    videos = VideoService.get_videos.__wrapped__(service)
+
+    assert [video.path for video in videos] == [str(newer_video), str(older_video)]
 
 
 def test_find_subtitle_paths_prefers_same_name_file(tmp_path: Path):

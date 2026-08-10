@@ -44,13 +44,16 @@ class VideoService(BaseService):
             for file in files:
                 path = os.path.join(root, file)
                 _, ext_name = os.path.splitext(path)
-                size = os.stat(path).st_size
+                file_stat = os.stat(path)
 
-                if ext_name in setting.video_format.split(',') and size > (setting.video_size_minimum * 1024 * 1024):
-                    video_paths.append(path)
+                if ext_name in setting.video_format.split(',') and file_stat.st_size > (
+                        setting.video_size_minimum * 1024 * 1024):
+                    video_paths.append((file_stat.st_mtime, path))
+
+        video_paths.sort(reverse=True)
 
         videos = []
-        for path in video_paths:
+        for _, path in video_paths:
             video = nfo.get_basic(path, include_actor=True)
             if not video:
                 video = VideoList(title=path.split("/")[-1], path=path)
