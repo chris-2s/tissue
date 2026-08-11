@@ -3,6 +3,7 @@ import {
     Checkbox,
     Col, Divider,
     Form,
+    Image,
     Input,
     message,
     Modal,
@@ -11,8 +12,9 @@ import {
     Select,
     Spin,
 } from "antd";
+import {EditOutlined, EyeOutlined, ScissorOutlined} from "@ant-design/icons";
 import * as api from "../../apis/video.ts";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {useRequest} from "ahooks";
 import {useTranslation} from "react-i18next";
 import Styles from "./index.module.css";
@@ -20,6 +22,8 @@ import Websites from "../Websites";
 import VideoActors from "../VideoActors";
 import RemoteImageEditor from "../RemoteImage/editor.tsx";
 import {ManualTransModeOptions} from "../../utils/constants.ts";
+import PosterCropModal from "./PosterCropModal.tsx";
+import type {PosterCrop} from "../../types/video.ts";
 
 
 interface Props extends ModalProps {
@@ -32,13 +36,21 @@ function VideoDetail(props: Props) {
 
     const {path, mode, transMode, onOk, ...otherProps} = props
     const [form] = Form.useForm()
+    const cover = Form.useWatch('cover', form)
     const {t} = useTranslation(['video'])
     const allowManualTransMode = mode === 'file' || mode === 'download'
+    const [cropOpen, setCropOpen] = useState(false)
+    const [posterCrop, setPosterCrop] = useState<PosterCrop>()
+    const [savedPoster, setSavedPoster] = useState<string>()
+    const [posterPreviewOpen, setPosterPreviewOpen] = useState(false)
+    const [posterPreviewVersion, setPosterPreviewVersion] = useState(0)
 
     const {run: onLoad, loading} = useRequest(loadVideoDetail, {
         manual: true,
         onSuccess: (response) => {
             form.setFieldsValue(response)
+            setPosterCrop(response.poster_crop)
+            setSavedPoster(response.poster)
         }
     })
 
@@ -48,6 +60,7 @@ function VideoDetail(props: Props) {
             delete response.data.data.is_zh
             delete response.data.data.is_uncensored
             form.setFieldsValue(response.data.data)
+            setPosterCrop(undefined)
             message.success(t('video:detail.messages.scraped'))
         }
     })
@@ -86,11 +99,11 @@ function VideoDetail(props: Props) {
     }
 
     function handleSave(value: any) {
-        const selectedTransMode = value.trans_mode_override
-        delete value.trans_mode_override
-        value.path = path
+        const {trans_mode_override: selectedTransMode, ...detail} = value
+        detail.path = path
+        detail.poster_crop = posterCrop
         return onSave(
-            value,
+            detail,
             mode,
             allowManualTransMode ? (selectedTransMode === 'system' ? undefined : selectedTransMode) : transMode
         )
@@ -110,8 +123,12 @@ function VideoDetail(props: Props) {
             onLoad(path)
         } else {
             form.resetFields()
+            setCropOpen(false)
+            setPosterCrop(undefined)
+            setSavedPoster(undefined)
+            setPosterPreviewOpen(false)
         }
-    }, [otherProps.open])
+    }, [form, onLoad, otherProps.open, path])
 
     return (
         <Modal {...otherProps} footer={[
@@ -125,11 +142,55 @@ function VideoDetail(props: Props) {
             {loading ? (
                 <div className={'text-center'}><Spin spinning/></div>
             ) : (
-                <Form className={Styles.form} form={form} layout={'vertical'} onFinish={handleSave}>
+                <Form
+                    className={Styles.form}
+                    form={form}
+                    layout={'vertical'}
+                    onFinish={handleSave}
+                    onValuesChange={(changed) => {
+                        if ('cover' in changed) setPosterCrop(undefined)
+                    }}
+                >
                     <Row gutter={[30, 15]}>
                         <Col span={24} md={10} lg={10}>
                             <Form.Item noStyle name={'cover'}>
-                                <RemoteImageEditor/>
+                                <RemoteImageEditor
+                                    renderEditTrigger={(openEditor) => (
+                                        <div className={Styles.imageOperationArea}>
+                                            <div className={Styles.imageActions}>
+                                                <div className={Styles.posterActions}>
+                                                    <Button
+                                                        type="text"
+                                                        icon={<ScissorOutlined/>}
+                                                        disabled={!cover}
+                                                        onClick={() => setCropOpen(true)}
+                                                    >
+                                                        {t('video:detail.image.cropPoster')}
+                                                    </Button>
+                                                    {savedPoster && (
+                                                        <Button
+                                                            type="text"
+                                                            icon={<EyeOutlined/>}
+                                                            onClick={() => {
+                                                                setPosterPreviewVersion(Date.now())
+                                                                setPosterPreviewOpen(true)
+                                                            }}
+                                                        >
+                                                            {t('video:detail.image.viewPoster')}
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                                <Button
+                                                    type="text"
+                                                    icon={<EditOutlined/>}
+                                                    onClick={openEditor}
+                                                >
+                                                    {t('video:detail.image.editUrl')}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                />
                             </Form.Item>
                             <br/>
                             <Form.Item label={t('video:detail.fields.actors')} name={'actors'}>
@@ -227,6 +288,33 @@ function VideoDetail(props: Props) {
                     </Row>
                 </Form>
             )}
+            <PosterCropModal
+                cover={cover}
+                value={posterCrop}
+                open={cropOpen}
+                onCancel={() => setCropOpen(false)}
+                onApply={(value) => {
+                    setPosterCrop(value)
+                    setCropOpen(false)
+                }}
+            />
+            <Modal
+                title={t('video:detail.image.savedPosterTitle')}
+                open={posterPreviewOpen}
+                footer={null}
+                width={460}
+                onCancel={() => setPosterPreviewOpen(false)}
+                destroyOnHidden
+            >
+                {savedPoster && (
+                    <div className={Styles.posterPreview}>
+                        <Image
+                            src={`${api.getImageUrl(savedPoster, 'cover')}&preview=${posterPreviewVersion}`}
+                            preview={false}
+                        />
+                    </div>
+                )}
+            </Modal>
         </Modal>
     )
 }

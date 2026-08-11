@@ -73,6 +73,14 @@ export default {
         image: {
             modalTitle: 'Image URL',
             placeholder: 'Enter poster URL',
+            cropPoster: 'Adjust poster',
+            editUrl: 'Edit image',
+            viewPoster: 'View poster',
+            savedPosterTitle: 'Current poster',
+            cropTitle: 'Adjust poster',
+            posterPreview: 'Preview',
+            zoom: 'Zoom',
+            loadFailed: 'The cover could not be loaded. Check the image URL and try again.',
         },
         transMode: {
             system: 'Use system setting',

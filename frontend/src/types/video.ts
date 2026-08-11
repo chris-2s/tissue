@@ -64,6 +64,13 @@ export interface VideoSiteActor {
     items: VideoActor[];
 }
 
+export interface PosterCrop {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface VideoDetail {
     title?: string;
     num?: string;
@@ -79,6 +86,7 @@ export interface VideoDetail {
     series?: string;
     cover?: string;
     poster?: string;
+    poster_crop?: PosterCrop;
     fanart?: string;
     fanart_path?: string;
     thumb?: string;

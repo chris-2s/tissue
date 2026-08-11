@@ -73,6 +73,14 @@ export default {
         image: {
             modalTitle: '圖片位址',
             placeholder: '請輸入海報位址',
+            cropPoster: '調整海報',
+            editUrl: '修改圖片',
+            viewPoster: '查看海報',
+            savedPosterTitle: '目前海報',
+            cropTitle: '調整海報',
+            posterPreview: '預覽',
+            zoom: '縮放',
+            loadFailed: '封面載入失敗，請檢查圖片位址後重試。',
         },
         transMode: {
             system: '使用系統設定',

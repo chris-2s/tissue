@@ -138,9 +138,6 @@ class VideoService(BaseService):
             video.is_zh = True
         _, ext_name = os.path.splitext(video.path)
 
-        if trans_mode == 'move':
-            self.delete_video_meta(video.path)
-
         actor_folder = (",".join(map(lambda i: i.name, video.actors[0:3])) + (
             "等" if len(video.actors) > 3 else "")) if len(video.actors) > 0 else "未知演员"
         video_folder = video.title[0:80]
@@ -155,15 +152,20 @@ class VideoService(BaseService):
             video_tags.append("C")
 
         video_path = os.path.join(save_path, video.num + (f'-{"".join(video_tags)}' if video_tags else '') + ext_name)
+        source_path = video.path
+        path_changed = video_path != source_path
 
-        if video_path != video.path:
-            if os.path.exists(video_path) and os.stat(video_path).st_size != os.stat(video.path).st_size:
+        if trans_mode == 'move' and path_changed:
+            self.delete_video_meta(source_path)
+
+        if path_changed:
+            if os.path.exists(video_path) and os.stat(video_path).st_size != os.stat(source_path).st_size:
                 if trans_mode == 'move':
-                    os.remove(video.path)
+                    os.remove(source_path)
             else:
-                self.transfer_file(video.path, video_path, trans_mode, f"影片《{video.num}》")
-            self.trans_subtitles(video.path, video_path, subtitle_paths, trans_mode)
-            utils.remove_empty_directory(video.path)
+                self.transfer_file(source_path, video_path, trans_mode, f"影片《{video.num}》")
+            self.trans_subtitles(source_path, video_path, subtitle_paths, trans_mode)
+            utils.remove_empty_directory(source_path)
 
         if video.cover:
             logger.info(translate('log.video.generate_cover'))
@@ -232,6 +234,8 @@ class VideoService(BaseService):
             exist_path, _ = os.path.split(path)
             for item in ['poster', 'thumb', 'fanart']:
                 image = getattr(exist, item)
+                if not image:
+                    continue
                 image_path = os.path.join(exist_path, image)
                 if os.path.exists(image_path):
                     os.remove(image_path)

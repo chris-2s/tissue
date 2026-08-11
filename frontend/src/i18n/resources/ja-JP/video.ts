@@ -73,6 +73,14 @@ export default {
         image: {
             modalTitle: '画像URL',
             placeholder: 'ポスターURLを入力',
+            cropPoster: 'ポスターを調整',
+            editUrl: '画像を変更',
+            viewPoster: 'ポスターを表示',
+            savedPosterTitle: '現在のポスター',
+            cropTitle: 'ポスターを調整',
+            posterPreview: 'プレビュー',
+            zoom: 'ズーム',
+            loadFailed: 'カバーを読み込めません。画像URLを確認して再試行してください。',
         },
         transMode: {
             system: 'システム設定',

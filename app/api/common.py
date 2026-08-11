@@ -12,6 +12,11 @@ from version import APP_VERSION
 
 router = APIRouter()
 
+IMAGE_RESPONSE_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+}
+
 
 @router.get("/image")
 def proxy_image(url: str, request: Request, image_type: ImageCacheType = 'cover'):
@@ -25,11 +30,13 @@ def proxy_image(url: str, request: Request, image_type: ImageCacheType = 'cover'
             return Response(
                 status_code=304,
                 headers={
+                    **IMAGE_RESPONSE_HEADERS,
                     'Cache-Control': f'public, max-age={ResourceService.IMAGE_CLIENT_CACHE_MAX_AGE_SECONDS}',
                     'ETag': image.etag,
                 }
             )
         headers = {
+            **IMAGE_RESPONSE_HEADERS,
             'Cache-Control': f'public, max-age={ResourceService.IMAGE_CLIENT_CACHE_MAX_AGE_SECONDS}',
             'ETag': image.etag or hashlib.md5(f'{image_type}:{url}'.encode()).hexdigest(),
         }
@@ -38,6 +45,7 @@ def proxy_image(url: str, request: Request, image_type: ImageCacheType = 'cover'
     return Response(
         status_code=image.status_code,
         headers={
+            **IMAGE_RESPONSE_HEADERS,
             'Cache-Control': 'no-cache',
         }
     )

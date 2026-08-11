@@ -1,7 +1,8 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from app.api.common import get_versions
+from app.api.common import get_versions, proxy_image
+from app.service.resource import ImageResult
 from app.utils.log_stream import build_log_event, format_sse, read_last_lines
 from version import APP_VERSION
 
@@ -60,3 +61,18 @@ def test_get_versions_falls_back_to_current_when_regex_missing(monkeypatch):
     result = get_versions()
 
     assert result.data == {"current": APP_VERSION[1:], "latest": APP_VERSION[1:]}
+
+
+def test_proxy_image_always_includes_canvas_safe_cors_headers(tmp_path: Path, monkeypatch):
+    image_path = tmp_path / 'cover.jpg'
+    image_path.write_bytes(b'image')
+    monkeypatch.setattr(
+        'app.api.common.ResourceService.fetch_local_image_file',
+        lambda _url: ImageResult(file_path=str(image_path), media_type='image/jpeg', status_code=200),
+    )
+
+    request = SimpleNamespace(headers={})
+    response = proxy_image('/library/cover.jpg', request)
+
+    assert response.headers['access-control-allow-origin'] == '*'
+    assert response.headers['cross-origin-resource-policy'] == 'cross-origin'

@@ -73,6 +73,13 @@ class VideoSiteActor(BaseModel):
     items: List[VideoActor] = Field(default_factory=list)
 
 
+class PosterCrop(BaseModel):
+    x: float = Field(ge=0, le=100)
+    y: float = Field(ge=0, le=100)
+    width: float = Field(gt=0, le=100)
+    height: float = Field(gt=0, le=100)
+
+
 class VideoDetail(BaseModel):
     source: Optional[SourceRef] = None
     # 标题
@@ -102,6 +109,7 @@ class VideoDetail(BaseModel):
     # 封面
     cover: Optional[str] = None
     poster: Optional[str] = None
+    poster_crop: Optional[PosterCrop] = None
     fanart: Optional[str] = None
     fanart_path: Optional[str] = None
     thumb: Optional[str] = None

@@ -73,6 +73,14 @@ export default {
         image: {
             modalTitle: '图片地址',
             placeholder: '请输入海报地址',
+            cropPoster: '调整海报',
+            editUrl: '修改图片',
+            viewPoster: '查看海报',
+            savedPosterTitle: '当前海报',
+            cropTitle: '调整海报',
+            posterPreview: '预览',
+            zoom: '缩放',
+            loadFailed: '封面加载失败，请检查图片地址后重试。',
         },
         transMode: {
             system: '使用系统设置',

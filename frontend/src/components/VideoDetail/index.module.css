@@ -1,3 +1,39 @@
 .form :global(.ant-form-item){
     margin-bottom: 0 !important;
 }
+
+.imageOperationArea {
+    margin-top: 12px;
+}
+
+.imageActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.posterActions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.posterPreview {
+    display: flex;
+    justify-content: center;
+    max-height: 72vh;
+    overflow: auto;
+    padding: 4px;
+}
+
+.posterPreview :global(.ant-image) {
+    max-width: 100%;
+}
+
+.posterPreview img {
+    display: block;
+    max-width: 100%;
+    max-height: 68vh;
+    object-fit: contain;
+}

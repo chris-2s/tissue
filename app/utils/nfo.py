@@ -1,7 +1,7 @@
 import os.path
 import traceback
 
-from app.schema import VideoDetail, VideoActor, VideoList
+from app.schema import PosterCrop, VideoDetail, VideoActor, VideoList
 import xml.etree.ElementTree as ET
 
 from app.i18n import translate
@@ -105,10 +105,17 @@ def get_full(path: str):
             case 'extra':
                 nfo.is_zh = element.attrib.get('is_zh') == '1'
                 nfo.is_uncensored = element.attrib.get('is_uncensored') == '1'
+                poster_crop = element.find('poster_crop')
+                if poster_crop is not None:
+                    try:
+                        nfo.poster_crop = PosterCrop(**poster_crop.attrib)
+                    except ValueError:
+                        logger.warning(translate('log.nfo.read_failed', {'video': path}))
             case _:
                 if hasattr(nfo, element.tag):
                     setattr(nfo, element.tag, element.text)
     nfo.fanart_path = resolve_asset_path(path, nfo.fanart)
+    nfo.poster = resolve_asset_path(path, nfo.poster)
     return nfo
 
 
@@ -209,20 +216,19 @@ def save(path: str, detail: VideoDetail):
         cover.text = detail.cover
         root.append(cover)
 
-        _, ext_name = os.path.splitext(detail.cover)
-
-        save_path, _ = os.path.splitext(path)
-
+    if detail.poster:
         poster = ET.Element('poster')
-        poster.text = f'{save_path}-poster{ext_name}'
+        poster.text = detail.poster
         root.append(poster)
 
+    if detail.thumb:
         thumb = ET.Element('thumb')
-        thumb.text = f'{save_path}-thumb{ext_name}'
+        thumb.text = detail.thumb
         root.append(thumb)
 
+    if detail.fanart:
         fanart = ET.Element('fanart')
-        fanart.text = f'{save_path}-fanart{ext_name}'
+        fanart.text = detail.fanart
         root.append(fanart)
 
     if detail.website:
@@ -236,6 +242,10 @@ def save(path: str, detail: VideoDetail):
         extra.set('is_zh', '1')
     if detail.is_uncensored:
         extra.set('is_uncensored', '1')
+    if detail.poster_crop:
+        poster_crop = ET.SubElement(extra, 'poster_crop')
+        for key, value in detail.poster_crop.model_dump().items():
+            poster_crop.set(key, f'{value:.6f}')
     root.append(extra)
 
     lock = ET.Element('lockdata')

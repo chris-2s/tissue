@@ -26,6 +26,7 @@
     "js-sha256": "^0.11.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-easy-crop": "^6.2.3",
     "react-i18next": "^15.7.3",
     "react-lazy-load-image-component": "^1.6.3",
     "react-redux": "^9.3.0",

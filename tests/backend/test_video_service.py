@@ -3,7 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import app.service.video as video_module
-from app.schema import VideoActor, VideoDetail
+from app.schema import PosterCrop, VideoActor, VideoDetail
 from app.service.video import VideoService
 
 
@@ -162,7 +162,7 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
     source_video = tmp_path / "MIDV-639.mp4"
     source_video.write_text("video")
 
-    captured: dict[str, str] = {}
+    captured: dict[str, object] = {}
 
     monkeypatch.setattr(video_module, "Setting", lambda: SimpleNamespace(
         library=SimpleNamespace(video_path=str(tmp_path / "library")),
@@ -175,7 +175,7 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
 
     service = VideoService(db=SimpleNamespace(commit=lambda: None))
 
-    def fake_trans(video, video_path, trans_mode):
+    def fake_trans(video, video_path, trans_mode, **kwargs):
         captured["trans_mode"] = trans_mode
         captured["video_path"] = video_path
         return str(tmp_path / "library" / "MIDV-639.mp4")
@@ -183,9 +183,16 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
     monkeypatch.setattr(service, "trans", fake_trans)
     monkeypatch.setattr(video_module.History, "add", lambda self, db: None)
 
-    video = VideoDetail(title="Test Title", num="MIDV-639", path=str(source_video))
+    poster_crop = PosterCrop(x=52.625, y=0, width=47.375, height=100)
+    video = VideoDetail(
+        title="Test Title",
+        num="MIDV-639",
+        path=str(source_video),
+        poster_crop=poster_crop,
+    )
 
     service.save_video(video, mode="video")
 
     assert captured["trans_mode"] == "move"
     assert captured["video_path"] == str(tmp_path / "library")
+    assert video.poster_crop == poster_crop
