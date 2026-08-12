@@ -75,6 +75,5 @@ export default {
         search: '検索',
         scoreUnit: '点',
         ratedBy: '{{count}}人評価',
-        zhRibbon: '中字',
     },
 } as const;

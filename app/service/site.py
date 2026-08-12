@@ -39,6 +39,8 @@ class SiteService(BaseService):
         spider_class = SpiderService.get_spider_class(db_site.spider_key)
         spider_name = spider_class.name if spider_class else db_site.spider_key
         capabilities = SpiderService.get_spider_capabilities(spider_key)
+        supported_languages = SpiderService.get_spider_supported_languages(spider_key)
+        language = getattr(db_site, 'language', None) or supported_languages[0]
 
         return SiteSchema(
             id=db_site.id,
@@ -47,6 +49,8 @@ class SiteService(BaseService):
             alternate_host=db_site.alternate_host,
             status=db_site.status,
             cookies=db_site.cookies,
+            language=language,
+            supported_languages=supported_languages,
             name=spider_name,
             capabilities=capabilities,
         )

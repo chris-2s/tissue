@@ -26,6 +26,5 @@ export default {
     card: {
         scoreUnit: '',
         ratedBy: '{{count}} ratings',
-        zhRibbon: 'Chinese',
     },
 } as const;

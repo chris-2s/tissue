@@ -16,4 +16,4 @@ def test_crawler_registry_returns_capabilities():
     assert capabilities.supports_downloads is True
     assert capabilities.supports_previews is True
     assert capabilities.supports_comments is False
-
+    assert crawler_registry.get_supported_languages('javbus') == ('ja-JP',)

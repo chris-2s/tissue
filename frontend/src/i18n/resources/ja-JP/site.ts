@@ -15,6 +15,7 @@ export default {
         alternateHost: '代替ドメイン',
         alternateHostPlaceholder: 'ドメイン失効時や代替ドメイン利用時に入力',
         priority: '優先度',
+        language: 'メタデータ言語',
         status: '状態',
         enabled: '有効',
         cookies: 'Cookie',
@@ -27,7 +28,8 @@ export default {
     actions: {
         priority: '優先度',
         refresh: 'サイト更新',
-        refreshCookie: 'Cookie更新',
+        login: 'ログイン',
+        settings: '設定',
     },
     priorityPage: {
         loadTitle: '優先度の読込失敗',

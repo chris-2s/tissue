@@ -1,4 +1,4 @@
-import {Badge, Rate, Space, Tag, theme} from "antd";
+import {Rate, Space, Tag, theme} from "antd";
 import React from "react";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
@@ -15,14 +15,19 @@ function VideoResultCard(props: VideoResultCardProps) {
     const {item, onClick} = props;
     const {token} = theme.useToken();
 
-    const content = (
+    return (
         <div
             className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0 cursor-pointer"
             style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}
             onClick={onClick}
         >
             <div>
-                <RemoteImage src={item.cover} num={item.num} imageType={IMAGE_TYPES.COVER}/>
+                <RemoteImage
+                    src={item.cover}
+                    videoNumber={item.num}
+                    isZh={item.isZh}
+                    imageType={IMAGE_TYPES.COVER}
+                />
             </div>
             <div className={'p-3'}>
                 <div className={'text-nowrap overflow-y-scroll'} style={{
@@ -48,8 +53,6 @@ function VideoResultCard(props: VideoResultCardProps) {
             </div>
         </div>
     );
-
-    return item.isZh ? <Badge.Ribbon text={t('search:card.zhRibbon')}>{content}</Badge.Ribbon> : content;
 }
 
 export default VideoResultCard;

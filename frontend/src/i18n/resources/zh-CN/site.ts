@@ -15,6 +15,7 @@ export default {
         alternateHost: '替代域名',
         alternateHostPlaceholder: '当域名失效或替代域名时填写',
         priority: '优先级',
+        language: '元数据语言',
         status: '状态',
         enabled: '启用',
         cookies: 'Cookie',
@@ -27,7 +28,8 @@ export default {
     actions: {
         priority: '刮削优先级',
         refresh: '刷新站点',
-        refreshCookie: '刷新Cookie',
+        login: '登录',
+        settings: '设置',
     },
     priorityPage: {
         loadTitle: '刮削优先级加载失败',

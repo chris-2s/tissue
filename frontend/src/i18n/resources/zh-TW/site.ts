@@ -15,6 +15,7 @@ export default {
         alternateHost: '替代網域',
         alternateHostPlaceholder: '當網域失效或使用替代網域時填寫',
         priority: '優先級',
+        language: '中繼資料語言',
         status: '狀態',
         enabled: '啟用',
         cookies: 'Cookie',
@@ -27,7 +28,8 @@ export default {
     actions: {
         priority: '刮削優先級',
         refresh: '刷新站點',
-        refreshCookie: '刷新 Cookie',
+        login: '登入',
+        settings: '設定',
     },
     priorityPage: {
         loadTitle: '刮削優先級加載失敗',

@@ -75,6 +75,5 @@ export default {
         search: 'Search',
         scoreUnit: '',
         ratedBy: '{{count}} ratings',
-        zhRibbon: 'Chinese',
     },
 } as const;

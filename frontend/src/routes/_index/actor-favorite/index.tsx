@@ -143,7 +143,6 @@ function ActorFavoritePage() {
                                                 <RemoteImage
                                                     className={'h-full w-full'}
                                                     src={favorite.actor.thumb}
-                                                    num={favorite.actor_code}
                                                     avatar
                                                     imageType={IMAGE_TYPES.AVATAR}
                                                 />

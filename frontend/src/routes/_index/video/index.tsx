@@ -165,7 +165,12 @@ function Video() {
                         <Col key={video.path} span={24} md={12} lg={6}>
                             <Card hoverable
                                   size={"small"}
-                                  cover={(<RemoteImage src={video.fanart_path || video.cover} imageType={IMAGE_TYPES.COVER}/>)}
+                                  cover={(<RemoteImage
+                                      src={video.fanart_path || video.cover}
+                                      isZh={video.is_zh}
+                                      isUncensored={video.is_uncensored}
+                                      imageType={IMAGE_TYPES.COVER}
+                                  />)}
                                   onClick={() => setSelected(video.path)}
                             >
                                 <Card.Meta title={video.title}
@@ -174,10 +179,6 @@ function Video() {
                                                    <div className={'flex-1 items-center overflow-x-scroll'}
                                                         style={{scrollbarWidth: 'none'}}>
                                                        <Space size={[0, 'small']} wrap className={'flex-1'}>
-                                                           {video.is_zh && (
-                                                               <Tag color={'blue'} variant={'filled'}>{t('video:filter.flag.zh')}</Tag>)}
-                                                           {video.is_uncensored && (
-                                                               <Tag color={'green'} variant={'filled'}>{t('video:filter.flag.uncensored')}</Tag>)}
                                                            {getVideoRatingValue(video) !== undefined && (
                                                                <Tag color={'gold'} variant={'filled'}>
                                                                    {formatRating(getVideoRatingValue(video)!)}

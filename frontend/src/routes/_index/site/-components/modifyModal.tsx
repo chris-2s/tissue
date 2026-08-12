@@ -2,11 +2,14 @@ import {Checkbox, Form, Input, Modal, Select} from "antd";
 import {FormModalProps} from "../../../../utils/useFormModal.ts";
 import React from "react";
 import {useTranslation} from "react-i18next";
+import {getLanguageLabel} from "../../../../utils/languages.ts";
+
 
 function ModifyModal(props: FormModalProps) {
     const {t} = useTranslation(['site'])
 
     const {form, initValues, ...otherProps} = props
+    const supportedLanguages = initValues.supported_languages || []
 
     return (
         <Modal {...otherProps} title={initValues.name}>
@@ -20,6 +23,12 @@ function ModifyModal(props: FormModalProps) {
                 <Form.Item name={'priority'} label={t('site:modals.priority')} initialValue={0}>
                     <Select>{Array(101).fill(0).map((_, index) => (
                         <Select.Option value={index}>{index}</Select.Option>))}</Select>
+                </Form.Item>
+                <Form.Item name={'language'} label={t('site:modals.language')}>
+                    <Select options={supportedLanguages.map((language: string) => ({
+                        value: language,
+                        label: getLanguageLabel(language),
+                    }))}/>
                 </Form.Item>
                 <Form.Item name={'status'} label={t('site:modals.status')} valuePropName={'checked'}>
                     <Checkbox>{t('site:modals.enabled')}</Checkbox>

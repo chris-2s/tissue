@@ -1,5 +1,5 @@
 import React from "react";
-import {Badge, Rate, theme, Tooltip} from "antd";
+import {Rate, theme, Tooltip} from "antd";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
 import {SearchOutlined} from "@ant-design/icons";
@@ -15,13 +15,17 @@ function VideoItem(props: { item: SiteVideo }) {
     const {item} = props;
     const {navigate} = useRouter()
 
-    function render() {
-        return (
-            <div className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0"
-                 style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}>
-                <div>
-                    <RemoteImage src={item.cover} num={item.num} imageType={IMAGE_TYPES.COVER}/>
-                </div>
+    return (
+        <div className="overflow-hidden rounded-lg transition-shadow hover:shadow-lg hover:border-0"
+             style={{background: token.colorBorderBg, border: `1px solid ${token.colorBorderSecondary}`}}>
+            <div>
+                <RemoteImage
+                    src={item.cover}
+                    videoNumber={item.num}
+                    isZh={item.isZh}
+                    imageType={IMAGE_TYPES.COVER}
+                />
+            </div>
                 <div className={'p-3'}>
                     <div className={'text-nowrap overflow-y-scroll'} style={{
                         scrollbarWidth: 'none',
@@ -50,18 +54,7 @@ function VideoItem(props: { item: SiteVideo }) {
                         </Tooltip>
                     </div>
                 </div>
-            </div>
-        )
-    }
-
-    return (
-        item.isZh ? (
-            <Badge.Ribbon text={t('home:item.zhRibbon')}>
-                {render()}
-            </Badge.Ribbon>
-        ) : (
-            render()
-        )
+        </div>
     )
 }
 

@@ -75,6 +75,5 @@ export default {
         search: '搜尋',
         scoreUnit: '分',
         ratedBy: '由{{count}}人評價',
-        zhRibbon: '中文',
     },
 } as const;

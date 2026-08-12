@@ -56,6 +56,10 @@ class CrawlerRegistry:
             return None
         return self._providers.get(normalized_key)
 
+    def get_supported_languages(self, spider_key: str | SpiderKey) -> tuple[str, ...]:
+        spider_cls = self.get(spider_key)
+        return spider_cls.supported_languages if spider_cls else ('ja-JP',)
+
     def get_capabilities(self, spider_key: str | SpiderKey) -> CrawlerCapabilities:
         definition = self.get_definition(spider_key)
         return definition.capabilities.model_copy() if definition else CrawlerCapabilities()

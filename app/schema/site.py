@@ -34,6 +34,8 @@ class Site(BaseModel):
     alternate_host: Optional[str]
     status: Optional[bool]
     cookies: Optional[str]
+    language: str
+    supported_languages: tuple[str, ...]
     capabilities: SiteCapabilities
 
 
@@ -43,6 +45,7 @@ class SiteUpdate(BaseModel):
     alternate_host: Optional[str]
     status: Optional[bool]
     cookies: Optional[str]
+    language: Optional[str] = None
 
 
 class LoginSubmit(BaseModel):

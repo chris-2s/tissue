@@ -53,8 +53,79 @@
 }
 
 
-.library {
+.videoCoverContainer > .badges {
     position: absolute;
-    right: -1px;
-    bottom: 6px;
+    z-index: 2;
+    top: 8px;
+    right: auto;
+    bottom: auto;
+    left: 3px;
+    display: flex;
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+.badge {
+    display: flex;
+    width: 44px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 1px 1px rgb(0 0 0 / 0.12);
+}
+
+.zhBadge {
+    background: linear-gradient(110deg, #347cf6 0%, #55bdeb 100%);
+}
+
+.uncensoredBadge {
+    background: linear-gradient(110deg, #72b94f 0%, #9acb78 100%);
+}
+
+.videoCoverContainer > .libraryStatus {
+    position: absolute;
+    z-index: 2;
+    top: auto;
+    right: 7px;
+    bottom: 7px;
+    left: auto;
+    width: auto;
+    height: auto;
+}
+
+.libraryPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 999px;
+    background: rgb(15 18 24 / 0.78);
+    padding: 4px 9px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.16);
+}
+
+@media (max-width: 575px) {
+    .videoCoverContainer > .badges {
+        top: 7px;
+        left: 3px;
+        gap: 3px;
+    }
+
+    .badge {
+        width: 40px;
+        height: 20px;
+        font-size: 10px;
+    }
 }

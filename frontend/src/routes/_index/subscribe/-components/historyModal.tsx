@@ -211,7 +211,13 @@ function HistoryModal(props: Props) {
                                     <List.Item.Meta
                                         avatar={(
                                             <div className={'w-20 shrink-0'}>
-                                                <RemoteImage src={item.cover} num={item.num} imageType={IMAGE_TYPES.COVER}/>
+                                                <RemoteImage
+                                                    src={item.cover}
+                                                    videoNumber={item.num}
+                                                    isZh={item.is_zh}
+                                                    isUncensored={item.is_uncensored}
+                                                    imageType={IMAGE_TYPES.COVER}
+                                                />
                                             </div>
                                         )}
                                         title={(

@@ -257,7 +257,13 @@ function Detail() {
             <Col span={24} lg={8} md={12}>
                 <Card>
                     <div className={'my-4 rounded-lg overflow-hidden'}>
-                        <RemoteImage src={video.cover} num={video.num} imageType={IMAGE_TYPES.COVER}/>
+                        <RemoteImage
+                            src={video.cover}
+                            videoNumber={video.num}
+                            isZh={video.is_zh}
+                            isUncensored={video.is_uncensored}
+                            imageType={IMAGE_TYPES.COVER}
+                        />
                     </div>
                     <div className={'text-center'}>
                         <Tooltip title={t('home:detail.actions.addSubscription')}>

@@ -150,7 +150,6 @@ function Actor() {
                             <RemoteImage
                                 className={'h-full w-full'}
                                 src={actor.thumb}
-                                num={actor.code}
                                 avatar
                                 imageType={IMAGE_TYPES.AVATAR}
                             />

@@ -17,6 +17,8 @@ export interface SiteItem {
     alternate_host?: string;
     status?: boolean;
     cookies?: string;
+    language: string;
+    supported_languages: string[];
     capabilities: SiteCapabilities;
 }
 
@@ -26,6 +28,7 @@ export interface SiteUpdate {
     alternate_host?: string;
     status?: boolean;
     cookies?: string;
+    language?: string;
 }
 
 export type MetadataPriorityFieldKey = 'cover' | 'rating' | 'actors';

@@ -15,6 +15,7 @@ export default {
         alternateHost: 'Alternate domain',
         alternateHostPlaceholder: 'Use this when the original domain fails or has an alternate host',
         priority: 'Priority',
+        language: 'Metadata language',
         status: 'Status',
         enabled: 'Enabled',
         cookies: 'Cookie',
@@ -27,7 +28,8 @@ export default {
     actions: {
         priority: 'Scrape priority',
         refresh: 'Refresh sites',
-        refreshCookie: 'Refresh cookie',
+        login: 'Log in',
+        settings: 'Settings',
     },
     priorityPage: {
         loadTitle: 'Failed to load scrape priority',

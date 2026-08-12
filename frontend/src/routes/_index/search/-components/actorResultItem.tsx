@@ -19,7 +19,7 @@ function ActorResultItem(props: ActorResultItemProps) {
             <List.Item.Meta
                 avatar={(
                     <div className={'h-14 w-14'}>
-                        <RemoteImage className={'h-full w-full'} src={item.thumb} num={item.code} avatar
+                        <RemoteImage className={'h-full w-full'} src={item.thumb} avatar
                                      imageType={IMAGE_TYPES.AVATAR}/>
                     </div>
                 )}

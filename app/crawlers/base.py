@@ -33,6 +33,7 @@ class Spider:
     supports_downloads = False
     supports_previews = False
     supports_comments = False
+    supported_languages = ('ja-JP',)
 
     @staticmethod
     def _get_timeout_seconds() -> int:
@@ -45,6 +46,7 @@ class Spider:
     def __init__(self, site: Site | None = None, load_cookies: bool = True):
         self.host = site.alternate_host if site and site.alternate_host else self.origin_host
         self.site_id = site.id if site else None
+        self.language = (getattr(site, 'language', None) if site else None) or self.supported_languages[0]
         timeout_seconds = self._get_timeout_seconds()
 
         self.session = Session(site=site, load_cookies=load_cookies)

@@ -50,6 +50,10 @@ class SpiderService(BaseService):
         )
 
     @classmethod
+    def get_spider_supported_languages(cls, spider_key: str | SpiderKey) -> tuple[str, ...]:
+        return crawler_registry.get_supported_languages(spider_key)
+
+    @classmethod
     def build_spider(cls, site: Site, include_cookies: bool = True) -> Spider | None:
         spider_class = cls.get_spider_class(site.spider_key)
         if not spider_class:

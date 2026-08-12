@@ -13,3 +13,4 @@ class Site(Base):
     status = Column(Boolean, nullable=True)
     cookies = Column(Text, nullable=True)
     user_agent = Column(Text, nullable=True)
+    language = Column(String, nullable=True)

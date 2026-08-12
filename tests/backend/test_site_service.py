@@ -12,6 +12,7 @@ from app.service.site import SiteService
 
 class FakeSiteRecord:
     def __init__(self):
+        self.spider_key = 'javdb'
         self.updated_payload = None
 
     def update(self, db, payload):
@@ -50,6 +51,24 @@ def test_get_site_raises_for_invalid_spider_key():
 
     assert exc_info.value.error_code == ErrorCode.SITE_TYPE_NOT_FOUND
     assert exc_info.value.error_params == {"spider_key": "invalid"}
+
+
+def test_get_site_uses_first_supported_language_when_database_value_is_missing():
+    service = SiteService(db=SimpleNamespace())
+    db_site = SimpleNamespace(
+        id=1,
+        spider_key='javdb',
+        priority=1,
+        alternate_host=None,
+        status=True,
+        cookies=None,
+        language=None,
+    )
+
+    result = service.get_site(db_site)
+
+    assert result.language == 'ja-JP'
+    assert result.supported_languages == ('ja-JP',)
 
 
 def test_modify_site_normalizes_cookie_header(monkeypatch):

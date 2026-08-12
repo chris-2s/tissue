@@ -124,7 +124,11 @@ function Subscribe() {
                         <Col key={subscribe.id} span={24} md={12} lg={6}>
                             <Card hoverable
                                   size={"small"}
-                                  cover={(<RemoteImage src={subscribe.cover} num={subscribe.num} imageType={IMAGE_TYPES.COVER}/>)}
+                                  cover={(<RemoteImage
+                                      src={subscribe.cover}
+                                      videoNumber={subscribe.num}
+                                      imageType={IMAGE_TYPES.COVER}
+                                  />)}
                                   onClick={() => setOpen(true, subscribe)}
                             >
                                 <Card.Meta title={subscribe.title || subscribe.num}
