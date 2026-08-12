@@ -92,7 +92,7 @@ class SettingTranslate(BaseModel):
         return self.providers.get(key, {})
 
 
-class LlmOpenAICompatibleConfig(BaseModel):
+class LlmProviderConfig(BaseModel):
     base_url: Optional[str] = None
     api_key: Optional[str] = None
     model: Optional[str] = None
@@ -101,7 +101,11 @@ class LlmOpenAICompatibleConfig(BaseModel):
 class SettingLlm(BaseModel):
     type: str = 'openai_compatible'
     providers: dict[str, dict[str, Any]] = Field(default_factory=lambda: {
-        'openai_compatible': LlmOpenAICompatibleConfig().model_dump()
+        'openai_compatible': LlmProviderConfig(base_url='https://api.openai.com/v1').model_dump(),
+        'openai_responses': LlmProviderConfig(base_url='https://api.openai.com/v1').model_dump(),
+        'gemini': LlmProviderConfig(
+            base_url='https://generativelanguage.googleapis.com/v1beta/interactions'
+        ).model_dump(),
     })
 
     def get_provider_payload(self, provider: str | None = None) -> dict[str, Any]:
