@@ -36,6 +36,7 @@ class Session(curl_requests.Session):
         self.site = site
         self.headers = {
             'User-Agent': site.user_agent if site and site.user_agent else DEFAULT_USER_AGENT,
+            'Accept-Language': 'zh-CN,zh;q=0.9',
         }
         if load_cookies and site and site.cookies:
             apply_cookie_header_to_jar(site.cookies, self.cookies)

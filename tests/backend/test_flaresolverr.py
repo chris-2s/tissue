@@ -30,6 +30,15 @@ def test_api_url_appends_v1_only_when_needed():
     assert _api_url('http://flaresolverr:8191/v1/') == 'http://flaresolverr:8191/v1'
 
 
+def test_session_uses_simplified_chinese_accept_language():
+    session = Session(load_cookies=False)
+
+    try:
+        assert session.headers['Accept-Language'] == 'zh-CN,zh;q=0.9'
+    finally:
+        session.close()
+
+
 def test_solve_uses_shared_session_and_name_value_cookies(monkeypatch):
     captured = {}
     setting = SimpleNamespace(crawler=SimpleNamespace(
