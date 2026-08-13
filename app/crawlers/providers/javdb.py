@@ -22,7 +22,7 @@ from app.utils.cookies import (
     to_cookie_header,
 )
 from app.utils.media_matcher import detect_flags_with_tag_priority
-from app.crawlers.base import Session, Spider
+from app.crawlers.base import CookieCheckResult, Session, Spider
 from app.crawlers.exceptions import SpiderException
 
 
@@ -40,9 +40,9 @@ class JavDBSpider(Spider):
     avatar_host = 'https://c0.jdbstatic.com/avatars/'
     cookie_check_path = '/rankings/movies?p=daily&t=uncensored'
 
-    def check_cookie_validity(self, cookie_header: str | None) -> tuple[list[dict], str] | None:
+    def check_cookie_validity(self, cookie_header: str | None) -> CookieCheckResult:
         if not cookie_header:
-            return [], str(self.session.headers.get('User-Agent') or '')
+            return 'valid', [], str(self.session.headers.get('User-Agent') or '')
 
         response = None
         try:
@@ -53,14 +53,17 @@ class JavDBSpider(Spider):
                 allow_redirects=True,
                 _persist_cloudflare_solution=False,
             )
-            if not response.ok or '/login' in str(response.url):
-                return None
+            if '/login' in str(response.url):
+                return 'invalid', [], ''
+            if not response.ok:
+                return 'unknown', [], ''
             return (
+                'valid',
                 cookies_to_cookiecloud_items(cookiejar_to_cookies(self.session.cookies)),
                 str(self.session.headers.get('User-Agent') or ''),
             )
         except Exception:
-            return None
+            return 'unknown', [], ''
         finally:
             if response is not None:
                 response.close()

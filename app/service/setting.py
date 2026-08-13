@@ -47,7 +47,4 @@ class SettingService:
             scheduler.add('subscribe')
 
         if 'cookiecloud' in updated_sections:
-            if latest_setting.cookiecloud.enabled:
-                scheduler.add('cookiecloud_sync')
-            else:
-                scheduler.remove('cookiecloud_sync')
+            scheduler.add('cookie_maintenance')

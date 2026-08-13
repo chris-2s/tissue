@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from app.i18n import translate
 from app.schema import Setting
 from app.service.actor_favorite import ActorFavoriteService
-from app.service.cookiecloud import CookieCloudService
+from app.service.site_cookie import SiteCookieService
 from app.service.download import DownloadService
 from app.service.resource import ResourceService
 from app.service.site import SiteService
@@ -74,11 +74,11 @@ class Scheduler:
                                        job=SiteService.job_testing_sites,
                                        schedule_provider=build_fixed_schedule(interval=1 * 24 * 60, jitter=2 * 60 * 60),
                                        immediate=True),
-        'cookiecloud_sync': Job(key='cookiecloud_sync',
-                                name='scheduler.job.cookiecloud_sync',
-                                job=CookieCloudService().sync,
-                                schedule_provider=build_fixed_schedule(interval=60),
-                                immediate=True),
+        'cookie_maintenance': Job(key='cookie_maintenance',
+                                  name='scheduler.job.cookie_maintenance',
+                                  job=SiteCookieService().maintain,
+                                  schedule_provider=build_fixed_schedule(interval=60),
+                                  immediate=True),
     }
 
     def __init__(self):
@@ -98,14 +98,13 @@ class Scheduler:
         self.add('actor_favorite_thumb_update')
         self.add('clean_image_cache')
         self.add('refresh_available_sites')
+        self.add('cookie_maintenance')
 
         setting = Setting()
         if setting.download.trans_auto:
             self.add('scrape_download')
         if setting.download.delete_auto:
             self.add('delete_complete_download')
-        if setting.cookiecloud.enabled:
-            self.add('cookiecloud_sync')
 
     def list(self):
         return self.scheduler.get_jobs()

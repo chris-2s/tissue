@@ -7,11 +7,9 @@ from app.db.transaction import transaction
 from app.exception import BizException
 from app.exception.codes import ErrorCode
 from app.i18n import translate
-from app.integrations.notifications.manager import notification_manager
-from app.schema.notification import CookieInvalidPayload
 from app.schema.site import LoginSubmit, Site as SiteSchema, SiteUpdate
 from app.service.base import BaseService
-from app.service.cookiecloud import CookieCloudService
+from app.service.site_cookie import SiteCookieService
 from app.service.spider import SpiderService
 from app.utils.cookies import cookiecloud_items_to_cookies, parse_cookie_header, to_cookie_header
 from app.utils.logger import logger
@@ -85,43 +83,6 @@ class SiteService(BaseService):
             finally:
                 spider.close()
 
-        self._check_cookies()
-
-    def _check_cookies(self):
-        from urllib.parse import urlparse
-
-        sites = self.db.query(Site).filter(Site.cookies.isnot(None)).all()
-        for site in sites:
-            spider_instance = SpiderService.build_spider(site, include_cookies=False)
-            if not spider_instance:
-                logger.warning(translate('log.site.unregistered_skip_cookie_check', {'site_key': site.spider_key}))
-                continue
-            try:
-                stale_cookie_header = site.cookies
-                validation = spider_instance.check_cookie_validity(stale_cookie_header)
-                if validation is not None:
-                    continue
-
-                current_site = self.db.query(Site).get(site.id)
-                if not current_site or current_site.cookies != stale_cookie_header:
-                    logger.info(translate('log.site.cookie_updated_skip_cleanup', {'site_name': spider_instance.name}))
-                    continue
-
-                domain = urlparse(site.alternate_host or spider_instance.origin_host).netloc
-                cookie_notify = CookieInvalidPayload(
-                    site_name=spider_instance.name,
-                    domain=domain,
-                    message=translate('message.cookie.invalid.reason'),
-                )
-                notification_manager.emit_cookie_invalid(cookie_notify)
-
-                current_site.cookies = None
-                current_site.user_agent = None
-                self.db.commit()
-                logger.warning(translate('log.site.cookie_invalid_cleared', {'site_name': spider_instance.name}))
-            finally:
-                spider_instance.close()
-
     def get_login_page(self, site_id: int) -> dict:
         site = self.db.query(Site).get(site_id)
         if not site:
@@ -186,7 +147,7 @@ class SiteService(BaseService):
 
         try:
             domain = urlparse(site.alternate_host or spider.origin_host).netloc
-            CookieCloudService().push_cookie(cookie_list, domain)
+            SiteCookieService().push_cookie(cookie_list, domain)
         except Exception:
             pass
         finally:

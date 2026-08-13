@@ -128,7 +128,7 @@ class Session(curl_requests.Session):
     def _persist_cloudflare_solution(self, cookies: list[dict], user_agent: str, url: str) -> None:
         from app.db import SessionFactory
         from app.db.models import Site
-        from app.service.cookiecloud import CookieCloudService
+        from app.service.site_cookie import SiteCookieService
 
         with SessionFactory() as db:
             site = db.get(Site, self.site.id)
@@ -138,4 +138,4 @@ class Session(curl_requests.Session):
             site.user_agent = user_agent
             db.commit()
 
-        CookieCloudService().push_cookie(cookies, urlparse(url).netloc)
+        SiteCookieService().push_cookie(cookies, urlparse(url).netloc)

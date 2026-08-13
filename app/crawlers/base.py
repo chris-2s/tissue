@@ -1,12 +1,12 @@
 import base64
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Literal
 
 import urllib3.util
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 from PIL import Image, ImageFile
 
-from app.crawlers.session import DEFAULT_IMPERSONATE, DEFAULT_USER_AGENT, Session
+from app.crawlers.session import DEFAULT_IMPERSONATE, Session
 from app.db.models import Site
 from app.schema.setting import Setting
 from app.schema.home import SiteVideo
@@ -20,6 +20,9 @@ from app.utils.cookies import (
 
 IMAGE_PROBE_RANGE_BYTES = 64 * 1024
 IMAGE_PROBE_MAX_BYTES = 256 * 1024
+
+CookieCheckStatus = Literal['valid', 'invalid', 'unknown']
+CookieCheckResult = tuple[CookieCheckStatus, list[dict], str]
 
 
 class Spider:
@@ -81,9 +84,9 @@ class Spider:
         except Exception:
             pass
 
-    def check_cookie_validity(self, cookie_header: str | None) -> tuple[list[dict], str] | None:
+    def check_cookie_validity(self, cookie_header: str | None) -> CookieCheckResult:
         cookies = cookies_to_cookiecloud_items(parse_cookie_header(cookie_header))
-        return cookies, str(self.session.headers.get('User-Agent') or DEFAULT_USER_AGENT)
+        return 'valid', cookies, str(self.session.headers.get('User-Agent') or '')
 
     def probe_image_info(self, url: str) -> dict[str, Any] | None:
         if not url:
@@ -197,7 +200,7 @@ class Spider:
 
     def testing(self) -> bool:
         try:
-            response = self.session.get(self.host)
+            response = self.session.get(self.host, _persist_cloudflare_solution=False)
             return response.ok
         except Exception:
             return False

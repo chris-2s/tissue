@@ -6,8 +6,8 @@ from app.exception import BizException
 from app.exception.codes import ErrorCode
 from app.middleware.requestvars import g
 from app.schema.site import SiteUpdate
-from app.service.cookiecloud import CookieCloudService
 from app.service.site import SiteService
+from app.service.site_cookie import SiteCookieService
 
 
 class FakeSiteRecord:
@@ -113,7 +113,7 @@ def test_modify_site_converts_empty_cookie_header_to_none(monkeypatch):
 
 
 def test_find_matching_cookies_collects_domain_and_subdomain_only():
-    service = CookieCloudService()
+    service = SiteCookieService()
     cookie_dict = {
         "javdb.com": [{"name": "root", "value": "1", "domain": "javdb.com"}],
         "www.javdb.com": [{"name": "www", "value": "2", "domain": "www.javdb.com"}],
@@ -129,64 +129,12 @@ def test_find_matching_cookies_collects_domain_and_subdomain_only():
     ]
 
 
-def test_cookiecloud_sync_skips_validation_when_cookie_is_unchanged(monkeypatch):
-    site = SimpleNamespace(
-        spider_key="javdb",
-        alternate_host=None,
-        cookies="session=abc",
-    )
-
-    class FakeQuery:
-        def all(self):
-            return [site]
-
-    class FakeCookieCloud:
-        def __init__(self, host, uuid, password):
-            pass
-
-        def get_decrypted_data(self):
-            return {
-                "javdb.com": [
-                    {"name": "session", "value": "abc", "domain": "javdb.com"},
-                ],
-            }
-
-    class FakeSpider:
-        origin_host = "https://javdb.com"
-        closed = False
-
-        def check_cookie_validity(self, cookie_header):
-            raise AssertionError("unchanged cookies should not be validated")
-
-        def close(self):
-            self.closed = True
-
-    db = SimpleNamespace(query=lambda _model: FakeQuery(), commit=lambda: None)
-    spider = FakeSpider()
-    monkeypatch.setattr(
-        "app.service.cookiecloud.Setting",
-        lambda: SimpleNamespace(cookiecloud=SimpleNamespace(
-            enabled=True,
-            host="https://cookiecloud.example",
-            uuid="uuid",
-            password="password",
-        )),
-    )
-    monkeypatch.setattr("app.service.cookiecloud.PyCookieCloud", FakeCookieCloud)
-    monkeypatch.setattr("app.service.cookiecloud.get_db", lambda: iter([db]))
-    monkeypatch.setattr("app.service.cookiecloud.SpiderService.build_spider", lambda *args, **kwargs: spider)
-
-    CookieCloudService().sync()
-
-    assert spider.closed is True
-
-
-def test_site_cookie_check_does_not_save_successful_validation(monkeypatch):
+def test_cookie_maintenance_validates_remote_cookie_and_updates_cookie_and_user_agent(monkeypatch):
     site = SimpleNamespace(
         id=1,
         spider_key="javdb",
         alternate_host=None,
-        cookies="session=old",
+        cookies="session=abc",
         user_agent="Old UA",
     )
 
@@ -197,29 +145,107 @@ def test_site_cookie_check_does_not_save_successful_validation(monkeypatch):
         def all(self):
             return [site]
 
+        def update(self, payload, synchronize_session=False):
+            for key, value in payload.items():
+                setattr(site, key, value)
+            return 1
+
+    class FakeDB:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+        def query(self, _model):
+            return FakeQuery()
+
+        def expunge_all(self):
+            pass
+
+        def commit(self):
+            pass
+
+    class FakeSpider:
+        name = "JavDB"
+        origin_host = "https://javdb.com"
+        closed = False
+        checked_cookie = None
+
+        def check_cookie_validity(self, cookie_header):
+            self.checked_cookie = cookie_header
+            return 'valid', [{"name": "session", "value": "solved"}], "Solved UA"
+
+        def close(self):
+            self.closed = True
+
+    spider = FakeSpider()
+    service = SiteCookieService()
+    monkeypatch.setattr("app.service.site_cookie.SessionFactory", FakeDB)
+    monkeypatch.setattr(service, "_load_remote_cookies", lambda: {
+        "javdb.com": [
+            {"name": "session", "value": "abc", "domain": "javdb.com"},
+        ],
+    })
+    monkeypatch.setattr("app.service.site_cookie.SpiderService.build_spider", lambda *args, **kwargs: spider)
+
+    service.maintain()
+
+    assert spider.checked_cookie == "session=abc"
+    assert site.cookies == "session=solved"
+    assert site.user_agent == "Solved UA"
+    assert spider.closed is True
+
+
+def test_cookie_maintenance_does_not_save_successful_local_validation(monkeypatch):
+    site = SimpleNamespace(
+        id=1,
+        spider_key="javdb",
+        alternate_host=None,
+        cookies="session=old",
+        user_agent="Old UA",
+    )
+
+    class FakeQuery:
+        def all(self):
+            return [site]
+
+    class FakeDB:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+        def query(self, _model):
+            return FakeQuery()
+
+        def expunge_all(self):
+            pass
+
     class FakeSpider:
         name = "JavDB"
         origin_host = "https://javdb.com"
         closed = False
 
         def check_cookie_validity(self, cookie_header):
-            return ([{"name": "session", "value": "solved"}], "Solved UA")
+            return 'valid', [{"name": "session", "value": "solved"}], "Solved UA"
 
         def close(self):
             self.closed = True
 
-    def fail_commit():
-        raise AssertionError("successful validation should not update the site")
-
-    def fail_push(*args, **kwargs):
-        raise AssertionError("successful validation should not push CookieCloud")
-
-    db = SimpleNamespace(query=lambda _model: FakeQuery(), commit=fail_commit)
     spider = FakeSpider()
-    monkeypatch.setattr("app.service.site.SpiderService.build_spider", lambda *args, **kwargs: spider)
-    monkeypatch.setattr("app.service.site.CookieCloudService.push_cookie", fail_push)
+    service = SiteCookieService()
+    monkeypatch.setattr("app.service.site_cookie.SessionFactory", FakeDB)
+    monkeypatch.setattr(service, "_load_remote_cookies", lambda: None)
+    monkeypatch.setattr("app.service.site_cookie.SpiderService.build_spider", lambda *args, **kwargs: spider)
+    monkeypatch.setattr(
+        service,
+        "_store_cookie",
+        lambda *args, **kwargs: pytest.fail("successful local validation should not update the site"),
+    )
 
-    SiteService(db)._check_cookies()
+    service.maintain()
 
     assert site.cookies == "session=old"
     assert site.user_agent == "Old UA"
