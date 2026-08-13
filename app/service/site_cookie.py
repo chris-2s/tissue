@@ -25,7 +25,7 @@ class SiteCookieService:
         matched_count = 0
 
         with SessionFactory() as db:
-            sites = db.query(Site).all()
+            sites = db.query(Site).filter(Site.status == 1).all()
             db.expunge_all()
 
         for site in sites:
@@ -38,6 +38,8 @@ class SiteCookieService:
                             'log.site.unregistered_skip_cookie_check',
                             {'site_key': site.spider_key},
                         ))
+                    continue
+                if not spider.supports_login:
                     continue
 
                 origin_host = site.alternate_host or spider.origin_host

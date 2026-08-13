@@ -169,6 +169,7 @@ def test_cookie_maintenance_validates_remote_cookie_and_updates_cookie_and_user_
     class FakeSpider:
         name = "JavDB"
         origin_host = "https://javdb.com"
+        supports_login = True
         closed = False
         checked_cookie = None
 
@@ -207,6 +208,9 @@ def test_cookie_maintenance_does_not_save_successful_local_validation(monkeypatc
     )
 
     class FakeQuery:
+        def filter(self, *args):
+            return self
+
         def all(self):
             return [site]
 
@@ -226,6 +230,7 @@ def test_cookie_maintenance_does_not_save_successful_local_validation(monkeypatc
     class FakeSpider:
         name = "JavDB"
         origin_host = "https://javdb.com"
+        supports_login = True
         closed = False
 
         def check_cookie_validity(self, cookie_header):
@@ -250,3 +255,73 @@ def test_cookie_maintenance_does_not_save_successful_local_validation(monkeypatc
     assert site.cookies == "session=old"
     assert site.user_agent == "Old UA"
     assert spider.closed is True
+
+
+def test_cookie_maintenance_only_checks_enabled_login_sites(monkeypatch):
+    enabled_login_site = SimpleNamespace(
+        id=1,
+        spider_key="login",
+        alternate_host=None,
+        cookies="session=login",
+        user_agent=None,
+    )
+    enabled_public_site = SimpleNamespace(
+        id=2,
+        spider_key="public",
+        alternate_host=None,
+        cookies="session=public",
+        user_agent=None,
+    )
+    query_filtered = False
+
+    class FakeQuery:
+        def filter(self, *args):
+            nonlocal query_filtered
+            query_filtered = True
+            return self
+
+        def all(self):
+            return [enabled_login_site, enabled_public_site]
+
+    class FakeDB:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+        def query(self, _model):
+            return FakeQuery()
+
+        def expunge_all(self):
+            pass
+
+    checked_sites = []
+
+    class FakeSpider:
+        name = "Fake"
+        origin_host = "https://example.com"
+
+        def __init__(self, site):
+            self.site = site
+            self.supports_login = site.spider_key == "login"
+
+        def check_cookie_validity(self, cookie_header):
+            checked_sites.append(self.site.spider_key)
+            return 'valid', [], ''
+
+        def close(self):
+            pass
+
+    service = SiteCookieService()
+    monkeypatch.setattr("app.service.site_cookie.SessionFactory", FakeDB)
+    monkeypatch.setattr(service, "_load_remote_cookies", lambda: None)
+    monkeypatch.setattr(
+        "app.service.site_cookie.SpiderService.build_spider",
+        lambda site, include_cookies=False: FakeSpider(site),
+    )
+
+    service.maintain()
+
+    assert query_filtered is True
+    assert checked_sites == ["login"]
