@@ -77,7 +77,7 @@ class Scheduler:
         'cookie_maintenance': Job(key='cookie_maintenance',
                                   name='scheduler.job.cookie_maintenance',
                                   job=SiteCookieService().maintain,
-                                  schedule_provider=build_fixed_schedule(interval=60),
+                                  schedule_provider=build_fixed_schedule(interval=60, jitter=10 * 60),
                                   immediate=True),
     }
 
