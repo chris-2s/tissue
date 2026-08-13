@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.crawlers import JavDBSpider, Spider
+from app.crawlers.providers.missav import MissavSpider
 from app.crawlers.session import DEFAULT_USER_AGENT, Session as CrawlerSession
 from app.db import get_db
 from app.db.models import Site
@@ -127,6 +128,8 @@ class ResourceService(BaseService):
         match component.hostname:
             case 'c0.jdbstatic.com':
                 status_code, response, content_type = JavDBSpider.fetch_cover(url)
+            case 'fourhoi.com':
+                status_code, response, content_type = MissavSpider.fetch_cover(url)
             case _:
                 status_code, response, content_type = Spider.fetch_cover(url)
 

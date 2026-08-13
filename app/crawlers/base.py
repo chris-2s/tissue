@@ -73,6 +73,18 @@ class Spider:
             raise ValueError('Spider source fields are incomplete')
         return SourceRef(site_id=self.site_id, spider_key=self.key, site_name=self.name)
 
+    @staticmethod
+    def _first_element(root: Any, xpath: str) -> Any | None:
+        values = root.xpath(xpath)
+        return values[0] if values else None
+
+    @classmethod
+    def _first_text(cls, root: Any, xpath: str) -> str | None:
+        element = cls._first_element(root, xpath)
+        if element is None:
+            return None
+        return element if isinstance(element, str) else element.text
+
     def _ensure_valid_cookies(self):
         """让站点有机会重置当前会话，不在这里判断 cookie 是否失效"""
         if not self.session.cookies:

@@ -9,6 +9,7 @@ class SpiderKey(StrEnum):
     JAVBUS = 'javbus'
     JAV321 = 'jav321'
     DMM = 'dmm'
+    MISSAV = 'missav'
 
 
 class MetadataPriorityFieldKey(StrEnum):

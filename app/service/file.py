@@ -1,7 +1,7 @@
 import os
 
 from fastapi import Depends
-from requests import Session
+from sqlalchemy.orm import Session
 
 from app import schema, utils
 from app.db import get_db

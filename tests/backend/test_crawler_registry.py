@@ -17,3 +17,16 @@ def test_crawler_registry_returns_capabilities():
     assert capabilities.supports_previews is True
     assert capabilities.supports_comments is False
     assert crawler_registry.get_supported_languages('javbus') == ('ja-JP',)
+
+
+def test_crawler_registry_returns_missav_languages():
+    spider_cls = crawler_registry.get(SpiderKey.MISSAV)
+
+    assert spider_cls is not None
+    assert spider_cls.__name__ == "MissavSpider"
+    assert crawler_registry.get_supported_languages('missav') == (
+        'ja-JP',
+        'zh-CN',
+        'zh-TW',
+        'en-US',
+    )

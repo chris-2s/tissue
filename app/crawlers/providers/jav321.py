@@ -18,14 +18,14 @@ class Jav321Spider(Spider):
         response = self.session.post(urljoin(self.host, '/search'), data={'sn': num})
         html = etree.HTML(response.text)
 
-        no = html.xpath("//small")
-        if not no or num.lower() not in no[0].text.lower().strip():
+        no = self._first_element(html, "//small")
+        if no is None or num.lower() not in no.text.lower().strip():
             raise SpiderException('未找到番号')
 
         meta = VideoDetail(source=self.source_ref())
         meta.num = num
 
-        outline_element = no[0].xpath("./../../..//div[@class='row']")
+        outline_element = no.xpath("./../../..//div[@class='row']")
         if len(outline_element) > 0:
             outline = outline_element[-1].xpath("./div")[0]
             if outline.text:
@@ -47,9 +47,8 @@ class Jav321Spider(Spider):
 
     def get_previews(self, html: etree.HTML):
         result = []
-        video_element = html.xpath("//video[@id='vjs_sample_player']")
-        if video_element:
-            video = video_element[0]
+        video = self._first_element(html, "//video[@id='vjs_sample_player']")
+        if video is not None:
             source = video.xpath("./source/@src")[0]
             preview = VideoPreviewItem(type='video', thumb=video.get('poster'), url=source)
             result.append(preview)

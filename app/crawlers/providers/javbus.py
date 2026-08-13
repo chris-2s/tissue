@@ -37,41 +37,33 @@ class JavBusSpider(Spider):
         meta = VideoDetail(source=self.source_ref())
         meta.num = num
 
-        title_element = html.xpath("//h3")
-        if title_element:
-            title = title_element[0].text
-            meta.title = title
-        else:
+        title_element = self._first_element(html, "//h3")
+        if title_element is None:
             raise SpiderException('未找到番号')
+        meta.title = title_element.text
 
-        premiered_element = html.xpath("//span[text()='發行日期:']")
-        if premiered_element:
-            meta.premiered = premiered_element[0].tail.strip()
+        premiered_element = self._first_element(html, "//span[text()='發行日期:']")
+        if premiered_element is not None:
+            meta.premiered = premiered_element.tail.strip()
 
-        runtime_element = html.xpath("//span[text()='長度:']")
-        if runtime_element:
-            runtime = runtime_element[0].tail.strip()
-            runtime = runtime.replace("分鐘", "")
-            meta.runtime = runtime
+        runtime_element = self._first_element(html, "//span[text()='長度:']")
+        if runtime_element is not None:
+            meta.runtime = runtime_element.tail.strip().replace("分鐘", "")
 
-        director_element = html.xpath("//span[text()='導演:']/../a")
-        if director_element:
-            director = director_element[0].text
+        director = self._first_text(html, "//span[text()='導演:']/../a")
+        if director:
             meta.director = director
 
-        studio_element = html.xpath("//span[text()='製作商:']/../a")
-        if studio_element:
-            studio = studio_element[0].text
+        studio = self._first_text(html, "//span[text()='製作商:']/../a")
+        if studio:
             meta.studio = studio
 
-        publisher_element = html.xpath("//span[text()='發行商:']/../a")
-        if publisher_element:
-            publisher = publisher_element[0].text
+        publisher = self._first_text(html, "//span[text()='發行商:']/../a")
+        if publisher:
             meta.publisher = publisher
 
-        series_element = html.xpath("//span[text()='系列:']/../a")
-        if series_element:
-            series = series_element[0].text
+        series = self._first_text(html, "//span[text()='系列:']/../a")
+        if series:
             meta.series = series
 
         tag_elements = html.xpath("//span[@class='genre']//a[contains(@href,'genre')]")
@@ -96,9 +88,8 @@ class JavBusSpider(Spider):
             meta.actors = actors
             meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
 
-        cover_element = html.xpath("//a[@class='bigImage']")
-        if cover_element:
-            cover = cover_element[0].get("href")
+        cover = self._first_text(html, "//a[@class='bigImage']/@href")
+        if cover:
             meta.cover = urljoin(self.host, cover)
 
         meta.website.append(url)

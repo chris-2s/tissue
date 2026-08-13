@@ -22,7 +22,7 @@ from app.utils.cookies import (
     to_cookie_header,
 )
 from app.utils.media_matcher import detect_flags_with_tag_priority
-from app.crawlers.base import CookieCheckResult, Session, Spider
+from app.crawlers.base import CookieCheckResult, Spider
 from app.crawlers.exceptions import SpiderException
 
 
@@ -77,13 +77,15 @@ class JavDBSpider(Spider):
         response = session.get(login_url)
         html = etree.HTML(response.content)
 
-        token = html.xpath("//form[@action='/user_sessions']/input[@name='authenticity_token']/@value")
-        authenticity_token = token[0] if token else ""
+        authenticity_token = self._first_text(
+            html,
+            "//form[@action='/user_sessions']/input[@name='authenticity_token']/@value",
+        ) or ""
 
-        captcha_img = html.xpath("//img[@class='rucaptcha-image']/@src")
+        captcha_img = self._first_text(html, "//img[@class='rucaptcha-image']/@src")
         captcha_base64 = ""
         if captcha_img:
-            img_response = session.get(urljoin(self.host, captcha_img[0]))
+            img_response = session.get(urljoin(self.host, captcha_img))
             if img_response.ok:
                 captcha_base64 = base64.b64encode(img_response.content).decode()
 
@@ -98,8 +100,7 @@ class JavDBSpider(Spider):
     def submit_login(self, cookies: str, authenticity_token: str,
                      username: str, password: str, captcha: str) -> list[dict]:
         """提交登录，返回详细 cookie 数组"""
-        session = Session()
-        session.headers = self.session.headers.copy()
+        session = self.session
 
         apply_cookie_header_to_jar(cookies, session.cookies)
 
@@ -145,39 +146,32 @@ class JavDBSpider(Spider):
         response = self.session.get(url)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
 
-        title_element = html.xpath("//strong[@class='current-title']")
-        if title_element:
-            title = title_element[0].text.strip()
-            meta.title = f'{num.upper()} {title}'
+        title = self._first_text(html, "//strong[@class='current-title']")
+        if title:
+            meta.title = f'{num.upper()} {title.strip()}'
 
-        premiered_element = html.xpath("//strong[text()='日期:']/../span")
-        if premiered_element:
-            meta.premiered = premiered_element[0].text
+        premiered = self._first_text(html, "//strong[text()='日期:']/../span")
+        if premiered:
+            meta.premiered = premiered
 
-        runtime_element = html.xpath("//strong[text()='時長:']/../span")
-        if runtime_element:
-            runtime = runtime_element[0].text
-            runtime = runtime.replace(" 分鍾", "")
-            meta.runtime = runtime
+        runtime = self._first_text(html, "//strong[text()='時長:']/../span")
+        if runtime:
+            meta.runtime = runtime.replace(" 分鍾", "")
 
-        director_element = html.xpath("//strong[text()='導演:']/../span/a")
-        if director_element:
-            director = director_element[0].text
+        director = self._first_text(html, "//strong[text()='導演:']/../span/a")
+        if director:
             meta.director = director
 
-        studio_element = html.xpath("//strong[text()='片商:']/../span/a")
-        if studio_element:
-            studio = studio_element[0].text
+        studio = self._first_text(html, "//strong[text()='片商:']/../span/a")
+        if studio:
             meta.studio = studio
 
-        publisher_element = html.xpath("//strong[text()='發行:']/../span/a")
-        if publisher_element:
-            publisher = publisher_element[0].text
+        publisher = self._first_text(html, "//strong[text()='發行:']/../span/a")
+        if publisher:
             meta.publisher = publisher
 
-        series_element = html.xpath("//strong[text()='系列:']/../span/a")
-        if series_element:
-            series = series_element[0].text
+        series = self._first_text(html, "//strong[text()='系列:']/../span/a")
+        if series:
             meta.series = series
 
         tag_elements = html.xpath("//div[@class='panel-block']//a[contains(@href,'/tags?')]")
@@ -200,9 +194,9 @@ class JavDBSpider(Spider):
             meta.actors = actors
             meta.site_actors = [VideoSiteActor(source=self.source_ref(), items=actors)]
 
-        cover_element = html.xpath("//img[@class='video-cover']")
-        if cover_element:
-            meta.cover = cover_element[0].get("src")
+        cover = self._first_text(html, "//img[@class='video-cover']/@src")
+        if cover:
+            meta.cover = cover
 
         score_elements = html.xpath("//span[@class='score-stars']/../text()")
         if score_elements:
