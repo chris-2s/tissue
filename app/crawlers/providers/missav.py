@@ -115,7 +115,7 @@ class MissavSpider(Spider):
     def get_info(self, num: str, url: str | None = None, include_downloads: bool = False,
                  include_previews: bool = False, include_comments=False):
         url = url or self._build_url(f"/{num}")
-        response = self.session.get(url)
+        response = self.session.get(url, _use_flaresolverr_response=True)
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
 
         meta = VideoDetail(source=self.source_ref())

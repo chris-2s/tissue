@@ -80,6 +80,43 @@ def test_solve_uses_shared_session_and_name_value_cookies(monkeypatch):
     }
 
 
+def test_solve_can_return_challenge_response_html(monkeypatch):
+    captured = {}
+    setting = SimpleNamespace(crawler=SimpleNamespace(
+        flaresolverr_url='http://flaresolverr:8191',
+        timeout=60,
+    ))
+    monkeypatch.setattr('app.crawlers.flaresolverr.Setting', lambda: setting)
+
+    def fake_post(url, json, timeout):
+        captured.update(url=url, json=json, timeout=timeout)
+        return FakeResponse({
+            'status': 'ok',
+            'solution': {
+                'cookies': [{'name': 'cf_clearance', 'value': 'solved', 'domain': '.missav.ws'}],
+                'userAgent': 'Solved UA',
+                'response': '<html><title>MissAV</title></html>',
+                'url': 'https://missav.ws/ja/abc-123',
+                'status': 200,
+                'headers': {'content-type': 'text/html; charset=UTF-8'},
+            },
+        })
+
+    monkeypatch.setattr('app.crawlers.flaresolverr.requests.post', fake_post)
+
+    result = solve('https://missav.ws/ja/abc-123', [], return_response=True)
+
+    assert result == (
+        [{'name': 'cf_clearance', 'value': 'solved', 'domain': '.missav.ws'}],
+        'Solved UA',
+        '<html><title>MissAV</title></html>',
+        'https://missav.ws/ja/abc-123',
+        200,
+        {'content-type': 'text/html; charset=UTF-8'},
+    )
+    assert captured['json']['returnOnlyCookies'] is False
+
+
 def test_cloudflare_challenge_requires_cloudflare_response_and_marker():
     challenge = SimpleNamespace(
         status_code=403,
@@ -204,3 +241,88 @@ def test_session_solves_cloudflare_once_and_retries_get(monkeypatch):
     assert 'https://example.com/protected' in logged[0]
     assert 'Solved UA' in logged[1]
     assert 'chrome (chrome146)' in logged[1]
+
+
+def test_missav_can_use_flaresolverr_response_without_retrying_get(monkeypatch):
+    responses = [
+        FakeResponse(
+            status_code=403,
+            headers={'Server': 'cloudflare', 'Content-Type': 'text/html'},
+            text='<title>Just a moment...</title>',
+        ),
+        FakeResponse(status_code=200, text='<html><title>curl success</title></html>'),
+    ]
+    calls = []
+
+    def fake_request(session, method, url, **kwargs):
+        calls.append((method, url, kwargs))
+        return responses.pop(0)
+
+    monkeypatch.setattr(Session.__mro__[1], 'request', fake_request)
+    monkeypatch.setattr(
+        'app.crawlers.session.Setting',
+        lambda: SimpleNamespace(crawler=SimpleNamespace(flaresolverr_url='http://flaresolverr:8191')),
+    )
+
+    solve_calls = []
+
+    def fake_solve(url, cookies, *, return_response=False):
+        solve_calls.append((url, cookies, return_response))
+        return (
+            [{'name': 'cf_clearance', 'value': 'solved', 'domain': '.missav.ws', 'path': '/'}],
+            'Solved UA',
+            '<html><title>MissAV</title></html>',
+            'https://missav.ws/ja/abc-123',
+            200,
+            {
+                'Content-Type': 'text/html; charset=UTF-8',
+                'Content-Encoding': 'br',
+                'Content-Length': '999',
+            },
+        )
+
+    monkeypatch.setattr('app.crawlers.flaresolverr.solve', fake_solve)
+    persisted = []
+    monkeypatch.setattr('app.crawlers.session.logger.info', lambda message: None)
+    monkeypatch.setattr(
+        Session,
+        '_persist_cloudflare_solution',
+        lambda self, cookies, user_agent, url: persisted.append((cookies, user_agent, url)),
+    )
+
+    site = SimpleNamespace(
+        id=1,
+        spider_key='missav',
+        alternate_host='https://missav.ws',
+        cookies=None,
+        user_agent=None,
+    )
+    session = Session(site=site)
+    solved_response = session.get(
+        'https://missav.ws/ja/abc-123',
+        _use_flaresolverr_response=True,
+    )
+
+    assert len(calls) == 1
+    assert solve_calls == [('https://missav.ws/ja/abc-123', [], True)]
+    assert solved_response.status_code == 200
+    assert solved_response.url == 'https://missav.ws/ja/abc-123'
+    assert solved_response.text == '<html><title>MissAV</title></html>'
+    assert solved_response.headers['Content-Type'] == 'text/html; charset=UTF-8'
+    assert 'Content-Encoding' not in solved_response.headers
+    assert 'Content-Length' not in solved_response.headers
+    assert session.headers['User-Agent'] == 'Solved UA'
+    assert session.cookies.get('cf_clearance') == 'solved'
+    assert persisted[0][0] == [
+        {'name': 'cf_clearance', 'value': 'solved', 'domain': '.missav.ws', 'path': '/'},
+    ]
+    assert persisted[0][1:] == ('Solved UA', 'https://missav.ws/ja/abc-123')
+
+    next_response = session.get(
+        'https://missav.ws/ja/def-456',
+        _use_flaresolverr_response=True,
+    )
+
+    assert next_response.text == '<html><title>curl success</title></html>'
+    assert len(calls) == 2
+    assert len(solve_calls) == 1

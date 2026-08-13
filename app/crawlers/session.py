@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 from curl_cffi import requests as curl_requests  # type: ignore[import-not-found]
 from curl_cffi.requests.impersonate import normalize_browser_type  # type: ignore[import-not-found]
+from curl_cffi.requests.models import Headers, Response  # type: ignore[import-not-found]
 
 from app.i18n import translate
 from app.schema.setting import Setting
@@ -44,6 +45,7 @@ class Session(curl_requests.Session):
     def request(self, method, url, **kwargs):
         cloudflare_retry = kwargs.pop('_cloudflare_retry', False)
         persist_solution = kwargs.pop('_persist_cloudflare_solution', True)
+        use_flaresolverr_response = kwargs.pop('_use_flaresolverr_response', False)
         kwargs.setdefault('timeout', self.timeout)
         kwargs.setdefault('impersonate', DEFAULT_IMPERSONATE)
         response = super(Session, self).request(method, url, **kwargs)
@@ -67,10 +69,22 @@ class Session(curl_requests.Session):
         from app.crawlers.flaresolverr import solve
 
         response.close()
-        solved_cookies, user_agent = solve(
-            str(url),
-            cookies_to_cookiecloud_items(cookiejar_to_cookies(self.cookies)),
+        use_flaresolverr_response = (
+            use_flaresolverr_response
+            and not kwargs.get('stream')
         )
+        current_cookies = cookies_to_cookiecloud_items(cookiejar_to_cookies(self.cookies))
+        if use_flaresolverr_response:
+            (
+                solved_cookies,
+                user_agent,
+                solved_html,
+                solved_url,
+                solved_status,
+                solved_headers,
+            ) = solve(str(url), current_cookies, return_response=True)
+        else:
+            solved_cookies, user_agent = solve(str(url), current_cookies)
 
         logger.info(translate('log.cloudflare.challenge_solved', {
             'site_key': self.site.spider_key,
@@ -91,6 +105,14 @@ class Session(curl_requests.Session):
             retry_headers['User-Agent'] = user_agent
             kwargs['headers'] = retry_headers
 
+        if use_flaresolverr_response:
+            return self._build_flaresolverr_response(
+                html=solved_html,
+                url=solved_url,
+                status_code=solved_status,
+                headers=solved_headers,
+            )
+
         return self.request(method, url, _cloudflare_retry=True, **kwargs)
 
     def get(self, url, **kwargs):
@@ -101,6 +123,29 @@ class Session(curl_requests.Session):
 
     def post(self, url, **kwargs):
         return self.request('POST', url, **kwargs)
+
+    @staticmethod
+    def _build_flaresolverr_response(
+        *,
+        html: str,
+        url: str,
+        status_code: int,
+        headers: dict[str, str],
+    ) -> Response:
+        response = Response()
+        response.url = url
+        response.status_code = status_code
+        response.ok = 200 <= status_code < 400
+        response.content = html.encode('utf-8')
+        response.response_size = len(response.content)
+        response.headers = Headers({
+            key: value
+            for key, value in headers.items()
+            if key.lower() not in {'content-encoding', 'content-length', 'transfer-encoding'}
+        })
+        if 'content-type' not in {key.lower() for key in response.headers}:
+            response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        return response
 
     @staticmethod
     def _is_cloudflare_challenge(response, inspect_body: bool = True) -> bool:
