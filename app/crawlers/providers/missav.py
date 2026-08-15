@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 
 from lxml import etree
 
+from app.crawlers import SpiderException
 from app.crawlers.base import Spider
 from app.schema import VideoDetail, VideoDownload
 from app.utils.media_matcher import detect_flags_with_tag_priority
@@ -116,6 +117,9 @@ class MissavSpider(Spider):
                  include_previews: bool = False, include_comments=False):
         url = url or self._build_url(f"/{num}")
         response = self.session.get(url, _use_flaresolverr_response=True)
+        if not response.ok:
+            raise SpiderException('未找到番号')
+
         html = etree.HTML(response.content, parser=etree.HTMLParser(encoding='utf-8'))
 
         meta = VideoDetail(source=self.source_ref())
@@ -199,8 +203,8 @@ class MissavSpider(Spider):
             normalized_tags = {tag.casefold() for tag in tags}
             is_hd = any(tag.casefold() in normalized_tags for tag in self.locale_config['hd_tags'])
             is_zh = (
-                any(tag.casefold() in normalized_tags for tag in self.locale_config['zh_tags'])
-                or zh_result.value
+                    any(tag.casefold() in normalized_tags for tag in self.locale_config['zh_tags'])
+                    or zh_result.value
             )
 
             download = VideoDownload(
