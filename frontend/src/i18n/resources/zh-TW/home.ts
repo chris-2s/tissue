@@ -2,7 +2,11 @@ export default {
     ranking: {
         noData: '未取得榜單資料，請檢查站點 Cookie 或站點狀態。',
         loadTitle: '榜單加載失敗',
-        loadDescription: '請檢查站點配置、Cookie 或網路狀態後重試',
+        loadDescription: '請前往',
+        siteManagement: '站點管理',
+        cookieHint: '設定 Cookie，或前往',
+        crawlerSettings: '爬蟲設定',
+        flaresolverrHint: '設定 FlareSolverr。',
         filters: {
             videoType: '類型',
             cycle: '週期',

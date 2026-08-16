@@ -2,7 +2,11 @@ export default {
     ranking: {
         noData: 'No ranking data was returned. Check the site cookie or site status.',
         loadTitle: 'Failed to load rankings',
-        loadDescription: 'Check the site configuration, cookie, or network status and try again',
+        loadDescription: 'Configure the cookie in ',
+        siteManagement: 'Site Management',
+        cookieHint: ', or configure FlareSolverr in ',
+        crawlerSettings: 'Crawler Settings',
+        flaresolverrHint: '.',
         filters: {
             videoType: 'Type',
             cycle: 'Cycle',

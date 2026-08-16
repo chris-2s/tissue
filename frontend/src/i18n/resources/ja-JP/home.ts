@@ -2,7 +2,11 @@ export default {
     ranking: {
         noData: 'ランキング取得失敗。サイト Cookie または状態を確認してください。',
         loadTitle: 'ランキング読込失敗',
-        loadDescription: 'サイト設定、Cookie、通信状態を確認して再試行してください',
+        loadDescription: '',
+        siteManagement: 'サイト管理',
+        cookieHint: 'で Cookie を設定するか、',
+        crawlerSettings: 'クローラー設定',
+        flaresolverrHint: 'で FlareSolverr を設定してください。',
         filters: {
             videoType: '種類',
             cycle: '周期',

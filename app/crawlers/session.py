@@ -59,6 +59,10 @@ class Session(curl_requests.Session):
             return response
 
         if not Setting().crawler.flaresolverr_url:
+            logger.warning(translate('log.cloudflare.challenge_without_flaresolverr', {
+                'site_key': self.site.spider_key,
+                'url': str(url),
+            }))
             return response
 
         logger.info(translate('log.cloudflare.challenge_detected', {
@@ -163,12 +167,24 @@ class Session(curl_requests.Session):
         if not inspect_body:
             return response.status_code in {403, 429, 503}
         body = response.text.lower()
-        return any(marker in body for marker in (
+        has_challenge_runtime = any(marker in body for marker in (
             '/cdn-cgi/challenge-platform/',
             'cf-chl-',
+        ))
+        has_challenge_page_text = any(marker in body for marker in (
             'just a moment',
             'attention required',
         ))
+        has_challenge_page_structure = any(marker in body for marker in (
+            '/orchestrate/chl_page/',
+            'window._cf_chl_opt',
+            'cf-turnstile-response',
+        ))
+        if response.status_code == 200:
+            return has_challenge_runtime and (
+                has_challenge_page_text or has_challenge_page_structure
+            )
+        return has_challenge_runtime or has_challenge_page_text
 
     def _persist_cloudflare_solution(self, cookies: list[dict], user_agent: str, url: str) -> None:
         from app.db import SessionFactory

@@ -133,7 +133,38 @@ def test_cloudflare_challenge_requires_cloudflare_response_and_marker():
     assert Session._is_cloudflare_challenge(forbidden) is False
 
     challenge.status_code = 200
+    challenge.text += '<script src="/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1"></script>'
     assert Session._is_cloudflare_challenge(challenge) is True
+
+
+def test_cloudflare_injected_script_does_not_turn_normal_page_into_challenge():
+    response = SimpleNamespace(
+        status_code=200,
+        headers={'Server': 'cloudflare', 'Content-Type': 'text/html', 'CF-Ray': 'abc'},
+        text=(
+            '<html><head><title>DLDSS-541 | JavDB</title></head><body>'
+            '<main>normal page content</main>'
+            '<script src="/cdn-cgi/challenge-platform/scripts/jsd/main.js"></script>'
+            '</body></html>'
+        ),
+    )
+
+    assert Session._is_cloudflare_challenge(response) is False
+
+
+def test_localized_cloudflare_challenge_is_detected_by_page_structure():
+    response = SimpleNamespace(
+        status_code=200,
+        headers={'Server': 'cloudflare', 'Content-Type': 'text/html', 'CF-Ray': 'abc'},
+        text=(
+            '<html><head><title>请稍候…</title>'
+            '<script>window._cf_chl_opt = {};</script>'
+            '<script src="/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1"></script>'
+            '</head><body><input name="cf-turnstile-response"></body></html>'
+        ),
+    )
+
+    assert Session._is_cloudflare_challenge(response) is True
 
 
 def test_streaming_cloudflare_challenge_does_not_read_body():
@@ -241,6 +272,38 @@ def test_session_solves_cloudflare_once_and_retries_get(monkeypatch):
     assert 'https://example.com/protected' in logged[0]
     assert 'Solved UA' in logged[1]
     assert 'chrome (chrome146)' in logged[1]
+
+
+def test_session_logs_cloudflare_challenge_when_flaresolverr_is_not_configured(monkeypatch):
+    challenge = FakeResponse(
+        status_code=403,
+        headers={'Server': 'cloudflare', 'Content-Type': 'text/html'},
+        text='<title>Just a moment...</title>',
+    )
+    monkeypatch.setattr(Session.__mro__[1], 'request', lambda *args, **kwargs: challenge)
+    monkeypatch.setattr(
+        'app.crawlers.session.Setting',
+        lambda: SimpleNamespace(crawler=SimpleNamespace(flaresolverr_url=None)),
+    )
+    logged = []
+    monkeypatch.setattr('app.crawlers.session.logger.warning', logged.append)
+
+    site = SimpleNamespace(
+        id=1,
+        spider_key='example',
+        alternate_host='https://example.com',
+        cookies=None,
+        user_agent=None,
+    )
+    session = Session(site=site)
+
+    response = session.get('https://example.com/protected')
+
+    assert response is challenge
+    assert len(logged) == 1
+    assert 'Cloudflare' in logged[0]
+    assert 'FlareSolverr' in logged[0]
+    assert 'https://example.com/protected' in logged[0]
 
 
 def test_missav_can_use_flaresolverr_response_without_retrying_get(monkeypatch):

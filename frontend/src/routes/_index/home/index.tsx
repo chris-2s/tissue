@@ -10,7 +10,7 @@ import * as siteApi from "../../../apis/site.ts";
 import type {GetRankingsParams} from "../../../apis/home.ts";
 import type {SiteItem} from "../../../apis/site.ts";
 import type {SiteVideo} from "../../../types/video.ts";
-import {createFileRoute, redirect, useNavigate} from "@tanstack/react-router";
+import {createFileRoute, Link, redirect, useNavigate} from "@tanstack/react-router";
 import Page from "../../../components/Page";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
@@ -118,7 +118,15 @@ function JavDB() {
         content = (
             <RouteErrorState
                 title={t('home:ranking.loadTitle')}
-                description={t('home:ranking.loadDescription')}
+                description={(
+                    <span>
+                        {t('home:ranking.loadDescription')}
+                        <Link to={'/site'}>{t('home:ranking.siteManagement')}</Link>
+                        {t('home:ranking.cookieHint')}
+                        <Link to={'/setting/crawler'}>{t('home:ranking.crawlerSettings')}</Link>
+                        {t('home:ranking.flaresolverrHint')}
+                    </span>
+                )}
                 onRetry={async () => {
                     await refetch();
                 }}

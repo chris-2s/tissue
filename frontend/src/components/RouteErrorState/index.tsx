@@ -6,7 +6,7 @@ const {Paragraph, Title} = Typography;
 
 interface RouteErrorStateProps {
     title: string;
-    description: string;
+    description: React.ReactNode;
     onRetry: () => void | Promise<void>;
 }
 
