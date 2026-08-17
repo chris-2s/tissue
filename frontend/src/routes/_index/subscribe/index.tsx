@@ -1,5 +1,5 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Card, Col, Empty, FloatButton, message, Pagination, Row, Space, Tag, Tooltip} from "antd";
+import {Card, Col, Empty, FloatButton, message, Pagination, Row, Space, Tag} from "antd";
 import React, {useDeferredValue, useEffect, useMemo, useState} from "react";
 import * as api from "../../../apis/subscribe";
 import {useRequest} from "ahooks";
@@ -18,6 +18,7 @@ import FilterPanel from "./-components/filterPanel.tsx";
 import type {SubscribeFilterValue} from "./-components/filterPanel.utils.ts";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
 import {useTranslation} from "react-i18next";
+import ActionButton from "../../../components/ActionButton";
 
 export const Route = createFileRoute('/_index/subscribe/')({
     component: Subscribe
@@ -145,16 +146,18 @@ function Subscribe() {
                                                        {subscribe.is_uncensored && (
                                                            <Tag color={'green'} variant={'filled'}>{t('subscribe:flags.uncensored')}</Tag>)}
                                                    </Space>
-                                                   <Tooltip title={t('subscribe:history.actions.search')}>
-                                                       <div className={'px-2'} onClick={() => {
+                                                   <ActionButton
+                                                       icon={<SearchOutlined/>}
+                                                       onClick={(event) => {
+                                                           event.stopPropagation()
                                                            return navigate({
                                                                to: '/home/detail',
                                                                search: {num: subscribe.num}
                                                            })
-                                                       }}>
-                                                           <SearchOutlined/>
-                                                       </div>
-                                                   </Tooltip>
+                                                       }}
+                                                   >
+                                                       {t('subscribe:history.actions.search')}
+                                                   </ActionButton>
                                                </div>
                                            )}
                                 />

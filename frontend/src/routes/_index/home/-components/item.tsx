@@ -1,11 +1,12 @@
 import React from "react";
-import {Rate, theme, Tooltip} from "antd";
+import {Rate, theme} from "antd";
 import RemoteImage from "../../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../../constants/image";
 import {SearchOutlined} from "@ant-design/icons";
 import {useRouter} from "@tanstack/react-router";
 import type {SiteVideo} from "../../../../types/video";
 import {useTranslation} from "react-i18next";
+import ActionButton from "../../../../components/ActionButton";
 
 const {useToken} = theme
 
@@ -41,17 +42,18 @@ function VideoItem(props: { item: SiteVideo }) {
                     </div>
                     <div className={'flex items-center'}>
                         <div className={'flex-1'}>{item.publish_date}</div>
-                        <Tooltip title={t('home:item.search')}>
-                            <div onClick={(event) => {
+                        <ActionButton
+                            icon={<SearchOutlined/>}
+                            onClick={(event) => {
                                 event.stopPropagation()
                                 return navigate({
                                     to: '/home/detail',
                                     search: {num: item.num}
                                 })
-                            }}>
-                                <SearchOutlined/>
-                            </div>
-                        </Tooltip>
+                            }}
+                        >
+                            {t('home:item.search')}
+                        </ActionButton>
                     </div>
                 </div>
         </div>

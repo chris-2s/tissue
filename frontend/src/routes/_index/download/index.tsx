@@ -1,17 +1,15 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Card, Collapse, Empty, Input, List, message, Modal, Space, Tag, theme, Tooltip} from "antd";
+import {Card, Collapse, Empty, Input, List, message, Modal, Tag} from "antd";
 import * as api from "../../../apis/download";
 import {useDebounce, useRequest} from "ahooks";
 import {FileDoneOutlined, FolderViewOutlined} from "@ant-design/icons";
 import React, {useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import IconButton from "../../../components/IconButton";
+import ActionButton from "../../../components/ActionButton";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import {createFileRoute, Link} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
-
-const {useToken} = theme
 
 export const Route = createFileRoute('/_index/download/')({
     component: Download,
@@ -30,7 +28,6 @@ function downloadsQueryOptions() {
 function Download() {
 
     const {t} = useTranslation(['download'])
-    const {token} = useToken()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(downloadsQueryOptions())
     const [selected, setSelected] = useState<string | undefined>()
@@ -65,13 +62,15 @@ function Download() {
                       dataSource={torrent.files}
                       renderItem={(item: any) => (
                           <List.Item actions={[
-                              <Tooltip key={'organize'} title={t('download:actions.organize')}>
-                                  <IconButton onClick={() => {
+                              <ActionButton
+                                  key={'organize'}
+                                  icon={<FolderViewOutlined/>}
+                                  onClick={() => {
                                       setSelected(item.path)
-                                  }}>
-                                      <FolderViewOutlined style={{fontSize: token.sizeLG}}/>
-                                  </IconButton>
-                              </Tooltip>
+                                  }}
+                              >
+                                  {t('download:actions.organize')}
+                              </ActionButton>
                           ]}>
                               <List.Item.Meta
                                   title={(<span>{item.name}<Tag style={{marginLeft: 5}}
@@ -83,18 +82,17 @@ function Download() {
                 />
             ),
             extra: (
-                <Space>
-                    <Tooltip title={t('download:actions.markCompleted')}>
-                        <IconButton onClick={() => {
-                            Modal.confirm({
-                                title: t('download:actions.confirmCompleted'),
-                                onOk: () => onComplete(torrent.hash)
-                            })
-                        }}>
-                            <FileDoneOutlined style={{fontSize: token.sizeLG}}/>
-                        </IconButton>
-                    </Tooltip>
-                </Space>
+                <ActionButton
+                    icon={<FileDoneOutlined/>}
+                    onClick={() => {
+                        Modal.confirm({
+                            title: t('download:actions.confirmCompleted'),
+                            onOk: () => onComplete(torrent.hash)
+                        })
+                    }}
+                >
+                    {t('download:actions.markCompleted')}
+                </ActionButton>
             )
         }
     ))

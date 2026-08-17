@@ -1,5 +1,4 @@
 import {
-    Button,
     Card,
     Col,
     Descriptions,
@@ -7,9 +6,7 @@ import {
     message,
     Row,
     Segmented,
-    Space,
-    Tag,
-    Tooltip
+    Tag
 } from "antd";
 import {queryOptions, useSuspenseQuery} from "@tanstack/react-query";
 import React, {useEffect, useState} from "react";
@@ -39,6 +36,8 @@ import Comment from "./-components/comment.tsx";
 import ActorsModal from "./-components/actorsModal.tsx";
 import SubscribeModifyModal from "../subscribe/-components/modifyModal.tsx";
 import {useTranslation} from "react-i18next";
+import ActionButton from "../../../components/ActionButton";
+import IconButton from "../../../components/IconButton";
 
 type SearchVideoView = Omit<VideoDetail, 'actors'> & { actors: string };
 type DetailSearch = homeApi.GetDetailParams;
@@ -265,28 +264,32 @@ function Detail() {
                             imageType={IMAGE_TYPES.COVER}
                         />
                     </div>
-                    <div className={'text-center'}>
-                        <Tooltip title={t('home:detail.actions.addSubscription')}>
-                            <Button type={'primary'} icon={<CarryOutOutlined/>} shape={'circle'}
-                                    onClick={() => setSubscribeOpen(true, video)}/>
-                        </Tooltip>
-                        <Tooltip title={t('home:detail.actions.refresh')}>
-                            <Button type={'primary'} icon={<RedoOutlined/>} shape={'circle'}
-                                    className={'ml-4'}
-                                    loading={isFetching}
-                                    onClick={() => void refetch()}/>
-                        </Tooltip>
+                    <div className={'flex flex-wrap justify-center gap-1'}>
+                        <ActionButton
+                            icon={<CarryOutOutlined/>}
+                            onClick={() => setSubscribeOpen(true, video)}
+                        >
+                            {t('home:detail.actions.addSubscription')}
+                        </ActionButton>
+                        <ActionButton
+                            icon={<RedoOutlined/>}
+                            loading={isFetching}
+                            onClick={() => void refetch()}
+                        >
+                            {t('home:detail.actions.refresh')}
+                        </ActionButton>
                         {!isSearchMode && (
-                            <Tooltip title={t('home:detail.actions.search')}>
-                                <Button type={'primary'} icon={<SearchOutlined/>} shape={'circle'}
-                                        className={'ml-4'}
-                                        onClick={() => {
-                                            router.navigate({
-                                                to: '/home/detail',
-                                                search: {num: video.num || ''} as never
-                                            });
-                                        }}/>
-                            </Tooltip>
+                            <ActionButton
+                                icon={<SearchOutlined/>}
+                                onClick={() => {
+                                    router.navigate({
+                                        to: '/home/detail',
+                                        search: {num: video.num || ''} as never
+                                    });
+                                }}
+                            >
+                                {t('home:detail.actions.search')}
+                            </ActionButton>
                         )}
                     </div>
                     <Descriptions className={'mt-4'}
@@ -325,38 +328,122 @@ function Detail() {
                     </>
                 )}>
                     {filteredDownloads.length > 0 ? (
-                        <List dataSource={filteredDownloads} renderItem={(item) => (
-                            <List.Item actions={[
-                                <Tooltip title={t('home:detail.actions.sendToDownloader')} key={'download'}>
-                                    <Button type={'primary'} icon={<CloudDownloadOutlined/>}
-                                            shape={'circle'}
-                                            onClick={() => setSelectedDownload(item)}/>
-                                </Tooltip>,
-                                <Tooltip title={t('home:detail.actions.copyMagnet')} key={'copy'}>
-                                    <Button type={'primary'} icon={<CopyOutlined/>} shape={'circle'}
-                                            onClick={() => onCopyClick(item)}/>
-                                </Tooltip>
-                            ]}>
-                                <List.Item.Meta title={item.name}
-                                                description={(
-                                                    <Space
-                                                        direction={responsive.lg ? 'horizontal' : 'vertical'}
-                                                        size={responsive.lg ? 0 : 'small'}>
-                                                        <div>
-                                                            <a href={item.url}><Tag>{item.source.site_name}</Tag></a>
-                                                            <Tag>{item.size}</Tag>
-                                                        </div>
-                                                        <div>
-                                                            {item.is_hd && <Tag color={'red'} variant={'filled'}>{t('home:detail.flags.hd')}</Tag>}
-                                                            {item.is_zh && <Tag color={'blue'} variant={'filled'}>{t('home:detail.flags.zh')}</Tag>}
-                                                            {item.is_uncensored &&
-                                                                <Tag color={'green'} variant={'filled'}>{t('home:detail.flags.uncensored')}</Tag>}
-                                                        </div>
-                                                        <div>{item.publish_date}</div>
-                                                    </Space>
-                                                )}/>
-                            </List.Item>
-                        )}/>
+                        <List dataSource={filteredDownloads} renderItem={(item) => {
+                            const openDownload = () => setSelectedDownload(item);
+                            const actions = [
+                                <ActionButton
+                                    key={'download'}
+                                    icon={<CloudDownloadOutlined/>}
+                                    onClick={openDownload}
+                                >
+                                    {t('home:detail.actions.sendToDownloader')}
+                                </ActionButton>,
+                                <ActionButton
+                                    key={'copy'}
+                                    icon={<CopyOutlined/>}
+                                    onClick={() => onCopyClick(item)}
+                                >
+                                    {t('home:detail.actions.copyMagnet')}
+                                </ActionButton>
+                            ];
+                            const metadataTags = (
+                                <>
+                                    <a className={'shrink-0'} href={item.url}>
+                                        <Tag className={'!mr-0'}>{item.source.site_name}</Tag>
+                                    </a>
+                                    <Tag className={'!mr-0 shrink-0'}>{item.size}</Tag>
+                                    {item.is_hd && (
+                                        <Tag className={'!mr-0 shrink-0'} color={'red'} variant={'filled'}>
+                                            {t('home:detail.flags.hd')}
+                                        </Tag>
+                                    )}
+                                    {item.is_zh && (
+                                        <Tag className={'!mr-0 shrink-0'} color={'blue'} variant={'filled'}>
+                                            {t('home:detail.flags.zh')}
+                                        </Tag>
+                                    )}
+                                    {item.is_uncensored && (
+                                        <Tag className={'!mr-0 shrink-0'} color={'green'} variant={'filled'}>
+                                            {t('home:detail.flags.uncensored')}
+                                        </Tag>
+                                    )}
+                                </>
+                            );
+
+                            return (
+                                <List.Item
+                                    className={responsive.lg
+                                        ? '!py-3'
+                                        : '!py-3 cursor-pointer transition-colors hover:bg-[var(--ant-color-fill-quaternary)] active:bg-[var(--ant-color-fill-tertiary)]'}
+                                    actions={responsive.lg ? actions : undefined}
+                                    role={responsive.lg ? undefined : 'button'}
+                                    tabIndex={responsive.lg ? undefined : 0}
+                                    onClick={responsive.lg ? undefined : openDownload}
+                                    onKeyDown={responsive.lg ? undefined : (event) => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                            event.preventDefault();
+                                            openDownload();
+                                        }
+                                    }}
+                                >
+                                    {responsive.lg ? (
+                                        <div className={'min-w-0 flex-1'}>
+                                            <div className={'font-medium text-[var(--ant-color-text)]'}>{item.name}</div>
+                                            <div className={'mt-1.5 flex flex-wrap items-center gap-1'}>
+                                                {metadataTags}
+                                                <span className={'ml-1 text-sm text-[var(--ant-color-text-secondary)]'}>
+                                                    {item.publish_date}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className={'flex min-w-0 flex-1 items-center gap-2'}>
+                                            <div className={'min-w-0 flex-1'}>
+                                                <div className={'truncate font-medium text-[var(--ant-color-text)]'}>
+                                                    {item.name}
+                                                </div>
+                                                <div
+                                                    className={'mt-1 flex min-w-0 items-center gap-1 overflow-x-auto whitespace-nowrap'}
+                                                    style={{scrollbarWidth: 'none'}}
+                                                >
+                                                    <Tag className={'!mr-0 shrink-0'}>{item.source.site_name}</Tag>
+                                                    <Tag className={'!mr-0 shrink-0'}>{item.size}</Tag>
+                                                    {item.is_hd && (
+                                                        <Tag className={'!mr-0 shrink-0'} color={'red'} variant={'filled'}>
+                                                            {t('home:detail.flags.hd')}
+                                                        </Tag>
+                                                    )}
+                                                    {item.is_zh && (
+                                                        <Tag className={'!mr-0 shrink-0'} color={'blue'} variant={'filled'}>
+                                                            {t('home:detail.flags.zh')}
+                                                        </Tag>
+                                                    )}
+                                                    {item.is_uncensored && (
+                                                        <Tag className={'!mr-0 shrink-0'} color={'green'} variant={'filled'}>
+                                                            {t('home:detail.flags.uncensored')}
+                                                        </Tag>
+                                                    )}
+                                                </div>
+                                                <div className={'mt-1 text-sm text-[var(--ant-color-text-secondary)]'}>
+                                                    {item.publish_date}
+                                                </div>
+                                            </div>
+                                            <IconButton
+                                                aria-label={t('home:detail.actions.copyMagnet')}
+                                                size={'sm'}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onCopyClick(item);
+                                                }}
+                                                onKeyDown={(event) => event.stopPropagation()}
+                                            >
+                                                <CopyOutlined/>
+                                            </IconButton>
+                                        </div>
+                                    )}
+                                </List.Item>
+                            );
+                        }}/>
                     ) : (
                         <div className={'py-8 text-center text-[var(--ant-color-text-secondary)]'}>
                             {t('home:detail.emptyResources')}

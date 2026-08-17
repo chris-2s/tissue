@@ -1,18 +1,16 @@
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Button, Card, Checkbox, Empty, Input, List, Space, Tag, theme, Tooltip} from "antd";
+import {Button, Card, Checkbox, Empty, Input, List, Space, Tag} from "antd";
 import {useDebounce, useSelections} from "ahooks";
 import * as api from "../../../apis/file.ts";
 import React, {useMemo, useState} from "react";
 import {FolderViewOutlined} from "@ant-design/icons";
-import IconButton from "../../../components/IconButton";
+import ActionButton from "../../../components/ActionButton";
 import RouteErrorState from "../../../components/RouteErrorState";
 import RoutePendingState from "../../../components/RoutePendingState";
 import {createFileRoute, Link} from "@tanstack/react-router";
 import VideoDetail from "../../../components/VideoDetail";
 import BatchModal from "./-components/batchModal.tsx";
 import {useTranslation} from "react-i18next";
-
-const {useToken} = theme
 
 export const Route = createFileRoute('/_index/file/')({
     component: File
@@ -30,7 +28,6 @@ function filesQueryOptions() {
 
 function File() {
     const {t} = useTranslation(['file']);
-    const {token} = useToken()
     const queryClient = useQueryClient()
     const {data = [], isPending, isError, refetch} = useQuery(filesQueryOptions())
     const [selectedVideo, setSelectedVideo] = useState<string | undefined>()
@@ -83,11 +80,13 @@ function File() {
                           </div>
                           <div className={'flex-1'}>
                               <List.Item actions={[
-                                  <Tooltip title={t('file:organize')}>
-                                      <IconButton onClick={() => setSelectedVideo(item.fullPath)}>
-                                          <FolderViewOutlined style={{fontSize: token.sizeLG}}/>
-                                      </IconButton>
-                                  </Tooltip>
+                                  <ActionButton
+                                      key={'organize'}
+                                      icon={<FolderViewOutlined/>}
+                                      onClick={() => setSelectedVideo(item.fullPath)}
+                                  >
+                                      {t('file:organize')}
+                                  </ActionButton>
                               ]}>
                                   <List.Item.Meta
                                       title={(<span>{item.name}<Tag style={{marginLeft: 5}}

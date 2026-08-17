@@ -1,4 +1,4 @@
-import {Button, Card, Col, Empty, Pagination, Row, Space, Tag, Typography, message} from "antd";
+import {Card, Col, Empty, Pagination, Row, Space, Tag, Typography, message} from "antd";
 import {DeleteOutlined, RightOutlined} from "@ant-design/icons";
 import {queryOptions, useQuery, useQueryClient} from "@tanstack/react-query";
 import React, {useDeferredValue, useEffect, useMemo, useState} from "react";
@@ -13,6 +13,7 @@ import FilterPanel from "./-components/filterPanel.tsx";
 import type {ActorFavoriteFilterValue} from "./-components/filterPanel.utils.ts";
 import {scrollPageToTop} from "../../../utils/scroll.ts";
 import {useTranslation} from "react-i18next";
+import ActionButton from "../../../components/ActionButton";
 
 const {Paragraph, Text} = Typography;
 
@@ -114,32 +115,31 @@ function ActorFavoritePage() {
                         {pagedFavorites.map((favorite) => {
                             const aliasText = favorite.actor.alias.filter(Boolean).join(' / ');
                             return (
-                                <Col key={favorite.id} span={24} md={12} lg={8}>
+                                <Col key={favorite.id} span={24} md={12} lg={6}>
                                     <Card
+                                        className={'h-full'}
                                         hoverable
                                         size={'small'}
                                         actions={[
-                                            <Button key={'open'}
-                                                type={'link'}
+                                            <ActionButton key={'open'}
                                                 icon={<RightOutlined/>}
                                                 onClick={() => navigate({
                                                         to: '/actor',
                                                         search: {site_id: favorite.site_id, code: favorite.actor_code} as never
                                                     })}>
                                                 {t('actor:favorite.openWorks')}
-                                            </Button>,
-                                            <Button key={'delete'}
-                                                    type={'link'}
-                                                    danger
-                                                    loading={deleting}
-                                                    icon={<DeleteOutlined/>}
-                                                    onClick={() => onDelete(favorite.id)}>
+                                            </ActionButton>,
+                                            <ActionButton key={'delete'}
+                                                          danger
+                                                          loading={deleting}
+                                                          icon={<DeleteOutlined/>}
+                                                          onClick={() => onDelete(favorite.id)}>
                                                 {t('common:actions.delete')}
-                                            </Button>
+                                            </ActionButton>
                                         ]}
                                     >
-                                        <div className={'flex gap-3'}>
-                                            <div className={'h-[72px] w-[72px]'}>
+                                        <div className={'flex gap-2.5'}>
+                                            <div className={'h-[60px] w-[60px] shrink-0'}>
                                                 <RemoteImage
                                                     className={'h-full w-full'}
                                                     src={favorite.actor.thumb}
@@ -148,16 +148,16 @@ function ActorFavoritePage() {
                                                 />
                                             </div>
                                             <div className={'min-w-0 flex-1'}>
-                                                <Space wrap size={[8, 8]}>
+                                                <Space wrap size={[6, 6]}>
                                                     <Text strong>{favorite.actor.name || favorite.actor_code}</Text>
                                                     <Tag variant={'filled'}>{favorite.actor.source.site_name}</Tag>
                                                 </Space>
                                                 {aliasText ? (
-                                                    <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
+                                                    <Paragraph type={'secondary'} className={'!mb-0 !mt-1.5 min-h-[40px]'} ellipsis={{rows: 2}}>
                                                         {t('actor:detail.aliasPrefix')}{aliasText}
                                                     </Paragraph>
                                                 ) : (
-                                                    <Paragraph type={'secondary'} className={'!mb-0 !mt-2 min-h-[44px]'} ellipsis={{rows: 2}}>
+                                                    <Paragraph type={'secondary'} className={'!mb-0 !mt-1.5 min-h-[40px]'} ellipsis={{rows: 2}}>
                                                         {t('actor:detail.aliasEmpty')}
                                                     </Paragraph>
                                                 )}

@@ -7,9 +7,7 @@ import {
     FloatButton,
     Pagination,
     Row,
-    Space,
     Tag,
-    Tooltip,
 } from "antd";
 import RemoteImage from "../../../components/RemoteImage";
 import {IMAGE_TYPES} from "../../../constants/image";
@@ -30,6 +28,7 @@ import {
     type VideoFilterValue,
 } from "./-components/filterPanel.utils.ts";
 import {useTranslation} from "react-i18next";
+import ActionButton from "../../../components/ActionButton";
 
 export const Route = createFileRoute('/_index/video/')({
     component: Video,
@@ -175,31 +174,39 @@ function Video() {
                             >
                                 <Card.Meta title={video.title}
                                            description={(
-                                               <div className={'flex'}>
-                                                   <div className={'flex-1 items-center overflow-x-scroll'}
-                                                        style={{scrollbarWidth: 'none'}}>
-                                                       <Space size={[0, 'small']} wrap className={'flex-1'}>
-                                                           {getVideoRatingValue(video) !== undefined && (
-                                                               <Tag color={'gold'} variant={'filled'}>
-                                                                   {formatRating(getVideoRatingValue(video)!)}
-                                                               </Tag>)}
-                                                           {video.actors.map((actor: any) => (
-                                                               <Tag key={actor.name} color={'purple'}
-                                                                    variant={'filled'}>{actor.name}</Tag>
-                                                           ))}
-                                                       </Space>
+                                               <div className={'flex min-w-0 items-center gap-2 overflow-hidden'}>
+                                                   {getVideoRatingValue(video) !== undefined && (
+                                                       <Tag className={'!mr-0 shrink-0'} color={'gold'} variant={'filled'}>
+                                                           {formatRating(getVideoRatingValue(video)!)}
+                                                       </Tag>)}
+                                                   <div
+                                                       className={'flex min-w-0 flex-1 gap-1 overflow-x-auto whitespace-nowrap'}
+                                                       style={{scrollbarWidth: 'none'}}
+                                                   >
+                                                       {video.actors.map((actor: any) => (
+                                                           <Tag
+                                                               className={'!mr-0 shrink-0'}
+                                                               key={actor.name}
+                                                               color={'purple'}
+                                                               variant={'filled'}
+                                                           >
+                                                               {actor.name}
+                                                           </Tag>
+                                                       ))}
                                                    </div>
-                                                   <Tooltip title={t('video:actions.search')}>
-                                                       <div className={'ml-1'} onClick={(event) => {
+                                                   <ActionButton
+                                                       className={'shrink-0'}
+                                                       icon={<SearchOutlined/>}
+                                                       onClick={(event) => {
                                                            event.stopPropagation()
                                                            return navigate({
                                                                to: '/home/detail',
                                                                search: {num: video.num}
                                                            })
-                                                       }}>
-                                                           <SearchOutlined/>
-                                                       </div>
-                                                   </Tooltip>
+                                                       }}
+                                                   >
+                                                       {t('video:actions.search')}
+                                                   </ActionButton>
                                                </div>
                                            )}
                                 />

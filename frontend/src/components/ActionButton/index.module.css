@@ -1,0 +1,21 @@
+.button {
+    min-height: 30px;
+    flex: 0 0 auto;
+    touch-action: manipulation;
+    transition:
+        transform 120ms ease,
+        color 120ms ease,
+        background-color 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.button:not(:disabled):active {
+    transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button {
+        transition: none;
+    }
+}

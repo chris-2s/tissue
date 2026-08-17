@@ -24,6 +24,7 @@ import RemoteImageEditor from "../RemoteImage/editor.tsx";
 import {ManualTransModeOptions} from "../../utils/constants.ts";
 import PosterCropModal from "./PosterCropModal.tsx";
 import type {PosterCrop} from "../../types/video.ts";
+import ActionButton from "../ActionButton";
 
 
 interface Props extends ModalProps {
@@ -159,17 +160,15 @@ function VideoDetail(props: Props) {
                                         <div className={Styles.imageOperationArea}>
                                             <div className={Styles.imageActions}>
                                                 <div className={Styles.posterActions}>
-                                                    <Button
-                                                        type="text"
+                                                    <ActionButton
                                                         icon={<ScissorOutlined/>}
                                                         disabled={!cover}
                                                         onClick={() => setCropOpen(true)}
                                                     >
                                                         {t('video:detail.image.cropPoster')}
-                                                    </Button>
+                                                    </ActionButton>
                                                     {savedPoster && (
-                                                        <Button
-                                                            type="text"
+                                                        <ActionButton
                                                             icon={<EyeOutlined/>}
                                                             onClick={() => {
                                                                 setPosterPreviewVersion(Date.now())
@@ -177,16 +176,15 @@ function VideoDetail(props: Props) {
                                                             }}
                                                         >
                                                             {t('video:detail.image.viewPoster')}
-                                                        </Button>
+                                                        </ActionButton>
                                                     )}
                                                 </div>
-                                                <Button
-                                                    type="text"
+                                                <ActionButton
                                                     icon={<EditOutlined/>}
                                                     onClick={openEditor}
                                                 >
                                                     {t('video:detail.image.editUrl')}
-                                                </Button>
+                                                </ActionButton>
                                             </div>
                                         </div>
                                     )}

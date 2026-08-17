@@ -60,16 +60,14 @@ function Site() {
         <>
             <FloatButton
                 icon={<OrderedListOutlined/>}
-                tooltip={t('site:actions.priority')}
                 onClick={() => navigate({to: '/site/priority'})}
             />
             <FloatButton
                 icon={testing ? <LoadingOutlined/> : <RedoOutlined/>}
-                tooltip={t('site:actions.refresh')}
                 onClick={() => onTesting()}
             />
         </>
-    ), [navigate, onTesting, t, testing])
+    ), [navigate, onTesting, testing])
 
     const handleRefreshCookie = (item: SiteItem) => {
         setLoginSite({ id: item.id, name: item.name })
