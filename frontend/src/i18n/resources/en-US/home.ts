@@ -28,11 +28,11 @@ export default {
         copyMagnetSuccess: 'Magnet link copied',
         missingVideoInfo: 'Missing video information. Please try again.',
         actions: {
-            addSubscription: 'Add Subscription',
+            addSubscription: 'Subscribe',
             refresh: 'Refresh',
             search: 'Search',
-            sendToDownloader: 'Send to Downloader',
-            copyMagnet: 'Copy Magnet Link',
+            sendToDownloader: 'Download',
+            copyMagnet: 'Copy',
         },
         sections: {
             preview: 'Preview',

@@ -28,11 +28,11 @@ export default {
         copyMagnetSuccess: 'マグネットをコピーしました',
         missingVideoInfo: '作品情報不足、再試行してください',
         actions: {
-            addSubscription: '購読追加',
+            addSubscription: '購読',
             refresh: '更新',
             search: '検索',
-            sendToDownloader: 'DLへ送信',
-            copyMagnet: '磁力コピー',
+            sendToDownloader: 'DL',
+            copyMagnet: 'コピー',
         },
         sections: {
             preview: 'プレビュー',

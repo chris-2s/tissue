@@ -277,11 +277,11 @@ class JavDBSpider(Spider):
 
     def get_downloads(self, url: str, html: etree.HTML):
         result = []
-        table = html.xpath("//div[@id='magnets-content']/div")
+        table = html.xpath("//div[@id='magnets-content']/div[contains(@class,'item')]")
         for item in table:
             download = VideoDownload(source=self.source_ref())
 
-            parts = item.xpath("./div[1]/a")[0]
+            parts = item.xpath("./div[contains(@class,'magnet-name')]/a")[0]
             download.url = url
             download.name = parts[0].text.strip()
             download.magnet = parts.get('href')

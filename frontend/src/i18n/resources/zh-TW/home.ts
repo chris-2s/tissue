@@ -28,11 +28,11 @@ export default {
         copyMagnetSuccess: '磁力連結已複製',
         missingVideoInfo: '影片資訊缺失，請重試',
         actions: {
-            addSubscription: '新增訂閱',
+            addSubscription: '訂閱',
             refresh: '刷新',
             search: '搜尋',
-            sendToDownloader: '發送到下載器',
-            copyMagnet: '複製磁力連結',
+            sendToDownloader: '下載',
+            copyMagnet: '複製',
         },
         sections: {
             preview: '預覽',
