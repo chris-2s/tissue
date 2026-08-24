@@ -92,6 +92,8 @@ export default {
     },
     library: {
         inLibrary: 'In Library',
+        subscribed: 'Subscribed',
+        anySpecification: 'Any specification',
         zh: 'Chinese',
         uncensored: 'Uncensored',
     },

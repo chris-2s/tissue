@@ -92,6 +92,8 @@ export default {
     },
     library: {
         inLibrary: '已入库',
+        subscribed: '已订阅',
+        anySpecification: '不限规格',
         zh: '中文',
         uncensored: '无码',
     },

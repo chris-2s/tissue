@@ -3,6 +3,7 @@ import {RootModel} from "./index";
 import Cookies from 'js-cookie';
 import * as api from "../apis/auth";
 import * as videoApi from "../apis/video.ts";
+import * as subscribeApi from "../apis/subscribe.ts";
 import {compare} from "compare-versions";
 import {router} from "../routes.tsx";
 
@@ -13,6 +14,7 @@ interface State {
     logging: boolean
     versions?: { current: string, latest: string, hasNew: boolean },
     videos: any[]
+    subscribes: subscribeApi.Subscribe[]
 }
 
 const REMEMBER_COOKIE_DAYS = 365
@@ -24,6 +26,7 @@ export const auth = createModel<RootModel>()({
         logging: false,
         version: undefined,
         videos: [],
+        subscribes: [],
     } as State,
     reducers: {
         setLogging(state, payload: boolean) {
@@ -40,6 +43,9 @@ export const auth = createModel<RootModel>()({
         },
         setVideos(state, payload: any | undefined) {
             return {...state, videos: payload}
+        },
+        setSubscribes(state, payload: subscribeApi.Subscribe[]) {
+            return {...state, subscribes: payload}
         },
     },
     effects: (dispatch) => ({
@@ -67,6 +73,9 @@ export const auth = createModel<RootModel>()({
 
             const videos = await videoApi.getVideos()
             dispatch.auth.setVideos(videos)
+
+            const subscribes = await subscribeApi.getSubscribes()
+            dispatch.auth.setSubscribes(subscribes)
         },
         async getVersions() {
             const response = await api.getVersions()

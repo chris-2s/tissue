@@ -89,18 +89,22 @@
     background: linear-gradient(110deg, #72b94f 0%, #9acb78 100%);
 }
 
-.videoCoverContainer > .libraryStatus {
+.videoCoverContainer > .statusStack {
     position: absolute;
     z-index: 2;
     top: auto;
     right: 7px;
     bottom: 7px;
     left: auto;
+    display: flex;
     width: auto;
     height: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
 }
 
-.libraryPill {
+.statusPill {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -114,6 +118,23 @@
     line-height: 1.4;
     backdrop-filter: blur(6px);
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.16);
+    cursor: pointer;
+}
+
+.subscriptionDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.subscriptionSpecification {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.subscriptionSpecification :global(.ant-tag) {
+    margin-inline-end: 0;
 }
 
 @media (max-width: 575px) {

@@ -92,6 +92,8 @@ export default {
     },
     library: {
         inLibrary: '入庫済み',
+        subscribed: '購読済み',
+        anySpecification: '条件なし',
         zh: '中字',
         uncensored: '無碼',
     },

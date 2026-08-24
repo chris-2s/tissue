@@ -28,13 +28,16 @@ describe("auth model effects", () => {
         vi.doMock("../apis/video.ts", () => ({
             getVideos: vi.fn(),
         }));
+        vi.doMock("../apis/subscribe.ts", () => ({
+            getSubscribes: vi.fn(),
+        }));
         vi.doMock("../routes.tsx", () => ({
             router: {navigate},
         }));
 
         const {auth} = await import("./auth.ts");
         const effects = auth.effects!({
-            auth: {setLogging, setToken, setInfo: vi.fn(), setVersions: vi.fn(), setVideos: vi.fn()},
+            auth: {setLogging, setToken, setInfo: vi.fn(), setVersions: vi.fn(), setVideos: vi.fn(), setSubscribes: vi.fn()},
             app: {setPin: vi.fn()},
         } as never) as any;
 
@@ -68,13 +71,16 @@ describe("auth model effects", () => {
         vi.doMock("../apis/video.ts", () => ({
             getVideos: vi.fn(),
         }));
+        vi.doMock("../apis/subscribe.ts", () => ({
+            getSubscribes: vi.fn(),
+        }));
         vi.doMock("../routes.tsx", () => ({
             router: {navigate},
         }));
 
         const {auth} = await import("./auth.ts");
         const effects = auth.effects!({
-            auth: {setLogging: vi.fn(), setToken, setInfo: vi.fn(), setVersions: vi.fn(), setVideos: vi.fn()},
+            auth: {setLogging: vi.fn(), setToken, setInfo: vi.fn(), setVersions: vi.fn(), setVideos: vi.fn(), setSubscribes: vi.fn()},
             app: {setPin},
         } as never) as any;
 
@@ -84,6 +90,55 @@ describe("auth model effects", () => {
         expect(setPin).toHaveBeenCalledWith("");
         expect(setToken).toHaveBeenCalledWith(undefined);
         expect(navigate).toHaveBeenCalledWith({to: "/login"});
+    });
+
+    it("getInfo stores user info, videos and subscriptions in global state", async () => {
+        const setInfo = vi.fn();
+        const setVideos = vi.fn();
+        const setSubscribes = vi.fn();
+        const videos = [{num: "ABC-123"}];
+        const subscribes = [{id: 1, num: "ABC-123", is_hd: true}];
+
+        vi.doMock("js-cookie", () => ({
+            default: {
+                get: vi.fn(),
+                set: vi.fn(),
+                remove: vi.fn(),
+            },
+        }));
+        vi.doMock("../apis/auth", () => ({
+            login: vi.fn(),
+            getInfo: vi.fn().mockResolvedValue({data: {data: {name: "admin"}}}),
+            getVersions: vi.fn(),
+        }));
+        vi.doMock("../apis/video.ts", () => ({
+            getVideos: vi.fn().mockResolvedValue(videos),
+        }));
+        vi.doMock("../apis/subscribe.ts", () => ({
+            getSubscribes: vi.fn().mockResolvedValue(subscribes),
+        }));
+        vi.doMock("../routes.tsx", () => ({
+            router: {navigate: vi.fn()},
+        }));
+
+        const {auth} = await import("./auth.ts");
+        const effects = auth.effects!({
+            auth: {
+                setLogging: vi.fn(),
+                setToken: vi.fn(),
+                setInfo,
+                setVersions: vi.fn(),
+                setVideos,
+                setSubscribes,
+            },
+            app: {setPin: vi.fn()},
+        } as never) as any;
+
+        await effects.getInfo();
+
+        expect(setInfo).toHaveBeenCalledWith({name: "admin"});
+        expect(setVideos).toHaveBeenCalledWith(videos);
+        expect(setSubscribes).toHaveBeenCalledWith(subscribes);
     });
 
     it("get_versions computes hasNew before storing versions", async () => {
@@ -111,6 +166,9 @@ describe("auth model effects", () => {
         vi.doMock("../apis/video.ts", () => ({
             getVideos: vi.fn(),
         }));
+        vi.doMock("../apis/subscribe.ts", () => ({
+            getSubscribes: vi.fn(),
+        }));
         vi.doMock("../routes.tsx", () => ({
             router: {navigate: vi.fn()},
         }));
@@ -123,6 +181,7 @@ describe("auth model effects", () => {
                 setInfo: vi.fn(),
                 setVersions,
                 setVideos: vi.fn(),
+                setSubscribes: vi.fn(),
             },
             app: {setPin: vi.fn()},
         } as never) as any;
