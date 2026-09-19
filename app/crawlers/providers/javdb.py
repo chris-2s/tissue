@@ -179,11 +179,10 @@ class JavDBSpider(Spider):
             tags = [tag.text for tag in tag_elements]
             meta.tags = tags
 
-        actor_elements = html.xpath("//strong[@class='symbol female']")
+        actor_elements = html.xpath("//a[@class='actor-female']")
         if actor_elements:
             actors = []
-            for element in actor_elements:
-                actor_element = element.xpath('./preceding-sibling::a[1]')[0]
+            for actor_element in actor_elements:
                 actor_url = actor_element.get('href')
                 actor_code = actor_url.split("/")[-1]
                 actor = VideoActor(name=actor_element.text, code=actor_code)
