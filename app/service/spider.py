@@ -4,7 +4,6 @@ from datetime import datetime
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from starlette.concurrency import run_in_threadpool
 
 from app.crawlers.base import Spider
 from app.crawlers.exceptions import SpiderException
@@ -162,7 +161,10 @@ class SpiderService(BaseService):
 
         spiders = self._get_spiders()
         try:
-            tasks = [run_in_threadpool(__get_video_by_spider, spider=spider) for spider in spiders]
+            # These calls run in short-lived asyncio.run() loops. Use the loop's
+            # executor so shutdown releases tasks/results instead of retaining
+            # them in AnyIO's per-loop root-task registry.
+            tasks = [asyncio.to_thread(__get_video_by_spider, spider=spider) for spider in spiders]
             return list(filter(lambda item: item, await asyncio.gather(*tasks)))
         finally:
             self._close_spiders(spiders)
@@ -189,7 +191,7 @@ class SpiderService(BaseService):
 
         spiders = self._get_actor_spiders()
         try:
-            tasks = [run_in_threadpool(__search_actor_by_spider, spider=spider) for spider in spiders]
+            tasks = [asyncio.to_thread(__search_actor_by_spider, spider=spider) for spider in spiders]
             results = await asyncio.gather(*tasks)
 
             actors: list[Actor] = []
@@ -217,7 +219,7 @@ class SpiderService(BaseService):
 
         spiders = self._get_spiders()
         try:
-            tasks = [run_in_threadpool(__search_video_by_spider, spider=spider) for spider in spiders]
+            tasks = [asyncio.to_thread(__search_video_by_spider, spider=spider) for spider in spiders]
             results = await asyncio.gather(*tasks)
 
             videos: list[SiteVideo] = []

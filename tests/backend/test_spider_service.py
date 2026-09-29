@@ -1,6 +1,10 @@
 from datetime import date
 import asyncio
+import gc
+import weakref
 from types import SimpleNamespace
+
+import pytest
 
 from app.schema.home import SiteVideo
 from app.schema.actor import Actor
@@ -18,6 +22,62 @@ from app.schema.video import (
 )
 from app.service.metadata_priority import MetadataPriorityService
 from app.service.spider import SpiderService
+
+
+@pytest.mark.parametrize("method_name", ["get_video", "search_actor", "search_video"])
+def test_completed_spider_calls_release_tasks_and_results(monkeypatch, method_name):
+    result_refs = []
+    task_refs = []
+    closed = []
+    source = build_source(1, SpiderKey.JAVBUS, "JavBus")
+
+    class FakeSpider:
+        name = "JavBus"
+
+        def get_info(self, *args, **kwargs):
+            result = VideoDetail(num="TEST-001")
+            result_refs.append(weakref.ref(result))
+            return result
+
+        def search_actor(self, name):
+            result = Actor(name=name, source=source)
+            result_refs.append(weakref.ref(result))
+            return [result]
+
+        def search_video(self, num):
+            result = SiteVideo(num=num)
+            result_refs.append(weakref.ref(result))
+            return [result]
+
+        def close(self):
+            closed.append(True)
+
+    service = SpiderService(db=SimpleNamespace())
+    monkeypatch.setattr(service, "_get_spiders", lambda: [FakeSpider()])
+    monkeypatch.setattr(service, "_get_actor_spiders", lambda: [FakeSpider()])
+    async_name = {
+        "get_video": "_get_video_by_spiders",
+        "search_actor": "_search_actor_by_spiders",
+        "search_video": "_search_video_by_spiders",
+    }[method_name]
+    original = getattr(service, async_name)
+
+    async def track_task(*args, **kwargs):
+        task_refs.append(weakref.ref(asyncio.current_task()))
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(service, async_name, track_task)
+    for _ in range(8):
+        result = getattr(service, method_name)("TEST-001")
+        assert result is not None
+        del result
+
+    gc.collect()
+    assert len(closed) == 8
+    assert len(result_refs) == 8
+    assert len(task_refs) == 8
+    assert all(ref() is None for ref in result_refs)
+    assert all(ref() is None for ref in task_refs)
 
 
 def build_source(site_id: int, spider_key: SpiderKey, site_name: str) -> SourceRef:

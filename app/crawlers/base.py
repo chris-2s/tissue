@@ -83,7 +83,9 @@ class Spider:
         element = cls._first_element(root, xpath)
         if element is None:
             return None
-        return element if isinstance(element, str) else element.text
+        # XPath smart strings retain their parent and the entire parsed document.
+        # Metadata fields must contain detached text, including after model assignment.
+        return str(element) if isinstance(element, str) else element.text
 
     def _ensure_valid_cookies(self):
         """让站点有机会重置当前会话，不在这里判断 cookie 是否失效"""
