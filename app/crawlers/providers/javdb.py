@@ -227,12 +227,18 @@ class JavDBSpider(Spider):
     def get_previews(self, html: etree.HTML):
         result = []
 
-        videos = html.xpath("//div[contains(@class,'preview-images')]/a[@class='preview-video-container']")
-        for video in videos:
-            thumb = video.xpath('./img')[0]
-            video = html.xpath(f"//video[@id='{video.get('href')[1:]}']/source")
-            if video:
-                preview = VideoPreviewItem(type='video', thumb=thumb.get('src'), url=video[0].get('src'))
+        video = self._first_element(html, "//video[@id='preview-video']")
+        if video is not None and video.get('data-url'):
+            preview_url = urljoin(self.host, video.get('data-url'))
+            response = self.session.get(preview_url)
+            try:
+                response.raise_for_status()
+                stream_url = response.json().get('url')
+            finally:
+                response.close()
+
+            if stream_url:
+                preview = VideoPreviewItem(type='video', thumb=video.get('poster'), url=urljoin(preview_url, stream_url))
                 result.append(preview)
 
         images = html.xpath("//div[contains(@class,'preview-images')]/a[@class='tile-item']")
