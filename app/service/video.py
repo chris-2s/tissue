@@ -1,6 +1,7 @@
 import errno
 import os
 import shutil
+from pathlib import Path
 from typing import List, Optional
 
 from cachetools import cached, LRUCache
@@ -117,7 +118,9 @@ class VideoService(BaseService):
             'size': utils.convert_size(os.stat(source_path).st_size),
         })
 
-        dest_path = self.trans(video, setting.library.video_path, trans_mode)
+        cleanup_root, protected_roots = self.get_cleanup_boundary(source_path, setting, mode)
+        dest_path = self.trans(video, setting.library.video_path, trans_mode,
+                               cleanup_root=cleanup_root, protected_roots=protected_roots)
         if dest_path != source_path:
             history = History(status=1, num=video.num, is_zh=video.is_zh, is_uncensored=video.is_uncensored,
                               source_path=source_path, dest_path=dest_path, trans_method=trans_mode)
@@ -128,7 +131,26 @@ class VideoService(BaseService):
 
         video_cache.pop('videos', None)
 
-    def trans(self, video: VideoDetail, video_path: str, trans_mode: str):
+    @staticmethod
+    def get_cleanup_boundary(source_path: str, setting: Setting, mode: Optional[str]):
+        roots = {
+            'file': setting.file.path,
+            'download': setting.download.mapping_path,
+            'video': setting.library.video_path,
+        }
+        protected_roots = tuple(path for path in roots.values() if path and path.strip())
+        if mode in roots:
+            return roots[mode], protected_roots
+
+        # History retries may refer to any of the configured source directories.
+        source = Path(os.path.abspath(source_path))
+        matches = [path for path in protected_roots
+                   if source.is_relative_to(Path(os.path.abspath(path)))]
+        root = max(matches, key=lambda path: len(Path(os.path.abspath(path)).parts), default=None)
+        return root, protected_roots
+
+    def trans(self, video: VideoDetail, video_path: str, trans_mode: str, *,
+              cleanup_root: Optional[str] = None, protected_roots: tuple[str, ...] = ()):
         if not os.path.exists(video.path):
             raise BizException('视频不存在', error_code=ErrorCode.VIDEO_NOT_FOUND)
 
@@ -165,7 +187,9 @@ class VideoService(BaseService):
             else:
                 self.transfer_file(source_path, video_path, trans_mode, f"影片《{video.num}》")
             self.trans_subtitles(source_path, video_path, subtitle_paths, trans_mode)
-            utils.remove_empty_directory(source_path)
+            if trans_mode == 'move' and cleanup_root:
+                utils.remove_empty_directories(os.path.dirname(source_path), root=cleanup_root,
+                                               protected_roots=protected_roots)
 
         if video.cover:
             logger.info(translate('log.video.generate_cover'))
@@ -218,7 +242,9 @@ class VideoService(BaseService):
         self.delete_video_meta(path)
         self.delete_subtitles(path)
         os.remove(path)
-        utils.remove_empty_directory(path)
+        cleanup_root, protected_roots = self.get_cleanup_boundary(path, Setting(), 'video')
+        utils.remove_empty_directories(os.path.dirname(path), root=cleanup_root,
+                                       protected_roots=protected_roots)
 
         video_cache.pop('videos', None)
 

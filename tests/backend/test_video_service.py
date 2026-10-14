@@ -1,6 +1,9 @@
+import errno
 import os
 from pathlib import Path
 from types import SimpleNamespace
+
+import pytest
 
 import app.service.video as video_module
 from app.schema import PosterCrop, VideoActor, VideoDetail
@@ -166,8 +169,8 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
 
     monkeypatch.setattr(video_module, "Setting", lambda: SimpleNamespace(
         library=SimpleNamespace(video_path=str(tmp_path / "library")),
-        file=SimpleNamespace(trans_mode="copy"),
-        download=SimpleNamespace(trans_mode="hardlink"),
+        file=SimpleNamespace(trans_mode="copy", path=str(tmp_path / "files")),
+        download=SimpleNamespace(trans_mode="hardlink", mapping_path=str(tmp_path / "downloads")),
     ))
     monkeypatch.setattr(video_module.utils, "convert_size", lambda _: "5 B")
     monkeypatch.setattr(video_module.notification_manager, "emit_video_saved", lambda *_args, **_kwargs: None)
@@ -196,3 +199,100 @@ def test_save_video_defaults_to_move_for_video_mode(tmp_path: Path, monkeypatch)
     assert captured["trans_mode"] == "move"
     assert captured["video_path"] == str(tmp_path / "library")
     assert video.poster_crop == poster_crop
+
+
+@pytest.mark.parametrize('mode, expected', [
+    ('file', 'files'), ('download', 'downloads'), ('video', 'library'),
+    ('history', 'downloads'), (None, 'downloads'),
+])
+def test_cleanup_boundary_matches_operation(tmp_path, mode, expected):
+    setting = SimpleNamespace(
+        file=SimpleNamespace(path=str(tmp_path / 'files')),
+        download=SimpleNamespace(mapping_path=str(tmp_path / 'downloads')),
+        library=SimpleNamespace(video_path=str(tmp_path / 'library')),
+    )
+    root, protected = VideoService.get_cleanup_boundary(str(tmp_path / 'downloads' / 'movie.mp4'), setting, mode)
+    assert root == str(tmp_path / expected)
+    assert set(protected) == {str(tmp_path / name) for name in ('files', 'downloads', 'library')}
+
+
+def test_history_cleanup_uses_deepest_root_and_skips_unknown_paths(tmp_path):
+    setting = SimpleNamespace(
+        file=SimpleNamespace(path=str(tmp_path)),
+        download=SimpleNamespace(mapping_path=str(tmp_path / 'downloads')),
+        library=SimpleNamespace(video_path=str(tmp_path / 'downloads' / 'library')),
+    )
+    root, _ = VideoService.get_cleanup_boundary(str(tmp_path / 'downloads' / 'library' / 'movie.mp4'), setting, 'history')
+    assert root == setting.library.video_path
+    root, _ = VideoService.get_cleanup_boundary(str(tmp_path.parent / 'unknown' / 'movie.mp4'), setting, 'history')
+    assert root is None
+
+
+def test_move_cleanup_failure_still_saves_nfo_and_history(tmp_path, monkeypatch):
+    root = tmp_path.resolve()
+    files = root / 'files'
+    source_dir = files / 'task'
+    source_dir.mkdir(parents=True)
+    source = source_dir / 'MIDV-639.mp4'
+    source.write_bytes(b'video')
+    library = root / 'library'
+    monkeypatch.setattr(video_module, 'Setting', lambda: SimpleNamespace(
+        file=SimpleNamespace(path=str(files), trans_mode='move'),
+        download=SimpleNamespace(mapping_path=str(root / 'downloads')),
+        library=SimpleNamespace(video_path=str(library)),
+    ))
+    monkeypatch.setattr(video_module.nfo, 'save', lambda path, video: Path(path).write_text('nfo'))
+    monkeypatch.setattr(video_module.notification_manager, 'emit_video_saved', lambda *_: None)
+    histories = []
+    monkeypatch.setattr(video_module.History, 'add', lambda self, db: histories.append(self))
+
+    def fail_rmdir(self):
+        raise PermissionError(errno.EACCES, 'permission denied')
+
+    monkeypatch.setattr(Path, 'rmdir', fail_rmdir)
+    service = VideoService(db=SimpleNamespace(commit=lambda: None))
+    service.save_video(VideoDetail(title='Test', num='MIDV-639', path=str(source)), mode='file')
+
+    assert not source.exists()
+    assert len(histories) == 1
+    dest = Path(histories[0].dest_path)
+    assert dest.read_bytes() == b'video'
+    assert (dest.parent / 'movie.nfo').read_text() == 'nfo'
+
+
+def test_delete_video_preserves_library_root(tmp_path, monkeypatch):
+    root = tmp_path.resolve()
+    source = root / 'movie.mp4'
+    source.touch()
+    (root / '.DS_Store').touch()
+    monkeypatch.setattr(video_module, 'Setting', lambda: SimpleNamespace(
+        file=SimpleNamespace(path=str(root / 'files')),
+        download=SimpleNamespace(mapping_path=str(root / 'downloads')),
+        library=SimpleNamespace(video_path=str(root)),
+    ))
+    service = VideoService(db=SimpleNamespace())
+    monkeypatch.setattr(service, 'delete_video_meta', lambda _: None)
+    service.delete_video(str(source))
+
+    assert not source.exists()
+    assert (root / '.DS_Store').exists()
+
+
+@pytest.mark.parametrize('trans_mode', ['copy', 'hardlink', 'symlink'])
+def test_non_move_transfer_leaves_source_ds_store_untouched(tmp_path, monkeypatch, trans_mode):
+    root = tmp_path.resolve()
+    source_dir = root / 'files'
+    source_dir.mkdir()
+    source = source_dir / 'MIDV-639.mp4'
+    source.write_bytes(b'video')
+    ds_store = source_dir / '.DS_Store'
+    ds_store.touch()
+    monkeypatch.setattr(video_module.nfo, 'save', lambda path, video: Path(path).write_text('nfo'))
+    service = VideoService(db=SimpleNamespace())
+
+    dest = service.trans(VideoDetail(title='Test', num='MIDV-639', path=str(source)),
+                         str(root / 'library'), trans_mode, cleanup_root=str(root))
+
+    assert source.exists()
+    assert ds_store.exists()
+    assert Path(dest).read_bytes() == b'video'
