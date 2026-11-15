@@ -4,8 +4,9 @@ import time
 from datetime import datetime
 from random import randint
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
+from curl_cffi import CurlMime
 from lxml import etree
 
 from app.exception import BizException
@@ -72,29 +73,39 @@ class JavDBSpider(Spider):
     def get_login_page(self) -> dict[str, Any]:
         """获取登录页信息"""
         session = self.session
-        login_url = urljoin(self.host, "/login")
+        page = session.get(urljoin(self.host, "/"), _persist_cloudflare_solution=False)
+        try:
+            page.raise_for_status()
+            html = etree.HTML(page.content)
+            csrf_token = self._first_text(html, "//meta[@name='csrf-token']/@content") if html is not None else None
+            if not csrf_token:
+                raise SpiderException("未获取到登录验证令牌")
+        finally:
+            page.close()
 
-        response = session.get(login_url)
-        html = etree.HTML(response.content)
+        image = session.get(
+            urljoin(self.host, "/rucaptcha/"),
+            params={"t": time.time_ns() // 1_000_000},
+            _persist_cloudflare_solution=False,
+        )
+        try:
+            image.raise_for_status()
+            mime = image.headers.get("Content-Type", "").partition(";")[0].strip().lower()
+            if mime not in {"image/gif", "image/png", "image/jpeg"} or not image.content:
+                raise SpiderException("登录验证码图片无效")
+            captcha_base64 = base64.b64encode(image.content).decode()
+        finally:
+            image.close()
 
-        authenticity_token = self._first_text(
-            html,
-            "//form[@action='/user_sessions']/input[@name='authenticity_token']/@value",
-        ) or ""
-
-        captcha_img = self._first_text(html, "//img[@class='rucaptcha-image']/@src")
-        captcha_base64 = ""
-        if captcha_img:
-            img_response = session.get(urljoin(self.host, captcha_img))
-            if img_response.ok:
-                captcha_base64 = base64.b64encode(img_response.content).decode()
-
-        cookie_str = to_cookie_header(cookiejar_to_cookies(session.cookies))
+        cookies = to_cookie_header(cookiejar_to_cookies(session.cookies.jar))
+        if not cookies:
+            raise SpiderException("未获取到登录会话")
 
         return {
-            "cookies": cookie_str,
-            "authenticity_token": authenticity_token,
-            "captcha": captcha_base64
+            "cookies": cookies,
+            "authenticity_token": csrf_token,
+            "captcha": captcha_base64,
+            "captcha_mime": mime,
         }
 
     def submit_login(self, cookies: str, authenticity_token: str,
@@ -104,23 +115,75 @@ class JavDBSpider(Spider):
 
         apply_cookie_header_to_jar(cookies, session.cookies)
 
-        login_url = urljoin(self.host, "/user_sessions")
+        login_url = urljoin(self.host, "/auth/signin")
+        origin = urlsplit(login_url)
 
         data = {
-            "authenticity_token": authenticity_token,
             "email": username,
             "password": password,
             "_rucaptcha": captcha,
             "remember": "1",
-            "commit": "登入"
         }
 
-        response = session.post(login_url, data=data, allow_redirects=False)
+        form = CurlMime()
+        try:
+            response = session.post(
+                login_url,
+                data=data,
+                multipart=form,
+                headers={
+                    "Accept": "application/json",
+                    "Origin": f"{origin.scheme}://{origin.netloc}",
+                    "X-Csrf-Token": authenticity_token,
+                },
+                allow_redirects=False,
+            )
+        finally:
+            form.close()
 
-        if response.status_code == 302 and '/login' not in response.headers["Location"]:
-            return cookies_to_cookiecloud_items(cookiejar_to_cookies(session.cookies))
+        try:
+            try:
+                result = response.json()
+            except ValueError:
+                result = None
 
-        raise BizException("登录失败，请检查账号密码或验证码", error_code=ErrorCode.SITE_LOGIN_FAILED)
+            if isinstance(result, dict):
+                if response.status_code == 200 and result.get("ok") is True:
+                    # The jar also retains the unscoped copies restored from the request.
+                    cookies = [cookie for cookie in cookiejar_to_cookies(session.cookies.jar) if cookie.domain]
+                    if cookies:
+                        return cookies_to_cookiecloud_items(cookies)
+
+                if result.get("ok") is not True:
+                    error_message = self._login_error_message(result)
+                    if error_message:
+                        raise BizException(error_message, error_code=ErrorCode.SITE_LOGIN_REJECTED)
+        finally:
+            response.close()
+
+        raise BizException(
+            "登录失败",
+            error_code=ErrorCode.SITE_LOGIN_FAILED,
+            error_params={"site_name": self.name},
+        )
+
+    @staticmethod
+    def _login_error_message(result: dict[str, Any]) -> str:
+        errors = result.get("errors")
+        fields = errors.values() if isinstance(errors, dict) else [errors]
+        messages = []
+        for field in fields:
+            for value in field if isinstance(field, list) else [field]:
+                if isinstance(value, str) and value.strip():
+                    messages.append(value)
+        if messages:
+            return "\n".join(dict.fromkeys(messages))
+
+        for key in ("message", "error"):
+            value = result.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+        return ""
 
     def get_info(self, num: str, url: str | None = None, include_downloads=False, include_previews=False,
                  include_comments=False):
@@ -227,7 +290,7 @@ class JavDBSpider(Spider):
     def get_previews(self, html: etree.HTML):
         result = []
 
-        video = self._first_element(html, "//video[@id='preview-video']")
+        video = self._first_element(html, "//div[@id='preview-video-box']/video")
         if video is not None and video.get('data-url'):
             preview_url = urljoin(self.host, video.get('data-url'))
             response = self.session.get(preview_url)

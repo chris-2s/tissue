@@ -134,15 +134,18 @@ class SiteService(BaseService):
             )
         except NotImplementedError:
             raise BizException("当前站点不支持登录", error_code=ErrorCode.SITE_LOGIN_UNSUPPORTED)
+        except BizException:
+            raise
         except Exception:
             raise BizException(
                 "登录失败",
                 error_code=ErrorCode.SITE_LOGIN_FAILED,
                 error_params={'site_name': spider.name},
             )
+        finally:
+            spider.close()
 
-        cookie_str = to_cookie_header(cookiecloud_items_to_cookies(cookie_list))
-        site.cookies = cookie_str
+        site.cookies = to_cookie_header(cookiecloud_items_to_cookies(cookie_list))
         self.db.commit()
 
         try:
@@ -150,8 +153,6 @@ class SiteService(BaseService):
             SiteCookieService().push_cookie(cookie_list, domain)
         except Exception:
             pass
-        finally:
-            spider.close()
 
     @classmethod
     def job_testing_sites(cls):

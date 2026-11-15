@@ -34,7 +34,7 @@ function LoginModal(props: LoginModalProps) {
                 cookies: response.cookies,
                 authenticity_token: response.authenticity_token
             })
-            setCaptchaImg(`data:image/png;base64,${response.captcha}`)
+            setCaptchaImg(`data:${response.captcha_mime ?? 'image/png'};base64,${response.captcha}`)
         },
         onError: () => {
             onClose()
@@ -49,7 +49,7 @@ function LoginModal(props: LoginModalProps) {
             handleClose()
         },
         onError: () => {
-            getLoginPage(siteId)
+            refreshCaptcha()
         }
     })
 
@@ -67,6 +67,9 @@ function LoginModal(props: LoginModalProps) {
     }
 
     const handleFinish = (values: LoginFormValues) => {
+        if (gettingLogin || logging) {
+            return
+        }
         if (!loginData) {
             message.error(t('site:modals.loginExpired'))
             return
@@ -81,6 +84,9 @@ function LoginModal(props: LoginModalProps) {
     }
 
     const refreshCaptcha = () => {
+        setLoginData(null)
+        setCaptchaImg('')
+        form.resetFields(['captcha'])
         getLoginPage(siteId)
     }
 
@@ -100,7 +106,7 @@ function LoginModal(props: LoginModalProps) {
                         ) : (
                             <div style={{height: 40, width: 100, background: '#f0f0f0'}} />
                         )}
-                        <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin}>{t('site:modals.refreshCaptcha')}</Button>
+                        <Button size={'small'} onClick={refreshCaptcha} loading={gettingLogin} disabled={logging}>{t('site:modals.refreshCaptcha')}</Button>
                     </Space>
                 </Form.Item>
                 <Form.Item name={'username'} label={t('site:modals.username')} rules={[{required: true}]}>
@@ -114,7 +120,7 @@ function LoginModal(props: LoginModalProps) {
                 </Form.Item>
                 <div style={{textAlign: 'center'}}>
                     <Button onClick={handleClose} style={{marginRight: 8}}>{t('common:actions.cancel')}</Button>
-                    <Button type={'primary'} htmlType={'submit'} loading={logging}>{t('site:capabilities.login')}</Button>
+                    <Button type={'primary'} htmlType={'submit'} loading={logging} disabled={!loginData || gettingLogin}>{t('site:capabilities.login')}</Button>
                 </div>
             </Form>
         </Modal>
